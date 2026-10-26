@@ -57,6 +57,8 @@ check('Un paciente puede cambiar su nombre', !(await as(p1, `update profiles set
 check('Un paciente no puede asignar plantillas', !!(await as(p1, `select assign_template(${tpl}, '${p1}', current_date)`)).error);
 check('Un paciente no ve las notas privadas del coach', (await as(p1, 'select count(*)::int n from coach_notes')).rows[0].n === 0);
 check('Un paciente ve los cinco pilares', (await as(p1, 'select count(*)::int n from pillars')).rows[0].n === 5);
+check('Los cinco pilares tienen su frase', (await as(p1, 'select count(*)::int n from pillars where description is not null')).rows[0].n === 5);
+check('Un paciente no puede cambiar la frase de un pilar', !(await as(p1, "update pillars set description = 'x' where slug = 'movimiento-inteligente' returning id")).rows?.length);
 check('Sin el módulo activo, no se puede registrar sueño', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date, 4)`)).error);
 
 console.log(fails ? `\n${fails} prueba(s) fallidas` : '\nTodas las pruebas superadas');

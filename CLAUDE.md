@@ -12,11 +12,15 @@ No es una app genérica de bienestar. Refleja el método de Rubén: ir a la caus
 
 ### Los cinco pilares (estructura de toda la plataforma)
 
-1. Alimentación consciente
-2. Movimiento inteligente
-3. Ritmos circadianos
-4. Regulación emocional
-5. Contacto con la naturaleza
+| Pilar | Frase que ve el paciente |
+|---|---|
+| 1. Alimentación consciente | Qué comes importa. Cuándo y cómo lo comes, también. |
+| 2. Movimiento inteligente | No se trata de entrenar más, sino de entrenar con sentido. |
+| 3. Ritmos circadianos | Tu biología funciona por horarios. Respetarlos ordena todo lo demás. |
+| 4. Regulación emocional | Tu sistema nervioso necesita calma para poder reparar. |
+| 5. Contacto con la naturaleza | Sol, tierra y aire libre: los estímulos con los que evolucionó tu cuerpo. |
+
+Las frases están en `pillars.description` (migración 0003). Se muestran bajo el nombre del pilar en "Hoy", en las tarjetas y en Documentos.
 
 Todo hábito, cuestionario, contenido y módulo pertenece a un pilar. La navegación y el panel del coach se organizan por pilares. El entrenamiento es el primer módulo de Movimiento inteligente.
 
@@ -56,17 +60,45 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 
 | Módulo | Qué hace | Fase |
 |---|---|---|
-| Entrenamiento (Movimiento inteligente) | Biblioteca, plantillas, calendario, registro de series | 1 |
+| Entrenamiento (Movimiento inteligente) | Biblioteca, plantillas, programas de varias semanas, calendario, registro de series, nota por ejercicio | 1 |
+| Mensajes | Conversación coach-paciente con aviso de mensaje nuevo | 1 |
+| Seguimiento | Mi progreso (gráficas), medidas opcionales, resumen mensual para la revisión | 1 |
+| Documentos | PDFs que el coach comparte con el paciente, por pilar | 1 |
+| Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
 | Ritmos circadianos | Sueño, luz, horarios de comida, anclas del día | 2 |
 | Hábitos | Protocolos diarios por pilar asignados por el coach | 2 |
-| Mensajes | Chat coach-paciente | 2 |
 | Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
 | Respiración y regulación | Ejercicios guiados con temporizador | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
 | Wearables | Datos de sueño y actividad (Apple Health requiere app nativa vía Capacitor) | 5 |
 
-Nutrición queda fuera por ahora. Los planes de alimentación siguen como documentos.
+Nutrición queda fuera por ahora. Los planes de alimentación se comparten como PDF en Documentos.
+
+### Alcance de la Fase 1 (decidido el 26 oct 2026)
+
+Todo esto debe funcionar antes de dejar Harbiz. El prototipo aprobado de cada pantalla está en el lienzo de diseño "Prototipo App Vitaltrain" (16 pantallas).
+
+Paciente (móvil, menú de 5 pestañas: Hoy, Semana, Progreso, Mensajes, Perfil):
+1. Acceso con código de 6 dígitos.
+2. Hoy: entrenamiento del día, mensaje del coach, semana resumida, pilares (los no activos en gris).
+3. Entrenamiento en curso: vídeo, series con carga y repeticiones precargadas, temporizador de descanso, modo sin conexión.
+4. Nota por ejercicio y botón "No puedo hacerlo" con motivo (dolor o molestia, sin material, no sé hacerlo, otro).
+5. Final: esfuerzo 1-10, sensaciones, notas.
+6. Mi semana.
+7. Mi progreso: entrenamientos por semana, carga por ejercicio, esfuerzo medio.
+8. Mensajes con el coach. Aviso de mensaje nuevo (push; email si no hay push).
+9. Perfil: recordatorio de entrenamiento con hora, avisos de mensajes, privacidad (consentimiento, qué datos se guardan, descargar mis datos, retirar consentimiento), cerrar sesión.
+10. Mis documentos (PDF por pilar).
+11. Mis medidas: peso, cintura, cadera. Opcional, sin fotos.
+
+Coach (ordenador):
+12. Panel: adherencia semanal, pacientes sin entrenar, notas y mensajes sin leer.
+13. Ficha del paciente: calendario semanal, copiar semana anterior, notas del paciente, progresión, notas privadas.
+14. Constructor de entrenamientos por bloques.
+15. Programas de 1 a 12 semanas, con una regla de progresión por semana; al asignar se crean las sesiones en el calendario del paciente. En un programa en curso, "Cambiar desde una semana": se elige la semana (la actual o cualquier futura), se borran solo las sesiones pendientes desde ese lunes y se asigna en su lugar otro programa o semanas nuevas. Las sesiones hechas, en curso o con registros nunca se borran.
+16. Mensajes: bandeja por paciente con contexto y respuestas rápidas.
+17. Resumen mensual por paciente: adherencia, esfuerzo, cargas, medidas, notas; conclusiones del coach; PDF y compartir con el paciente.
 
 ## 4. Módulo de ritmos circadianos (detalle)
 
@@ -97,6 +129,7 @@ Nutrición queda fuera por ahora. Los planes de alimentación siguen como docume
 | Email | Mailgun como SMTP propio de Supabase. Dominio vitaltrain.com, ya en la región UE (smtp.eu.mailgun.org). Remitente propio para la app: acceso@vitaltrain.com |
 | Calidad | Pruebas de seguridad de datos (RLS) y de pantallas en GitHub Actions. Un cambio no se publica si fallan |
 | Vídeos | YouTube (canal no monetizado: sin anuncios), embed `youtube-nocookie.com` con rel=0. Bunny Stream opcional más adelante. Campo `video_provider` |
+| Formato de vídeo | Los ejercicios son YouTube Shorts verticales (9:16), de 15-60 s. En el entrenamiento se muestra una miniatura y al tocarla se abre a pantalla completa en vertical. La importación acepta enlaces `youtube.com/shorts/<id>` y `youtu.be/<id>` |
 | Cobro | WooCommerce en vitaltrain.com. La app no cobra. Webhook activa o pausa el acceso |
 | Idioma | Solo español |
 | Coaches | Uno (Rubén). El rol `coach` existe por si hay más en el futuro |
@@ -124,6 +157,18 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `habit_definitions`, `patient_habits`, `habit_logs`.
   - `sleep_logs`, `meal_events`.
   - `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`.
+
+- `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
+- Pendiente, migración `0004` (Fase 1 ampliada), a diseñar al construir cada pantalla:
+  - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
+  - `programs` (duración 1-12 semanas), `program_weeks` (número, regla de progresión) y `program_slots` (semana, día, plantilla): programas de varias semanas.
+  - `program_assignments` (paciente, programa, fecha de inicio, estado, semana en que se sustituyó, asignación que la sustituye). Asignar crea `workouts` como copia, igual que una plantilla, enlazados a la asignación y con su número de semana.
+  - Función `replace_program_from_week(asignación, semana, nuevo programa o null)`: borra los `workouts` de esa asignación desde el lunes de esa semana que estén en estado `scheduled` y sin `set_logs`, cierra la asignación y crea la nueva. Solo el coach puede llamarla. Con pruebas de que nunca borra sesiones hechas ni registros.
+  - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
+  - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
+  - `consents`: versión del texto, aceptado, retirado.
+  - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
+  - `patient_settings`: añadir hora del recordatorio y avisos activos.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -153,15 +198,17 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 ## 10. Estado actual
 
 - [x] Especificación y modelo de datos del núcleo, entrenamiento, circadiano, hábitos y cuestionarios (oct 2026)
-- [x] Pilares confirmados (oct 2026). Pendiente: una frase descriptiva de cada uno
+- [x] Pilares y su frase confirmados (26 oct 2026)
 - [x] Auditoría de la propuesta (26 oct 2026): Cloudflare + React en vez de Vercel + Next.js, login por código, dos entornos, prototipo antes de código
 - [x] Cuentas: GitHub, Supabase `vitaltrain-dev` (Frankfurt), Cloudflare, Mailgun en región UE (26 oct 2026)
 - [x] Repositorio `rubenubedavitaltrain/vitaltrain-app` creado y app de Claude instalada (26 oct 2026)
 - [ ] Subdominio app.vitaltrain.com (etapa 5)
-- [ ] Prototipo navegable de las pantallas clave aprobado
+- [x] Prototipo v1 (8 pantallas) revisado por Rubén (26 oct 2026)
+- [x] Alcance de la Fase 1 ampliado a 17 funciones (26 oct 2026)
+- [ ] Prototipo v2 (16 pantallas) aprobado
 - [ ] Proyecto React creado y desplegado en Cloudflare Pages
 - [ ] Login con código de 6 dígitos (Mailgun como SMTP)
-- [ ] Fase 1: biblioteca + importación de vídeos de YouTube, plantillas, calendario, vista paciente, registro de series
+- [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
-- [ ] Fase 2: circadiano, hábitos, mensajes
+- [ ] Fase 2: circadiano y hábitos
