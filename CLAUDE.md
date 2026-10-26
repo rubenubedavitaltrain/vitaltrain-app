@@ -216,7 +216,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Prototipo v2 (16 pantallas) aprobado (26 oct 2026)
 - [x] Tarea 1: proyecto React + PWA creado, con iconos, cabeceras de seguridad y compilación comprobada en cada cambio (26 oct 2026)
 - [x] Identidad visual de la app decidida: opción A (26 oct 2026)
-- [ ] Conectar Cloudflare Pages al repositorio (lo hace Rubén)
+- [x] Cloudflare Pages conectado: https://vitaltrain-app.pages.dev se publica solo con cada cambio en main (26 oct 2026)
 - [ ] Login con código de 6 dígitos (Mailgun como SMTP)
 - [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes
