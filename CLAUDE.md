@@ -125,6 +125,7 @@ Coach (ordenador):
 | Email | Mailgun como SMTP propio de Supabase. Dominio vitaltrain.com, ya en la región UE (smtp.eu.mailgun.org). Remitente propio para la app: acceso@vitaltrain.com |
 | Calidad | Pruebas de seguridad de datos (RLS) y de pantallas en GitHub Actions. Un cambio no se publica si fallan |
 | Vídeos | YouTube (canal no monetizado: sin anuncios), embed `youtube-nocookie.com` con rel=0. Bunny Stream opcional más adelante. Campo `video_provider` |
+| Formato de vídeo | Los ejercicios son YouTube Shorts verticales (9:16), de 15-60 s. En el entrenamiento se muestra una miniatura y al tocarla se abre a pantalla completa en vertical. La importación acepta enlaces `youtube.com/shorts/<id>` y `youtu.be/<id>` |
 | Cobro | WooCommerce en vitaltrain.com. La app no cobra. Webhook activa o pausa el acceso |
 | Idioma | Solo español |
 | Coaches | Uno (Rubén). El rol `coach` existe por si hay más en el futuro |

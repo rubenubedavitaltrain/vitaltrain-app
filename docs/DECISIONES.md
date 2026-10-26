@@ -18,3 +18,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-10-26 | Baja de Harbiz al terminar la migración, sin fecha de renovación que vigilar | Harbiz se paga mensualmente |
 | 2026-10-26 | Mensajes, progreso, nota por ejercicio, recordatorios, perfil con consentimiento, programas, documentos, medidas y resumen mensual pasan a la Fase 1 | La web promete comunicación directa y evolución; sin ellas la app sería un paso atrás frente a Harbiz. Retrasa la baja de Harbiz a finales de febrero de 2027 |
 | 2026-10-26 | Medidas sin fotos | Las fotos corporales son datos muy sensibles y complican la parte legal |
+| 2026-10-26 | Vídeo del ejercicio en vertical a pantalla completa al tocar la miniatura | Los vídeos de Rubén son YouTube Shorts verticales; incrustarlos en una caja horizontal los vería diminutos |
