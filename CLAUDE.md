@@ -96,7 +96,7 @@ Coach (ordenador):
 12. Panel: adherencia semanal, pacientes sin entrenar, notas y mensajes sin leer.
 13. Ficha del paciente: calendario semanal, copiar semana anterior, notas del paciente, progresión, notas privadas.
 14. Constructor de entrenamientos por bloques.
-15. Programas de varias semanas con una regla de progresión por semana; al asignar se crean las sesiones en el calendario del paciente.
+15. Programas de 1 a 12 semanas, con una regla de progresión por semana; al asignar se crean las sesiones en el calendario del paciente. En un programa en curso, "Cambiar desde una semana": se elige la semana (la actual o cualquier futura), se borran solo las sesiones pendientes desde ese lunes y se asigna en su lugar otro programa o semanas nuevas. Las sesiones hechas, en curso o con registros nunca se borran.
 16. Mensajes: bandeja por paciente con contexto y respuestas rápidas.
 17. Resumen mensual por paciente: adherencia, esfuerzo, cargas, medidas, notas; conclusiones del coach; PDF y compartir con el paciente.
 
@@ -161,7 +161,9 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
 - Pendiente, migración `0004` (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
-  - `programs`, `program_slots` (semana, día, plantilla, regla de la semana): programas de varias semanas. Asignar uno crea `workouts` como copia, igual que una plantilla.
+  - `programs` (duración 1-12 semanas), `program_weeks` (número, regla de progresión) y `program_slots` (semana, día, plantilla): programas de varias semanas.
+  - `program_assignments` (paciente, programa, fecha de inicio, estado, semana en que se sustituyó, asignación que la sustituye). Asignar crea `workouts` como copia, igual que una plantilla, enlazados a la asignación y con su número de semana.
+  - Función `replace_program_from_week(asignación, semana, nuevo programa o null)`: borra los `workouts` de esa asignación desde el lunes de esa semana que estén en estado `scheduled` y sin `set_logs`, cierra la asignación y crea la nueva. Solo el coach puede llamarla. Con pruebas de que nunca borra sesiones hechas ni registros.
   - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
   - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
   - `consents`: versión del texto, aceptado, retirado.

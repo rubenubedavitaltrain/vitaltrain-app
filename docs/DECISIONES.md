@@ -20,3 +20,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-10-26 | Medidas sin fotos | Las fotos corporales son datos muy sensibles y complican la parte legal |
 | 2026-10-26 | Vídeo del ejercicio en vertical a pantalla completa al tocar la miniatura | Los vídeos de Rubén son YouTube Shorts verticales; incrustarlos en una caja horizontal los vería diminutos |
 | 2026-10-26 | Frases de los cinco pilares (ver CLAUDE.md, sección 1) | Explican el porqué de cada pilar en una línea, con el enfoque de ir a la causa |
+| 2026-10-26 | Programas de 1 a 12 semanas, con "Cambiar desde una semana" que borra solo las sesiones pendientes y asigna otro programa | Rubén necesita corregir programas largos a mitad de camino sin perder el historial del paciente |
