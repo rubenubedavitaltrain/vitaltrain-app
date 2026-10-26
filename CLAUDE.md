@@ -56,17 +56,45 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 
 | Módulo | Qué hace | Fase |
 |---|---|---|
-| Entrenamiento (Movimiento inteligente) | Biblioteca, plantillas, calendario, registro de series | 1 |
+| Entrenamiento (Movimiento inteligente) | Biblioteca, plantillas, programas de varias semanas, calendario, registro de series, nota por ejercicio | 1 |
+| Mensajes | Conversación coach-paciente con aviso de mensaje nuevo | 1 |
+| Seguimiento | Mi progreso (gráficas), medidas opcionales, resumen mensual para la revisión | 1 |
+| Documentos | PDFs que el coach comparte con el paciente, por pilar | 1 |
+| Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
 | Ritmos circadianos | Sueño, luz, horarios de comida, anclas del día | 2 |
 | Hábitos | Protocolos diarios por pilar asignados por el coach | 2 |
-| Mensajes | Chat coach-paciente | 2 |
 | Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
 | Respiración y regulación | Ejercicios guiados con temporizador | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
 | Wearables | Datos de sueño y actividad (Apple Health requiere app nativa vía Capacitor) | 5 |
 
-Nutrición queda fuera por ahora. Los planes de alimentación siguen como documentos.
+Nutrición queda fuera por ahora. Los planes de alimentación se comparten como PDF en Documentos.
+
+### Alcance de la Fase 1 (decidido el 26 oct 2026)
+
+Todo esto debe funcionar antes de dejar Harbiz. El prototipo aprobado de cada pantalla está en el lienzo de diseño "Prototipo App Vitaltrain" (16 pantallas).
+
+Paciente (móvil, menú de 5 pestañas: Hoy, Semana, Progreso, Mensajes, Perfil):
+1. Acceso con código de 6 dígitos.
+2. Hoy: entrenamiento del día, mensaje del coach, semana resumida, pilares (los no activos en gris).
+3. Entrenamiento en curso: vídeo, series con carga y repeticiones precargadas, temporizador de descanso, modo sin conexión.
+4. Nota por ejercicio y botón "No puedo hacerlo" con motivo (dolor o molestia, sin material, no sé hacerlo, otro).
+5. Final: esfuerzo 1-10, sensaciones, notas.
+6. Mi semana.
+7. Mi progreso: entrenamientos por semana, carga por ejercicio, esfuerzo medio.
+8. Mensajes con el coach. Aviso de mensaje nuevo (push; email si no hay push).
+9. Perfil: recordatorio de entrenamiento con hora, avisos de mensajes, privacidad (consentimiento, qué datos se guardan, descargar mis datos, retirar consentimiento), cerrar sesión.
+10. Mis documentos (PDF por pilar).
+11. Mis medidas: peso, cintura, cadera. Opcional, sin fotos.
+
+Coach (ordenador):
+12. Panel: adherencia semanal, pacientes sin entrenar, notas y mensajes sin leer.
+13. Ficha del paciente: calendario semanal, copiar semana anterior, notas del paciente, progresión, notas privadas.
+14. Constructor de entrenamientos por bloques.
+15. Programas de varias semanas con una regla de progresión por semana; al asignar se crean las sesiones en el calendario del paciente.
+16. Mensajes: bandeja por paciente con contexto y respuestas rápidas.
+17. Resumen mensual por paciente: adherencia, esfuerzo, cargas, medidas, notas; conclusiones del coach; PDF y compartir con el paciente.
 
 ## 4. Módulo de ritmos circadianos (detalle)
 
@@ -125,6 +153,15 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `sleep_logs`, `meal_events`.
   - `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`.
 
+- Pendiente, migración `0003` (Fase 1 ampliada), a diseñar al construir cada pantalla:
+  - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
+  - `programs`, `program_slots` (semana, día, plantilla, regla de la semana): programas de varias semanas. Asignar uno crea `workouts` como copia, igual que una plantilla.
+  - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
+  - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
+  - `consents`: versión del texto, aceptado, retirado.
+  - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
+  - `patient_settings`: añadir hora del recordatorio y avisos activos.
+
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
 Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones en un Postgres embebido y comprueba los permisos. Se ejecuta en GitHub Actions en cada cambio (`.github/workflows/seguridad-datos.yml`). Cada tabla o regla nueva añade sus pruebas ahí.
@@ -158,10 +195,12 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Cuentas: GitHub, Supabase `vitaltrain-dev` (Frankfurt), Cloudflare, Mailgun en región UE (26 oct 2026)
 - [x] Repositorio `rubenubedavitaltrain/vitaltrain-app` creado y app de Claude instalada (26 oct 2026)
 - [ ] Subdominio app.vitaltrain.com (etapa 5)
-- [ ] Prototipo navegable de las pantallas clave aprobado
+- [x] Prototipo v1 (8 pantallas) revisado por Rubén (26 oct 2026)
+- [x] Alcance de la Fase 1 ampliado a 17 funciones (26 oct 2026)
+- [ ] Prototipo v2 (16 pantallas) aprobado
 - [ ] Proyecto React creado y desplegado en Cloudflare Pages
 - [ ] Login con código de 6 dígitos (Mailgun como SMTP)
-- [ ] Fase 1: biblioteca + importación de vídeos de YouTube, plantillas, calendario, vista paciente, registro de series
+- [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
-- [ ] Fase 2: circadiano, hábitos, mensajes
+- [ ] Fase 2: circadiano y hábitos
