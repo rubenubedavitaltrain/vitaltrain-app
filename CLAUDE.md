@@ -136,11 +136,16 @@ Coach (ordenador):
 
 ## 6. Identidad visual y tono
 
-- Mostaza `#DBB732` (acento, botones principales)
-- Verde petróleo oscuro `#384848` (cabeceras, navegación)
-- Gris claro `#ECECEC` (fondos)
-- Gris texto `#333333`
-- Gris medio `#A8A8A8` (secundario, bordes)
+Decidido el 26 oct 2026 (opción A): **nombre y símbolo de Vitaltrain, paleta y tipografía de la marca Rubén Úbeda** (manual de Creactivity Lab, 2025).
+
+- Verde petróleo `#374949` (cabeceras, navegación, fondo del icono)
+- Mostaza `#DCB733` (acento, botones principales, símbolo en el icono)
+- Gris oscuro `#4A4A4C` (texto)
+- Gris claro `#D2D6D4` (separadores, fondos secundarios)
+- Fondo general `#ECECEC`; texto secundario `#5A6464` (contraste 4.5:1 sobre blanco)
+- Tipografía: Montserrat (400, 500, 600, 700), servida desde la propia app con `@fontsource/montserrat`
+- Logos en `public/marca/`: símbolo de Vitaltrain en mostaza y logotipo en blanco y en petróleo, sacados de los originales de Rubén
+- No usar el azul marino ni el coral del manual antiguo de Vitaltrain. No usar la R de Rubén Úbeda en la app
 
 Textos de la app: claros, directos, frases cortas, sin emojis ni lenguaje de marketing. Cada hábito explica su porqué en una o dos frases.
 Diseño primero para móvil: botones grandes, poco texto, registro rápido.
@@ -210,6 +215,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Alcance de la Fase 1 ampliado a 17 funciones (26 oct 2026)
 - [x] Prototipo v2 (16 pantallas) aprobado (26 oct 2026)
 - [x] Tarea 1: proyecto React + PWA creado, con iconos, cabeceras de seguridad y compilación comprobada en cada cambio (26 oct 2026)
+- [x] Identidad visual de la app decidida: opción A (26 oct 2026)
 - [ ] Conectar Cloudflare Pages al repositorio (lo hace Rubén)
 - [ ] Login con código de 6 dígitos (Mailgun como SMTP)
 - [ ] Fase 1: las 17 funciones de la sección 3

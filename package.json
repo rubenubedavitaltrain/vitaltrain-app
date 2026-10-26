@@ -10,7 +10,7 @@
     "test:rls": "node supabase/tests/rls.test.mjs"
   },
   "dependencies": {
-    "@fontsource/figtree": "5.3.0",
+    "@fontsource/montserrat": "5.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

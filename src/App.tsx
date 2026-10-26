@@ -23,7 +23,7 @@ export default function App() {
   return (
     <div className="min-h-full flex flex-col">
       <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),3rem)] pb-8">
-        <p className="text-[15px] font-bold tracking-[3px]">VITALTRAIN</p>
+        <img src="/marca/logotipo-blanco.png" alt="Vitaltrain · Health balance, training, nutrition" className="h-20 w-auto" />
         <h1 className="mt-3 text-3xl font-bold leading-tight">Tu app está en camino</h1>
         <p className="mt-2 text-base text-[#E3E8E8]">Estamos construyendo el espacio donde seguirás tu plan con Rubén.</p>
       </header>
