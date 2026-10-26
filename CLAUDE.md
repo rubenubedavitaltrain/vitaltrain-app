@@ -136,11 +136,16 @@ Coach (ordenador):
 
 ## 6. Identidad visual y tono
 
-- Mostaza `#DBB732` (acento, botones principales)
-- Verde petróleo oscuro `#384848` (cabeceras, navegación)
-- Gris claro `#ECECEC` (fondos)
-- Gris texto `#333333`
-- Gris medio `#A8A8A8` (secundario, bordes)
+Decidido el 26 oct 2026 (opción A): **nombre y símbolo de Vitaltrain, paleta y tipografía de la marca Rubén Úbeda** (manual de Creactivity Lab, 2025).
+
+- Verde petróleo `#374949` (cabeceras, navegación, fondo del icono)
+- Mostaza `#DCB733` (acento, botones principales, símbolo en el icono)
+- Gris oscuro `#4A4A4C` (texto)
+- Gris claro `#D2D6D4` (separadores, fondos secundarios)
+- Fondo general `#ECECEC`; texto secundario `#5A6464` (contraste 4.5:1 sobre blanco)
+- Tipografía: Figtree (400, 500, 600, 700), servida desde la propia app con `@fontsource/figtree`. Rubén la prefiere a la Montserrat del manual (26 oct 2026)
+- Logos en `public/marca/`: símbolo de Vitaltrain en mostaza y logotipo en blanco y en petróleo, sacados de los originales de Rubén
+- No usar el azul marino ni el coral del manual antiguo de Vitaltrain. No usar la R de Rubén Úbeda en la app
 
 Textos de la app: claros, directos, frases cortas, sin emojis ni lenguaje de marketing. Cada hábito explica su porqué en una o dos frases.
 Diseño primero para móvil: botones grandes, poco texto, registro rápido.
@@ -184,6 +189,9 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 
 ## 9. Reglas de trabajo para Claude Code
 
+- Comandos: `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad.
+- Versiones de dependencias fijadas, con al menos dos semanas desde su publicación.
+
 - Tareas pequeñas y comprobables. Cada una termina con algo que Rubén pueda probar en el móvil.
 - Explicar los cambios en lenguaje llano: Rubén no es programador.
 - Justificar cada dependencia nueva antes de instalarla.
@@ -205,8 +213,10 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Subdominio app.vitaltrain.com (etapa 5)
 - [x] Prototipo v1 (8 pantallas) revisado por Rubén (26 oct 2026)
 - [x] Alcance de la Fase 1 ampliado a 17 funciones (26 oct 2026)
-- [ ] Prototipo v2 (16 pantallas) aprobado
-- [ ] Proyecto React creado y desplegado en Cloudflare Pages
+- [x] Prototipo v2 (16 pantallas) aprobado (26 oct 2026)
+- [x] Tarea 1: proyecto React + PWA creado, con iconos, cabeceras de seguridad y compilación comprobada en cada cambio (26 oct 2026)
+- [x] Identidad visual de la app decidida: opción A (26 oct 2026)
+- [ ] Conectar Cloudflare Pages al repositorio (lo hace Rubén)
 - [ ] Login con código de 6 dígitos (Mailgun como SMTP)
 - [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes

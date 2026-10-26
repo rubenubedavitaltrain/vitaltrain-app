@@ -1,6 +1,6 @@
 // Pruebas de seguridad de datos.
 // Ejecuta las migraciones en un Postgres embebido (PGlite) y comprueba que cada paciente solo ve y cambia lo suyo.
-// Uso: npm i --no-save @electric-sql/pglite@0.2.17 && node supabase/tests/rls.test.mjs
+// Uso: npm ci && npm run test:rls
 import { PGlite } from '@electric-sql/pglite';
 import fs from 'fs';
 
