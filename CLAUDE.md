@@ -12,11 +12,15 @@ No es una app genérica de bienestar. Refleja el método de Rubén: ir a la caus
 
 ### Los cinco pilares (estructura de toda la plataforma)
 
-1. Alimentación consciente
-2. Movimiento inteligente
-3. Ritmos circadianos
-4. Regulación emocional
-5. Contacto con la naturaleza
+| Pilar | Frase que ve el paciente |
+|---|---|
+| 1. Alimentación consciente | Qué comes importa. Cuándo y cómo lo comes, también. |
+| 2. Movimiento inteligente | No se trata de entrenar más, sino de entrenar con sentido. |
+| 3. Ritmos circadianos | Tu biología funciona por horarios. Respetarlos ordena todo lo demás. |
+| 4. Regulación emocional | Tu sistema nervioso necesita calma para poder reparar. |
+| 5. Contacto con la naturaleza | Sol, tierra y aire libre: los estímulos con los que evolucionó tu cuerpo. |
+
+Las frases están en `pillars.description` (migración 0003). Se muestran bajo el nombre del pilar en "Hoy", en las tarjetas y en Documentos.
 
 Todo hábito, cuestionario, contenido y módulo pertenece a un pilar. La navegación y el panel del coach se organizan por pilares. El entrenamiento es el primer módulo de Movimiento inteligente.
 
@@ -154,7 +158,8 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `sleep_logs`, `meal_events`.
   - `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`.
 
-- Pendiente, migración `0003` (Fase 1 ampliada), a diseñar al construir cada pantalla:
+- `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
+- Pendiente, migración `0004` (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
   - `programs`, `program_slots` (semana, día, plantilla, regla de la semana): programas de varias semanas. Asignar uno crea `workouts` como copia, igual que una plantilla.
   - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
@@ -191,7 +196,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 ## 10. Estado actual
 
 - [x] Especificación y modelo de datos del núcleo, entrenamiento, circadiano, hábitos y cuestionarios (oct 2026)
-- [x] Pilares confirmados (oct 2026). Pendiente: una frase descriptiva de cada uno
+- [x] Pilares y su frase confirmados (26 oct 2026)
 - [x] Auditoría de la propuesta (26 oct 2026): Cloudflare + React en vez de Vercel + Next.js, login por código, dos entornos, prototipo antes de código
 - [x] Cuentas: GitHub, Supabase `vitaltrain-dev` (Frankfurt), Cloudflare, Mailgun en región UE (26 oct 2026)
 - [x] Repositorio `rubenubedavitaltrain/vitaltrain-app` creado y app de Claude instalada (26 oct 2026)
