@@ -143,7 +143,7 @@ Decidido el 26 oct 2026 (opción A): **nombre y símbolo de Vitaltrain, paleta y
 - Gris oscuro `#4A4A4C` (texto)
 - Gris claro `#D2D6D4` (separadores, fondos secundarios)
 - Fondo general `#ECECEC`; texto secundario `#5A6464` (contraste 4.5:1 sobre blanco)
-- Tipografía: Montserrat (400, 500, 600, 700), servida desde la propia app con `@fontsource/montserrat`
+- Tipografía: Figtree (400, 500, 600, 700), servida desde la propia app con `@fontsource/figtree`. Rubén la prefiere a la Montserrat del manual (26 oct 2026)
 - Logos en `public/marca/`: símbolo de Vitaltrain en mostaza y logotipo en blanco y en petróleo, sacados de los originales de Rubén
 - No usar el azul marino ni el coral del manual antiguo de Vitaltrain. No usar la R de Rubén Úbeda en la app
 

@@ -4,7 +4,7 @@ Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito pa
 
 ## 2026-10-26 · Tarea 1
 - Primera versión de la app: una pantalla de bienvenida con los cinco pilares y las instrucciones para instalarla en el móvil.
-- Icono con el símbolo de Vitaltrain en mostaza sobre verde petróleo, logotipo de Vitaltrain en la cabecera y tipografía Montserrat.
+- Icono con el símbolo de Vitaltrain en mostaza sobre verde petróleo, logotipo de Vitaltrain en la cabecera y tipografía Figtree.
 - Cómo probarlo: abre el enlace de prueba en el móvil y añádelo a la pantalla de inicio. Debe abrirse como una app, sin la barra del navegador.
 
 ## 2026-10-26
