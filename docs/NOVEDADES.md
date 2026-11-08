@@ -3,7 +3,7 @@
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
 ## 2026-11-08 · Consentimiento 1.1-borrador (versión 0.7.2)
-- Completados los datos del responsable: Rubén Úbeda Rubio, titular de Clínica Vitaltrain, Carrer de Sorní 40, 46004 Valencia, contacto info@vitaltrain.com.
+- Completados los datos del responsable: Rubén Úbeda Rubio, titular de Clínica Vitaltrain, Calle Sorní 40, 2, 46004 Valencia, contacto info@vitaltrain.com.
 - Quitadas las líneas de delegado de protección de datos y de menores, que no aplican.
 - Solo queda por fijar el plazo de conservación tras la baja.
 - Como el texto ha cambiado, el paciente de prueba verá «Hemos actualizado cómo tratamos tus datos» y tendrá que aceptarlo de nuevo. Es lo esperado.

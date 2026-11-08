@@ -24,7 +24,7 @@ export const SECCIONES: Seccion[] = [
     titulo: '1. Quién es responsable de tus datos',
     parrafos: [
       'Responsable: Rubén Úbeda Rubio, con NIF 33452055G, titular de Clínica Vitaltrain, Centro Sanitario Nº Registro 22433.',
-      'Dirección: Carrer de Sorní 40, 46004 Valencia. Teléfono: 640 92 42 38. Email para temas de privacidad: info@vitaltrain.com.',
+      'Dirección: Calle Sorní 40, 2, 46004 Valencia. Teléfono: 640 92 42 38. Email para temas de privacidad: info@vitaltrain.com.',
       'Profesional que te acompaña: Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209.',
     ],
   },
