@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import SelectorEjercicio, { type EjercicioMini } from '../biblioteca/SelectorEjercicio';
 import { miniatura } from '../biblioteca/youtube';
-import { desdeIso, hoyIso } from '../../../lib/fechas';
+import { desdeIso, hoyIso, iso, sumarDias } from '../../../lib/fechas';
 import { comoLista } from '../paciente/datos';
 
 // Cambiar un ejercicio por otro en todas las sesiones pendientes de un paciente (replace_exercise).
@@ -21,7 +21,8 @@ export default function CambiarEjercicio({ supabase, pacienteId, onCerrar, onHec
   const [origen, setOrigen] = useState<string>('');
   const [destino, setDestino] = useState<EjercicioMini | null>(null);
   const [eligiendo, setEligiendo] = useState(false);
-  const [desde, setDesde] = useState(hoyIso());
+  // Por defecto desde mañana: hoy el paciente puede estar entrenando sin conexión
+  const [desde, setDesde] = useState(iso(sumarDias(new Date(), 1)));
   const [carga, setCarga] = useState<'mantener' | 'quitar' | 'nueva'>('mantener');
   const [kg, setKg] = useState('');
   const [cambiarIndicacion, setCambiarIndicacion] = useState(false);

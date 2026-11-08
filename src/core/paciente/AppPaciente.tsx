@@ -7,7 +7,7 @@ import Medidas from '../medidas/Medidas';
 import Conversacion, { contarNoLeidos } from '../mensajes/Conversacion';
 import Instalar from '../Instalar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
-import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
+import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
 // App del paciente (móvil). Menú inferior. Cada módulo activo aporta su tarjeta a "Hoy".
 
@@ -75,6 +75,13 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
               <p className="text-[#E3E8E8] mt-1">{new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
             </header>
             <main className="p-4 flex flex-col gap-4">
+              {fallidos() > 0 && (
+                <div role="alert" className="bg-white rounded-2xl p-4 border-l-4 border-[#8A2C1D] flex flex-col gap-2">
+                  <p className="font-semibold">{fallidos() === 1 ? 'Un registro no se ha podido guardar' : `${fallidos()} registros no se han podido guardar`}</p>
+                  <p className="text-sm text-texto-suave">Rubén cambió esa sesión mientras entrenabas sin conexión. Escríbele por Mensajes con lo que hiciste para que lo tenga en cuenta.</p>
+                  <button onClick={() => { descartarFallidos(); setRecarga((r) => r + 1); }} className="self-start text-sm font-bold text-petroleo">Entendido</button>
+                </div>
+              )}
               {modulos.includes('training') && <TarjetaHoy supabase={supabase} onAbrir={setAbierta} />}
               {pilares.length > 0 && (
                 <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">

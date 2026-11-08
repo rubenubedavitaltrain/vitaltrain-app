@@ -18,14 +18,17 @@ export default function NotasDelPaciente({ supabase, pacienteId }: { supabase: S
       .from('workout_item_feedback')
       .select('id, note, cannot_do, reason, read_by_coach_at, created_at, workout_items(exercises(name), workout_blocks(workouts(scheduled_date)))')
       .eq('patient_id', pacienteId)
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .limit(30);
     setFilas((data as unknown as Fila[]) ?? []);
   }
   useEffect(() => { cargar(); }, [pacienteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function marcarLeidas() {
-    await supabase.from('workout_item_feedback').update({ read_by_coach_at: new Date().toISOString() }).eq('patient_id', pacienteId).is('read_by_coach_at', null);
+    // Solo las que se están viendo: si llega otra mientras tanto, sigue sin leer
+    const ids = (filas ?? []).filter((f) => !f.read_by_coach_at).map((f) => f.id);
+    if (!ids.length) return;
+    await supabase.from('workout_item_feedback').update({ read_by_coach_at: new Date().toISOString() }).in('id', ids);
     cargar();
   }
 

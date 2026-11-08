@@ -258,6 +258,21 @@ check('Un paciente no puede marcar la conversación de otro', !!(await as(p2, `s
 check('El coach marca como leídos los del paciente', (await as(coach, `select mark_messages_read('${p1}') as n`)).rows?.[0]?.n === 3);
 check('Sin consentimiento no se puede escribir', !!(await as(p3, `insert into messages (patient_id, sender_id, body) values ('${p3}', '${p3}', 'x')`)).error);
 
+// 0013: correcciones de la revisión
+{
+  const bq = JSON.stringify([{ name: 'P', items: [{ exercise_id: exS, sets: 3, target: '10' }] }]);
+  const ids = (await as(coach, `select save_workout(jsonb_build_object('patient_id','${p1}','name','Borrar','dates', jsonb_build_array(current_date + 5),'blocks','${bq}'::jsonb)) as r`)).rows[0].r.ids;
+  const it = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${ids[0]}'`)).rows[0].id;
+  await as(p1, `insert into workout_item_feedback (workout_item_id, patient_id, note, cannot_do, reason) values ('${it}', '${p1}', null, true, 'pain')`);
+  check('No se puede quitar del calendario una sesión con una nota de dolor', !!(await as(coach, `delete from workouts where id = '${ids[0]}'`)).error);
+  check('La nota de dolor sigue ahí', (await db.query(`select count(*)::int n from workout_item_feedback where workout_item_id = '${it}'`)).rows[0].n === 1);
+  await as(coach, `update workout_item_feedback set read_by_coach_at = now() where workout_item_id = '${it}'`);
+  await as(p1, `update workout_item_feedback set note = 'Ahora me duele mucho' where workout_item_id = '${it}'`);
+  check('Si el paciente cambia una nota leída, vuelve a estar sin leer', (await db.query(`select read_by_coach_at from workout_item_feedback where workout_item_id = '${it}'`)).rows[0].read_by_coach_at === null);
+  check('Una sesión sin registros sí se puede quitar', !(await as(coach, `delete from workouts where id in (select id from workouts where name = 'Fuerza Laura v2' and status = 'scheduled')`)).error);
+  check('La hora de España está disponible', (await db.query(`select hoy_local() is not null as ok`)).rows[0].ok === true);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

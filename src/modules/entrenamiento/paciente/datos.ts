@@ -133,7 +133,18 @@ async function ejecutar(supabase: SupabaseClient, op: Op) {
   if (op.t === 'set') return supabase.from('set_logs').upsert(op.fila, { onConflict: 'workout_item_id,set_number' });
   if (op.t === 'borrarSet') return supabase.from('set_logs').delete().eq('workout_item_id', op.workout_item_id).eq('set_number', op.set_number);
   if (op.t === 'feedback') return supabase.from('workout_item_feedback').upsert(op.fila, { onConflict: 'workout_item_id' });
-  return supabase.from('workouts').update(op.cambios).eq('id', op.id);
+  // Si la sesión ya no existe (la ha cambiado el coach), no hay error pero tampoco fila: se trata como fallo
+  const r = await supabase.from('workouts').update(op.cambios).eq('id', op.id).select('id');
+  if (!r.error && !(r.data ?? []).length) return { status: 404, error: { message: 'La sesión ya no existe' } };
+  return r;
+}
+
+/** Registros que no se han podido guardar (la sesión cambió o se quitó). Se muestran al paciente. */
+export function fallidos(): number {
+  return leer<Op[]>(CLAVE_FALLIDOS())?.length ?? 0;
+}
+export function descartarFallidos() {
+  escribir(CLAVE_FALLIDOS(), []);
 }
 
 /** ¿Merece la pena reintentar? Sin red, sesión caducada o fallo del servidor: sí. */
@@ -156,19 +167,22 @@ let vaciando: Promise<number> | null = null;
 /** Envía lo pendiente en orden, uno a uno. Si algo falla por red o sesión, para y lo deja para luego. */
 export function vaciarCola(supabase: SupabaseClient): Promise<number> {
   if (vaciando) return vaciando.then(() => (pendientes() ? vaciarCola(supabase) : 0));
+  // La cuenta se fija al empezar: si cambia a mitad, no se mezclan colas
+  const kCola = CLAVE_COLA();
+  const kFallidos = CLAVE_FALLIDOS();
   const tarea = async (): Promise<number> => {
-    if (!navigator.onLine) return pendientes();
+    if (!navigator.onLine) return leer<Op[]>(kCola)?.length ?? 0;
     await supabase.auth.getSession(); // renueva la sesión si ha caducado
     for (;;) {
-      const cola = leer<Op[]>(CLAVE_COLA()) ?? [];
+      const cola = leer<Op[]>(kCola) ?? [];
       if (!cola.length) return 0;
       let r: { status?: number; error: { message?: string; code?: string } | null };
       try { r = await ejecutar(supabase, cola[0]); } catch (e) { r = { status: 0, error: { message: String(e) } }; }
-      if (reintentable(r)) return pendientes();
+      if (reintentable(r)) return leer<Op[]>(kCola)?.length ?? 0;
       // Se quita el primero de la cola actual (puede haber crecido mientras se enviaba)
-      const actual = leer<Op[]>(CLAVE_COLA()) ?? [];
-      escribir(CLAVE_COLA(), actual.slice(1));
-      if (r.error) escribir(CLAVE_FALLIDOS(), [...(leer<Op[]>(CLAVE_FALLIDOS()) ?? []), cola[0]]);
+      const actual = leer<Op[]>(kCola) ?? [];
+      escribir(kCola, actual.slice(1));
+      if (r.error) escribir(kFallidos, [...(leer<Op[]>(kFallidos) ?? []), cola[0]]);
     }
   };
   // .finally se ejecuta después de asignar, así el candado siempre se libera

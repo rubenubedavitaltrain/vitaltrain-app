@@ -2,6 +2,14 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Correcciones de la revisión de seguridad (versión 0.12.1)
+Un revisor independiente ha repasado toda la base de datos y la app. No ha encontrado forma de que un paciente vea datos de otro ni de saltarse el consentimiento. Sí encontró cuatro fallos que podían perder o falsear datos; están corregidos:
+- **Quitar una sesión del calendario podía borrar una nota del paciente** (por ejemplo, «No puedo hacerlo: dolor»). Ahora la base de datos impide borrar cualquier ejercicio con series o notas, se haga desde donde se haga.
+- **Si el paciente cambiaba una nota que ya habías leído, no volvía a aparecer como nueva.** Ahora sí. Y «Marcar como leídas» solo marca las que estás viendo.
+- **Entrenar sin conexión mientras tú cambiabas esa sesión** podía perder registros sin avisar. Ahora el paciente ve un aviso en Hoy para que te escriba, y «Cambiar un ejercicio» empieza por defecto desde mañana.
+- **Entre las 00:00 y las 01:00 no se podían anotar medidas** porque el servidor va en hora UTC. Ahora usa la hora de España.
+- Base de datos: migración 0013 aplicada en `vitaltrain-dev`.
+
 ## 2026-11-08 · Tarea 14: mensajes (versión 0.12.0)
 - El paciente tiene una pestaña nueva, **Mensajes**, para escribirte. Junto al icono aparece un número cuando tiene mensajes tuyos sin leer.
 - Tú tienes la sección **Mensajes** en el panel: a la izquierda los pacientes, con los que tienen mensajes sin leer arriba; a la derecha la conversación, con su última sesión hecha y un botón para ver su ficha.

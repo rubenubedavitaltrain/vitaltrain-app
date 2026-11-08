@@ -186,13 +186,13 @@ function Detalle({ supabase, sesion, onCerrar, onBorrada, onEditar, onDuplicar }
 
   const tieneRegistros = (bloques ?? []).some((b) => b.workout_items.some((i) => i.set_logs.length));
   const tieneNotas = (bloques ?? []).some((b) => b.workout_items.some((i) => i.workout_item_feedback.length));
-  const sePuedeBorrar = sesion.status === 'scheduled' && !tieneRegistros;
-  const sePuedeEditar = bloques !== null && sePuedeBorrar && !tieneNotas;
+  const sePuedeBorrar = bloques !== null && sesion.status === 'scheduled' && !tieneRegistros && !tieneNotas;
+  const sePuedeEditar = sePuedeBorrar;
 
   async function borrar() {
     if (!window.confirm('¿Quitar esta sesión del calendario del paciente?')) return;
     const { error } = await supabase.from('workouts').delete().eq('id', sesion.id);
-    if (error) setError('No se ha podido quitar.');
+    if (error) setError(error.message.includes('series o notas') ? 'El paciente ya ha registrado algo en esta sesión, así que no se puede quitar.' : 'No se ha podido quitar.');
     else onBorrada();
   }
 
