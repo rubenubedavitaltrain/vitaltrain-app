@@ -45,7 +45,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
       </header>
 
       <ProgramaPaciente supabase={supabase} pacienteId={paciente.id} onCambio={() => setVersion((v) => v + 1)} />
-      <SemanaCoach key={version} supabase={supabase} pacienteId={paciente.id} />
+      <SemanaCoach key={version} supabase={supabase} pacienteId={paciente.id} nombrePaciente={paciente.full_name.split(' ')[0]} />
       <div className="grid lg:grid-cols-2 gap-4">
         <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />
         <NotasPrivadas supabase={supabase} pacienteId={paciente.id} />

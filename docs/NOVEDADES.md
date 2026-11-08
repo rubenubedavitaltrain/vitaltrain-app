@@ -2,6 +2,18 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 8: diseño a la carta (versión 0.6.0, pendiente de publicar)
+- En la ficha del paciente, cada día tiene **«+ Crear sesión»**. Se abre el constructor por bloques a pantalla completa y la sesión se guarda solo para ese paciente. No hace falta crear una plantilla.
+- **Repetir**: eliges los días de la semana (por ejemplo lunes y jueves) y cuántas semanas (1 a 12). Te dice cuántas sesiones se crearán y en qué fechas. Los días ya pasados no se incluyen.
+- **Partir de una plantilla** (opcional): carga sus ejercicios y los ajustas para ese paciente.
+- **Guardar también como plantilla**: por si quieres reutilizar esa sesión con otro paciente.
+- Al tocar una sesión del calendario: **Editar sesión** (si está pendiente y sin nada registrado por el paciente) y **Duplicar** (crea otra a partir de ella, aunque ya esté hecha).
+- En el constructor: el nuevo ejercicio copia series, repeticiones y descanso del anterior del bloque, botón ⇄ para cambiar un ejercicio por otro manteniendo sus datos y botón ⧉ para duplicar un bloque.
+- «+ De plantilla» sigue disponible para asignar una plantilla tal cual.
+- Base de datos: migración 0008 aplicada en `vitaltrain-dev`.
+- Cómo probarlo (cuando esté publicada): abre tu paciente de prueba, pulsa «+ Crear sesión» el lunes, añade tres ejercicios, marca lunes y jueves durante 4 semanas y crea. Luego abre una de esas sesiones, edítala y comprueba que la otra no cambia.
+- Qué podría fallar: si el paciente tiene la sesión abierta sin conexión y ha registrado series que aún no se han enviado, y tú la editas a la vez, esas series no podrán guardarse. Por eso solo se edita lo que está pendiente; en caso de duda, duplica.
+
 ## 2026-11-08 · Tarea 7: programas (versión 0.5.0, pendiente de publicar)
 - **Programas** (panel del coach → Programas): de 1 a 12 semanas. En una tabla eliges qué plantilla toca cada día de cada semana. Botón para repetir los días de la semana 1 en todas.
 - **Regla de progresión por semana**: subir o bajar la carga entre -40 % y +20 % (se redondea a 0,5 kg) y una nota que el paciente verá en las sesiones de esa semana. Ejemplo: semana 4 a -30 % con la nota «Semana de descarga».

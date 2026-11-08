@@ -95,7 +95,7 @@ Paciente (móvil, menú de 5 pestañas: Hoy, Semana, Progreso, Mensajes, Perfil)
 Coach (ordenador):
 12. Panel: adherencia semanal, pacientes sin entrenar, notas y mensajes sin leer.
 13. Ficha del paciente: calendario semanal, copiar semana anterior, notas del paciente, progresión, notas privadas.
-14. Constructor de entrenamientos por bloques.
+14. Constructor de entrenamientos por bloques. Rubén diseña desde cero para cada paciente (8 nov 2026): el constructor se usa directamente en la ficha del paciente; las plantillas son opcionales.
 15. Programas de 1 a 12 semanas, con una regla de progresión por semana; al asignar se crean las sesiones en el calendario del paciente. En un programa en curso, "Cambiar desde una semana": se elige la semana (la actual o cualquier futura), se borran solo las sesiones pendientes desde ese lunes y se asigna en su lugar otro programa o semanas nuevas. Las sesiones hechas, en curso o con registros nunca se borran.
 16. Mensajes: bandeja por paciente con contexto y respuestas rápidas.
 17. Resumen mensual por paciente: adherencia, esfuerzo, cargas, medidas, notas; conclusiones del coach; PDF y compartir con el paciente.
@@ -166,7 +166,8 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0006_plantillas_y_registro.sql`: carga pautada (`load_kg`) en plantillas y entrenamientos, `save_template(jsonb)` (guarda la plantilla entera de una vez), `copy_week`, guardián de columnas de `workouts` para el paciente (solo estado, inicio, fin, esfuerzo, sensaciones y notas) y `workout_item_feedback` (nota y "no puedo hacerlo" con motivo: pain, no_equipment, dont_know, other).
 - `supabase/functions/alta-paciente`: función de servidor que crea la cuenta, el perfil y activa el módulo de entrenamiento. Solo la puede usar el coach (lo comprueba ella misma). Se despliega desde el editor de Edge Functions de Supabase con «Verify JWT with legacy secret» desactivado: el proyecto firma las sesiones con clave ECC. Desplegada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0007_programas.sql`: programas de 1 a 12 semanas. `programs`, `program_weeks` (carga en % de -50 a 50 y nota para el paciente), `program_slots` (semana, día, plantilla) y `program_assignments` (empieza siempre en lunes; estados active, replaced, cancelled). `workouts` gana `program_assignment_id` y `program_week`. Funciones: `save_program(jsonb)`, `assign_program`, `replace_program_from_week` (solo semana actual o futuras; borra solo sesiones `scheduled` sin series ni notas). Aplicada en `vitaltrain-dev` el 8 nov 2026.
-- Pendiente, migraciones `0008` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
+- `supabase/migrations/0008_sesion_a_medida.sql`: `save_workout(jsonb)` crea una sesión a medida para un paciente en una o varias fechas (máx. 84), o edita una suya si está pendiente y sin series ni notas. `_fill_workout` es interna. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- Pendiente, migraciones `0009` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
   - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
   - `consents`: versión del texto, aceptado, retirado.
@@ -222,6 +223,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 3: biblioteca de ejercicios. Hecho: migraciones 0004 y 0005 aplicadas en `vitaltrain-dev` (156 ejercicios), pantalla de biblioteca del coach (buscar, filtrar por etiqueta, ver vídeo vertical, renombrar, etiquetar, indicaciones, archivar, añadir por enlace), franja gris de arriba corregida. Falta: publicar (depende de GitHub) y que Rubén lo pruebe
 - [ ] Tareas 4-6 (hechas en local, pendientes de publicar y probar): constructor de plantillas por bloques; pacientes (lista, alta, ficha con semana, asignar, copiar semana, detalle registrado, notas del paciente, notas privadas, pausar o archivar); app del paciente (Hoy, Mi semana, Perfil, entrenamiento con series precargadas, descanso, vídeo vertical, nota y "no puedo", final con esfuerzo y sensaciones, modo sin conexión con cola de envío)
 - [ ] Tarea 7 (hecha en local, pendiente de publicar y probar): programas de 1 a 12 semanas con regla de progresión, asignar desde un lunes y «Cambiar desde una semana». Migración 0007 aplicada en `vitaltrain-dev` (8 nov 2026)
+- [ ] Tarea 8 (hecha en local, pendiente de publicar y probar): diseño a la carta desde la ficha del paciente. Crear sesión sin plantilla, repetir en varios días y semanas, partir de una plantilla, editar y duplicar sesiones, guardar como plantilla. El constructor por bloques es común (`src/modules/entrenamiento/constructor/Bloques.tsx`). Migración 0008 aplicada (8 nov 2026)
 - [ ] Fase 1: las 17 funciones de la sección 3. Quedan: Mi progreso, mensajes, perfil (recordatorio, avisos, privacidad y descarga de datos), documentos, medidas, panel del coach con adherencia y resumen mensual
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz

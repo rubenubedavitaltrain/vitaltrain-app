@@ -158,6 +158,29 @@ check('El nuevo programa empieza ese mismo lunes', (await db.query(`select start
 check('El programa anterior queda como sustituido', (await db.query(`select status::text s, replaced_from_week n from program_assignments where id = '${aId}'`)).rows[0].s === 'replaced');
 check('Un programa sustituido no se puede volver a cambiar', !!(await as(coach, `select replace_program_from_week('${aId}', 3, null)`)).error);
 
+// 0008: sesiones a medida
+const exS = (await db.query("select id from exercises where name = 'Sentadilla'")).rows[0].id;
+const bloquesS = JSON.stringify([{ name: 'Principal', type: 'normal', rounds: 1, items: [{ exercise_id: exS, sets: 4, target: '6-8', load_kg: '20', rest_seconds: 90, instructions: 'Sin dolor' }] }, { name: 'Vacío', items: [] }]);
+const nueva = await as(coach, `select save_workout(jsonb_build_object('patient_id','${p2}','name','Fuerza Laura','coach_message','A tope','dates', jsonb_build_array(current_date + 1, current_date + 4, current_date + 1),'blocks','${bloquesS}'::jsonb)) as r`);
+const idsS = nueva.rows?.[0]?.r?.ids ?? [];
+check('Crear una sesión a medida en dos días crea dos sesiones (sin duplicar fechas)', !nueva.error && idsS.length === 2);
+check('La sesión a medida guarda series, carga e indicación', (await db.query(`select i.sets, i.load_kg::float kg, i.instructions from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${idsS[0]}'`)).rows[0]?.kg === 20);
+check('Los bloques vacíos no se guardan', (await db.query(`select count(*)::int n from workout_blocks where workout_id = '${idsS[0]}'`)).rows[0].n === 1);
+check('El paciente ve su sesión a medida', (await as(p2, `select count(*)::int n from workouts where id = '${idsS[0]}'`)).rows[0].n === 1);
+check('Un paciente no puede crear sesiones', !!(await as(p2, `select save_workout(jsonb_build_object('patient_id','${p2}','name','x','dates', jsonb_build_array(current_date),'blocks','${bloquesS}'::jsonb))`)).error);
+check('No se puede crear una sesión para el coach', !!(await as(coach, `select save_workout(jsonb_build_object('patient_id','${coach}','name','x','dates', jsonb_build_array(current_date),'blocks','${bloquesS}'::jsonb))`)).error);
+check('Una sesión sin ejercicios no se guarda', !!(await as(coach, `select save_workout(jsonb_build_object('patient_id','${p2}','name','x','dates', jsonb_build_array(current_date),'blocks','[]'::jsonb))`)).error);
+check('Nadie puede llamar desde la app al relleno interno', !!(await as(coach, `select _fill_workout('${idsS[0]}', '${bloquesS}'::jsonb)`)).error);
+const editar = await as(coach, `select save_workout(jsonb_build_object('id','${idsS[0]}','name','Fuerza Laura v2','blocks','${bloquesS.replace('"sets":4', '"sets":5')}'::jsonb))`);
+check('El coach puede editar una sesión pendiente', !editar.error && (await db.query(`select w.name, i.sets from workouts w join workout_blocks b on b.workout_id = w.id join workout_items i on i.block_id = b.id where w.id = '${idsS[0]}'`)).rows[0]?.sets === 5);
+check('Editar no cambia la otra sesión', (await db.query(`select i.sets from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${idsS[1]}'`)).rows[0].sets === 4);
+const itS = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${idsS[1]}'`)).rows[0].id;
+await as(p2, `insert into workout_item_feedback (workout_item_id, patient_id, note) values ('${itS}', '${p2}', 'Me molesta')`);
+check('No se puede editar una sesión con notas del paciente', !!(await as(coach, `select save_workout(jsonb_build_object('id','${idsS[1]}','name','x','blocks','${bloquesS}'::jsonb))`)).error);
+check('La nota del paciente sigue intacta', (await db.query(`select count(*)::int n from workout_item_feedback where workout_item_id = '${itS}'`)).rows[0].n === 1);
+await as(p2, `update workouts set status = 'completed' where id = '${idsS[0]}'`);
+check('No se puede editar una sesión hecha', !!(await as(coach, `select save_workout(jsonb_build_object('id','${idsS[0]}','name','x','blocks','${bloquesS}'::jsonb))`)).error);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

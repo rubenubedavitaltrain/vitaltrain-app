@@ -2,19 +2,23 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DIAS_CORTOS, desdeIso, iso, lunes, rangoSemana, sumarDias } from '../../../lib/fechas';
 import { MOTIVOS } from '../paciente/tipos';
+import SesionAMedida from './SesionAMedida';
 
-// Sección de entrenamiento en la ficha del paciente: semana, asignar plantilla a un día,
-// copiar la semana anterior, ver lo que ha registrado y borrar sesiones pendientes.
+// Sección de entrenamiento en la ficha del paciente: semana, crear una sesión a medida o asignar una plantilla,
+// editar o duplicar sesiones, copiar la semana anterior, ver lo que ha registrado y borrar sesiones pendientes.
 
 type Sesion = { id: string; scheduled_date: string; name: string; status: 'scheduled' | 'in_progress' | 'completed' | 'skipped'; rpe: number | null; coach_message: string | null };
 const ESTADO: Record<Sesion['status'], string> = { scheduled: 'Pendiente', in_progress: 'En curso', completed: 'Hecho', skipped: 'No hecho' };
 
-export default function SemanaCoach({ supabase, pacienteId }: { supabase: SupabaseClient; pacienteId: string }) {
+type ModoSesion = { tipo: 'nueva'; fecha: string } | { tipo: 'editar'; id: string } | { tipo: 'duplicar'; id: string };
+
+export default function SemanaCoach({ supabase, pacienteId, nombrePaciente }: { supabase: SupabaseClient; pacienteId: string; nombrePaciente: string }) {
   const [inicio, setInicio] = useState(() => lunes(new Date()));
   const [sesiones, setSesiones] = useState<Sesion[]>([]);
   const [asignarDia, setAsignarDia] = useState<string | null>(null);
   const [detalle, setDetalle] = useState<Sesion | null>(null);
   const [aviso, setAviso] = useState('');
+  const [aMedida, setAMedida] = useState<ModoSesion | null>(null);
 
   async function cargar() {
     const { data } = await supabase
@@ -64,13 +68,29 @@ export default function SemanaCoach({ supabase, pacienteId }: { supabase: Supaba
                   <span className="block text-[11px] font-normal opacity-80">{ESTADO[s.status]}{s.rpe ? ` · esfuerzo ${s.rpe}` : ''}</span>
                 </button>
               ))}
-              <button onClick={() => setAsignarDia(f)} className="text-xs font-bold text-petroleo text-left mt-auto">+ Asignar</button>
+              <div className="mt-auto flex flex-col gap-1">
+                <button onClick={() => setAMedida({ tipo: 'nueva', fecha: f })} className="text-xs font-bold text-[#1F2424] bg-mostaza rounded-lg px-2 py-1.5 text-left">+ Crear sesión</button>
+                <button onClick={() => setAsignarDia(f)} className="text-xs font-bold text-petroleo text-left px-2">+ De plantilla</button>
+              </div>
             </div>
           );
         })}
       </div>
       {asignarDia && <Asignar supabase={supabase} pacienteId={pacienteId} fecha={asignarDia} onCerrar={() => setAsignarDia(null)} onHecho={() => { setAsignarDia(null); cargar(); }} />}
-      {detalle && <Detalle supabase={supabase} sesion={detalle} onCerrar={() => setDetalle(null)} onBorrada={() => { setDetalle(null); cargar(); }} />}
+      {detalle && (
+        <Detalle
+          supabase={supabase} sesion={detalle} onCerrar={() => setDetalle(null)} onBorrada={() => { setDetalle(null); cargar(); }}
+          onEditar={() => { setAMedida({ tipo: 'editar', id: detalle.id }); setDetalle(null); }}
+          onDuplicar={() => { setAMedida({ tipo: 'duplicar', id: detalle.id }); setDetalle(null); }}
+        />
+      )}
+      {aMedida && (
+        <SesionAMedida
+          supabase={supabase} pacienteId={pacienteId} nombrePaciente={nombrePaciente} modo={aMedida}
+          onCerrar={() => setAMedida(null)}
+          onHecho={(t) => { setAMedida(null); setAviso(t); cargar(); }}
+        />
+      )}
     </section>
   );
 }
@@ -137,7 +157,7 @@ function Asignar({ supabase, pacienteId, fecha, onCerrar, onHecho }: { supabase:
 type ItemDetalle = { id: string; position: number; sets: number; target: string | null; load_kg: number | null; exercises: { name: string }; set_logs: { set_number: number; reps: number | null; load_kg: number | null; done: boolean }[]; workout_item_feedback: { note: string | null; cannot_do: boolean; reason: string | null }[] };
 type BloqueDetalle = { position: number; name: string | null; workout_items: ItemDetalle[] };
 
-function Detalle({ supabase, sesion, onCerrar, onBorrada }: { supabase: SupabaseClient; sesion: Sesion; onCerrar: () => void; onBorrada: () => void }) {
+function Detalle({ supabase, sesion, onCerrar, onBorrada, onEditar, onDuplicar }: { supabase: SupabaseClient; sesion: Sesion; onCerrar: () => void; onBorrada: () => void; onEditar: () => void; onDuplicar: () => void }) {
   const [bloques, setBloques] = useState<BloqueDetalle[] | null>(null);
   const [extra, setExtra] = useState<{ feeling: string | null; patient_notes: string | null } | null>(null);
   const [error, setError] = useState('');
@@ -156,7 +176,9 @@ function Detalle({ supabase, sesion, onCerrar, onBorrada }: { supabase: Supabase
   }, [sesion.id, supabase]);
 
   const tieneRegistros = (bloques ?? []).some((b) => b.workout_items.some((i) => i.set_logs.length));
+  const tieneNotas = (bloques ?? []).some((b) => b.workout_items.some((i) => i.workout_item_feedback.length));
   const sePuedeBorrar = sesion.status === 'scheduled' && !tieneRegistros;
+  const sePuedeEditar = bloques !== null && sePuedeBorrar && !tieneNotas;
 
   async function borrar() {
     if (!window.confirm('¿Quitar esta sesión del calendario del paciente?')) return;
@@ -195,7 +217,12 @@ function Detalle({ supabase, sesion, onCerrar, onBorrada }: { supabase: Supabase
         </div>
       ))}
       {error && <p role="alert" className="font-semibold text-[#8A2C1D]">{error}</p>}
-      {sePuedeBorrar && <button onClick={borrar} className="self-start text-[#8A2C1D] font-bold px-2 py-2">Quitar del calendario</button>}
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        {sePuedeEditar && <button onClick={onEditar} className="bg-petroleo text-white font-bold px-4 py-2.5 rounded-xl">Editar sesión</button>}
+        {bloques && <button onClick={onDuplicar} className="border-2 border-petroleo text-petroleo font-bold px-4 py-2 rounded-xl">Duplicar</button>}
+        {sePuedeBorrar && <button onClick={borrar} className="ml-auto text-[#8A2C1D] font-bold px-2 py-2">Quitar del calendario</button>}
+      </div>
+      {bloques && !sePuedeEditar && <p className="text-xs text-texto-suave">Ya tiene registros del paciente, así que no se edita. Puedes duplicarla para crear otra con cambios.</p>}
     </Ventana>
   );
 }
