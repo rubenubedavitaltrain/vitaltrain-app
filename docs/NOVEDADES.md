@@ -2,6 +2,16 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 3 (versión 0.3.0, pendiente de publicar)
+- Biblioteca de ejercicios en el panel del coach, con los 156 Shorts de tu canal ya cargados.
+- Buscar por nombre, músculo o material. Filtrar tocando una etiqueta.
+- Al tocar un ejercicio se abre su vídeo en vertical y puedes cambiar el nombre, poner grupos musculares, material e indicaciones para el paciente.
+- «Archivar» lo quita de la biblioteca sin borrarlo. Se recupera con «Ver archivados».
+- «Añadir ejercicio»: pegas el enlace del Short y la app propone el nombre del vídeo.
+- Arreglada la franja gris que salía arriba en el iPhone.
+- Cómo probarlo (cuando esté publicada): entra como coach, abre Biblioteca, busca «sentadilla», abre una y ponle etiquetas. Luego añade un Short nuevo pegando su enlace.
+- Base de datos: migraciones 0004 y 0005 ya aplicadas en `vitaltrain-dev`.
+
 ## 2026-11-08 · Tarea 2 (versión 0.2.0)
 - Pantalla de acceso: escribes tu email, te llega un código de 6 dígitos y entras. Sin contraseñas.
 - Solo entra quien Rubén ha dado de alta. Si escribe un email sin acceso, la app lo dice.

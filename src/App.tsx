@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import Acceso from './core/acceso/Acceso';
+import PanelCoach from './core/coach/PanelCoach';
 
 type Perfil = { full_name: string; role: 'coach' | 'patient'; status: 'active' | 'paused' | 'archived' };
 type Pilar = { slug: string; name: string; description: string | null };
@@ -98,11 +99,12 @@ function Inicio({ supabase, session }: { supabase: SupabaseClient; session: Sess
     return <Mensaje titulo="Tu acceso está en pausa" texto="Si crees que es un error, escribe a Rubén." onSalir={salir} />;
 
   const nombre = perfil.full_name.split(' ')[0];
+  if (perfil.role === 'coach') return <PanelCoach supabase={supabase} nombre={nombre} />;
   return (
     <div className="min-h-full flex flex-col">
       <Cabecera
         titulo={`Hola, ${nombre}`}
-        texto={perfil.role === 'coach' ? 'Has entrado como coach. El panel llega en las próximas tareas.' : 'Tu plan con Rubén aparecerá aquí muy pronto.'}
+        texto="Tu plan con Rubén aparecerá aquí muy pronto."
       />
       <main className="flex-1 px-5 py-6 flex flex-col gap-4">
         <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">

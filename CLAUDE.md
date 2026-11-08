@@ -161,7 +161,9 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: diseño **no aplicado** de `habit_definitions`, `patient_habits`, `habit_logs`, `sleep_logs`, `meal_events`, `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`. Cada parte se pasa a una migración nueva cuando se construya su módulo. La prueba de seguridad comprueba que el diseño sigue siendo válido.
 
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
-- Pendiente, migración `0004` (Fase 1 ampliada), a diseñar al construir cada pantalla:
+- `supabase/migrations/0004_biblioteca_ejercicios.sql`: duración del vídeo en `exercises`, un vídeo no puede repetirse, y carga de los 156 Shorts del canal (lista en `supabase/datos/ejercicios_youtube.json`). Los vídeos están como "Oculto" en YouTube: nunca ponerlos en "Privado" o dejarán de verse en la app.
+- `supabase/migrations/0005_ajuste_perfiles_admin.sql`: el guardián de perfiles ya no bloquea los cambios hechos desde el panel de Supabase (sin usuario conectado).
+- Pendiente, migraciones `0006` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
   - `programs` (duración 1-12 semanas), `program_weeks` (número, regla de progresión) y `program_slots` (semana, día, plantilla): programas de varias semanas.
   - `program_assignments` (paciente, programa, fecha de inicio, estado, semana en que se sustituyó, asignación que la sustituye). Asignar crea `workouts` como copia, igual que una plantilla, enlazados a la asignación y con su número de semana.
@@ -218,6 +220,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Cloudflare Pages conectado: https://vitaltrain-app.pages.dev se publica solo con cada cambio en main (26 oct 2026)
 - [x] Tarea 2: tablas en `vitaltrain-dev` (0001, 0002 núcleo, 0003), acceso con código de 6 dígitos por Mailgun (acceso@vitaltrain.com), cuenta de coach `ruben.ubeda@vitaltrain.com`. Probado en el móvil (8 nov 2026)
 - Supabase `vitaltrain-dev`: proyecto `jlcrmozctsvgnousstbu`. Altas libres desactivadas, código de 6 dígitos que caduca en 15 min, plantilla de email en español con el código en el asunto
+- [x] GitHub suspendió la cuenta `rubenubedavitaltrain` (8 nov 2026). Apelación enviada, ticket 4972927. Mientras tanto se trabaja en local y se guardan copias (bundle y zip). Supabase tiene un segundo Owner con email y contraseña (`ruben.ubeda@vitaltrain.com`) para no depender de GitHub
+- [ ] Tarea 3: biblioteca de ejercicios. Hecho: migraciones 0004 y 0005 aplicadas en `vitaltrain-dev` (156 ejercicios), pantalla de biblioteca del coach (buscar, filtrar por etiqueta, ver vídeo vertical, renombrar, etiquetar, indicaciones, archivar, añadir por enlace), franja gris de arriba corregida. Falta: publicar (depende de GitHub) y que Rubén lo pruebe
 - [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz

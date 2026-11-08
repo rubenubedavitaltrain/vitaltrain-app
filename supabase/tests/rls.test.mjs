@@ -28,7 +28,7 @@ insert into profiles (id, role, full_name, email) values ('${coach}','coach','Co
 insert into exercises (name) values ('Sentadilla');
 insert into templates (name) values ('Fuerza A');
 insert into template_blocks (template_id, position) select id, 1 from templates;
-insert into template_items (block_id, position, exercise_id, sets, rest_seconds) select b.id,1,e.id,3,90 from template_blocks b, exercises e;
+insert into template_items (block_id, position, exercise_id, sets, rest_seconds) select b.id,1,e.id,3,90 from template_blocks b, exercises e where e.name = 'Sentadilla';
 grant select, insert, update, delete on all tables in schema public to authenticated, anon;
 grant execute on all functions in schema public to authenticated, anon;
 `);
@@ -63,6 +63,17 @@ check('El paciente 1 guarda sus ajustes', !(await as(p1, `insert into patient_se
 check('El paciente 2 no ve los ajustes del paciente 1', (await as(p2, 'select count(*)::int n from patient_settings')).rows[0].n === 0);
 check('El coach ve todos los perfiles', (await as(coach, 'select count(*)::int n from profiles')).rows[0].n === 3);
 check('Sin iniciar sesión no se ve ningún dato', (await as('', 'select (select count(*) from profiles) + (select count(*) from pillars) + (select count(*) from workouts) as n', 'anon')).rows[0].n == 0);
+
+check('La biblioteca trae los 156 ejercicios del canal', (await as(coach, "select count(*)::int n from exercises where video_provider = 'youtube'")).rows[0].n === 156);
+check('Un paciente activo ve la biblioteca', (await as(p1, 'select count(*)::int n from exercises')).rows[0].n > 150);
+check('Un paciente no puede crear ejercicios', !!(await as(p1, "insert into exercises (name) values ('Ejercicio pirata')")).error);
+check('Un paciente no puede cambiar un ejercicio', !(await as(p1, "update exercises set name = 'x' where video_id = 'qygWuOFVg7g' returning id")).rows?.length);
+check('El coach puede renombrar un ejercicio', (await as(coach, "update exercises set name = 'Landmine pull + push (caballero)' where video_id = 'qygWuOFVg7g' returning id")).rows?.length === 1);
+check('No se puede añadir dos veces el mismo vídeo', !!(await as(coach, "insert into exercises (name, video_provider, video_id) values ('Copia', 'youtube', 'qygWuOFVg7g')")).error);
+await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'paused' where id = '${p2}'`);
+check('Un paciente en pausa no ve la biblioteca', (await as(p2, 'select count(*)::int n from exercises')).rows[0].n === 0);
+await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'active' where id = '${p2}'`);
+check('Un paciente sigue sin poder cambiar su estado', !!(await as(p1, `update profiles set status = 'archived' where id = '${p1}'`)).error);
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
