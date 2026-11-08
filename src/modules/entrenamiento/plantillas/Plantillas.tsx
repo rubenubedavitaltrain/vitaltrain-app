@@ -9,6 +9,7 @@ import { miniatura } from '../biblioteca/youtube';
 type TipoBloque = 'normal' | 'superset' | 'circuit';
 export const TIPOS: Record<TipoBloque, string> = { normal: 'Normal', superset: 'Superserie', circuit: 'Circuito' };
 export const DESCANSOS = [0, 30, 45, 60, 90, 120, 180, 240, 300];
+export const textoDescanso = (d: number) => (d === 0 ? 'Sin descanso' : d < 60 ? `${d} s` : `${Math.floor(d / 60)} min${d % 60 ? ` ${d % 60} s` : ''}`);
 
 type Item = { key: string; exercise: EjercicioMini; sets: number; target: string; load_kg: string; rest_seconds: number | null; instructions: string };
 type Bloque = { key: string; name: string; type: TipoBloque; rounds: number; items: Item[] };
@@ -209,7 +210,7 @@ function Editor({ supabase, id, onSalir }: { supabase: SupabaseClient; id: strin
                     Descanso
                     <select value={i.rest_seconds ?? ''} onChange={(e) => cambiarItem(b.key, i.key, { rest_seconds: e.target.value === '' ? null : Number(e.target.value) })} className="text-base px-2 py-2 border border-borde rounded-lg bg-white">
                       <option value="">—</option>
-                      {DESCANSOS.map((d) => <option key={d} value={d}>{d === 0 ? 'Sin descanso' : d < 60 ? `${d} s` : `${d / 60} min${d % 60 ? ` ${d % 60} s` : ''}`}</option>)}
+                      {DESCANSOS.map((d) => <option key={d} value={d}>{textoDescanso(d)}</option>)}
                     </select>
                   </label>
                 </div>
@@ -252,7 +253,7 @@ function Num({ etiqueta, valor, onCambio }: { etiqueta: string; valor: number; o
   return (
     <label className="flex flex-col gap-1 text-xs font-semibold">
       {etiqueta}
-      <input type="number" inputMode="numeric" min={1} max={20} value={valor} onChange={(e) => onCambio(Number(e.target.value) || 1)} className="text-base px-2 py-2 border border-borde rounded-lg" />
+      <input type="number" inputMode="numeric" min={1} max={20} value={valor} onChange={(e) => onCambio(Number(e.target.value) || 1)} className="text-base px-2 py-2 border border-borde rounded-lg bg-white" />
     </label>
   );
 }
@@ -261,7 +262,7 @@ function Texto({ etiqueta, valor, onCambio, ejemplo, modo }: { etiqueta: string;
   return (
     <label className="flex flex-col gap-1 text-xs font-semibold">
       {etiqueta}
-      <input inputMode={modo} value={valor} onChange={(e) => onCambio(e.target.value)} placeholder={ejemplo} className="font-normal text-base px-2 py-2 border border-borde rounded-lg" />
+      <input inputMode={modo} value={valor} onChange={(e) => onCambio(e.target.value)} placeholder={ejemplo} className="font-normal text-base px-2 py-2 border border-borde rounded-lg bg-white" />
     </label>
   );
 }

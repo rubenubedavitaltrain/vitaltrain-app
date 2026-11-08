@@ -163,8 +163,9 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
 - `supabase/migrations/0004_biblioteca_ejercicios.sql`: duración del vídeo en `exercises`, un vídeo no puede repetirse, y carga de los 156 Shorts del canal (lista en `supabase/datos/ejercicios_youtube.json`). Los vídeos están como "Oculto" en YouTube: nunca ponerlos en "Privado" o dejarán de verse en la app.
 - `supabase/migrations/0005_ajuste_perfiles_admin.sql`: el guardián de perfiles ya no bloquea los cambios hechos desde el panel de Supabase (sin usuario conectado).
-- Pendiente, migraciones `0006` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
-  - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
+- `supabase/migrations/0006_plantillas_y_registro.sql`: carga pautada (`load_kg`) en plantillas y entrenamientos, `save_template(jsonb)` (guarda la plantilla entera de una vez), `copy_week`, guardián de columnas de `workouts` para el paciente (solo estado, inicio, fin, esfuerzo, sensaciones y notas) y `workout_item_feedback` (nota y "no puedo hacerlo" con motivo: pain, no_equipment, dont_know, other).
+- `supabase/functions/alta-paciente`: función de servidor que crea la cuenta, el perfil y activa el módulo de entrenamiento. Solo la puede usar el coach. Se despliega desde el editor de Edge Functions de Supabase.
+- Pendiente, migraciones `0007` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `programs` (duración 1-12 semanas), `program_weeks` (número, regla de progresión) y `program_slots` (semana, día, plantilla): programas de varias semanas.
   - `program_assignments` (paciente, programa, fecha de inicio, estado, semana en que se sustituyó, asignación que la sustituye). Asignar crea `workouts` como copia, igual que una plantilla, enlazados a la asignación y con su número de semana.
   - Función `replace_program_from_week(asignación, semana, nuevo programa o null)`: borra los `workouts` de esa asignación desde el lunes de esa semana que estén en estado `scheduled` y sin `set_logs`, cierra la asignación y crea la nueva. Solo el coach puede llamarla. Con pruebas de que nunca borra sesiones hechas ni registros.
@@ -202,7 +203,6 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - Las migraciones se aplican en `vitaltrain-dev` desde el editor SQL de Supabase, en orden, y se anotan en `docs/NOVEDADES.md`. Nunca editar una migración ya aplicada: se crea otra nueva.
 - Acceso: `signInWithOtp` con `shouldCreateUser: false` y `verifyOtp` tipo `email`. En Supabase: altas libres desactivadas, código de 6 dígitos, plantilla de email con `{{ .Token }}`.
 - Variables de entorno de la app (Cloudflare Pages, producción y vista previa): `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (clave pública). La `service_role` nunca va en la app ni en Cloudflare.
-- Pendiente Fase 1: limitar qué columnas de `workouts` puede cambiar el paciente (solo estado, fechas de inicio y fin, esfuerzo, sensaciones y notas).
 
 ## 10. Estado actual
 
@@ -222,7 +222,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - Supabase `vitaltrain-dev`: proyecto `jlcrmozctsvgnousstbu`. Altas libres desactivadas, código de 6 dígitos que caduca en 15 min, plantilla de email en español con el código en el asunto
 - [x] GitHub suspendió la cuenta `rubenubedavitaltrain` (8 nov 2026). Apelación enviada, ticket 4972927. Mientras tanto se trabaja en local y se guardan copias (bundle y zip). Supabase tiene un segundo Owner con email y contraseña (`ruben.ubeda@vitaltrain.com`) para no depender de GitHub
 - [ ] Tarea 3: biblioteca de ejercicios. Hecho: migraciones 0004 y 0005 aplicadas en `vitaltrain-dev` (156 ejercicios), pantalla de biblioteca del coach (buscar, filtrar por etiqueta, ver vídeo vertical, renombrar, etiquetar, indicaciones, archivar, añadir por enlace), franja gris de arriba corregida. Falta: publicar (depende de GitHub) y que Rubén lo pruebe
-- [ ] Fase 1: las 17 funciones de la sección 3
+- [ ] Tareas 4-6 (hechas en local, pendientes de publicar y probar): constructor de plantillas por bloques; pacientes (lista, alta, ficha con semana, asignar, copiar semana, detalle registrado, notas del paciente, notas privadas, pausar o archivar); app del paciente (Hoy, Mi semana, Perfil, entrenamiento con series precargadas, descanso, vídeo vertical, nota y "no puedo", final con esfuerzo y sensaciones, modo sin conexión con cola de envío)
+- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: programas de 1-12 semanas, Mi progreso, mensajes, perfil (recordatorio, avisos, privacidad y descarga de datos), documentos, medidas, panel del coach con adherencia y resumen mensual
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

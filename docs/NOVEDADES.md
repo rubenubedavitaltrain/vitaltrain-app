@@ -2,6 +2,20 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tareas 4, 5 y 6 (versión 0.4.0, pendiente de publicar)
+- **Plantillas por bloques** (panel del coach → Plantillas): bloques normales, superseries y circuitos con vueltas. En cada ejercicio, series, repeticiones o tiempo, carga, descanso e indicación para el paciente.
+- **Pacientes** (panel del coach → Pacientes): dar de alta con nombre y email (entra con código), pausar o archivar, y la ficha con:
+  - su semana de entrenamiento: asignar una plantilla a un día con un mensaje, copiar la semana anterior, ver lo que ha hecho serie a serie y quitar sesiones pendientes;
+  - las notas y avisos de «No puedo hacerlo» que deja en cada ejercicio;
+  - tus notas privadas.
+- **App del paciente**:
+  - Hoy: el entrenamiento del día con tu mensaje, la semana en puntos y los pilares (los que no tiene activos, en gris).
+  - Mi semana.
+  - Entrenamiento: vídeo vertical, series con repeticiones y kilos ya rellenos, marcar cada serie, temporizador de descanso con +15 s y saltar, nota a Rubén y «No puedo hacerlo» con motivo.
+  - Final: esfuerzo de 1 a 10, sensaciones y notas.
+  - Sin conexión: el entrenamiento abierto sigue funcionando y lo registrado se envía solo al volver la red.
+- Cómo probarlo (cuando esté publicada): crea una plantilla, da de alta un paciente de prueba con tu email +paciente, asígnale la plantilla hoy y entra como ese paciente desde el móvil.
+
 ## 2026-11-08 · Tarea 3 (versión 0.3.0, pendiente de publicar)
 - Biblioteca de ejercicios en el panel del coach, con los 156 Shorts de tu canal ya cargados.
 - Buscar por nombre, músculo o material. Filtrar tocando una etiqueta.

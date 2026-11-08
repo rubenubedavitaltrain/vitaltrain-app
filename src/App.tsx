@@ -3,17 +3,9 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import Acceso from './core/acceso/Acceso';
 import PanelCoach from './core/coach/PanelCoach';
+import AppPaciente from './core/paciente/AppPaciente';
 
 type Perfil = { full_name: string; role: 'coach' | 'patient'; status: 'active' | 'paused' | 'archived' };
-type Pilar = { slug: string; name: string; description: string | null };
-
-function esApple() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-
-function instalada() {
-  return window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
-}
 
 function Pie() {
   return (
@@ -21,30 +13,6 @@ function Pie() {
       Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433
       <br />Versión {__APP_VERSION__}
     </footer>
-  );
-}
-
-function Instalar() {
-  const [yaInstalada, setYaInstalada] = useState(false);
-  useEffect(() => setYaInstalada(instalada()), []);
-  if (yaInstalada) return null;
-  return (
-    <section className="bg-white rounded-2xl p-5 flex flex-col gap-2" aria-labelledby="instalar">
-      <h2 id="instalar" className="text-lg font-bold">Añádela a tu pantalla de inicio</h2>
-      {esApple() ? (
-        <ol className="list-decimal pl-5 text-base leading-relaxed">
-          <li>Abre esta página en Safari.</li>
-          <li>Pulsa el botón Compartir, abajo.</li>
-          <li>Elige «Añadir a pantalla de inicio».</li>
-        </ol>
-      ) : (
-        <ol className="list-decimal pl-5 text-base leading-relaxed">
-          <li>Abre esta página en Chrome.</li>
-          <li>Pulsa el menú de los tres puntos, arriba.</li>
-          <li>Elige «Instalar aplicación» o «Añadir a pantalla de inicio».</li>
-        </ol>
-      )}
-    </section>
   );
 }
 
@@ -76,21 +44,26 @@ function Mensaje({ titulo, texto, onSalir }: { titulo: string; texto: string; on
 
 function Inicio({ supabase, session }: { supabase: SupabaseClient; session: Session }) {
   const [perfil, setPerfil] = useState<Perfil | null | undefined>(undefined);
-  const [pilares, setPilares] = useState<Pilar[]>([]);
 
   useEffect(() => {
     let vivo = true;
     (async () => {
-      const { data } = await supabase.from('profiles').select('full_name, role, status').eq('id', session.user.id).maybeSingle();
+      const { data, error } = await supabase.from('profiles').select('full_name, role, status').eq('id', session.user.id).maybeSingle();
       if (!vivo) return;
-      setPerfil((data as Perfil | null) ?? null);
-      const p = await supabase.from('pillars').select('slug, name, description').order('position');
-      if (vivo) setPilares((p.data as Pilar[] | null) ?? []);
+      if (error) {
+        // Sin conexión: usar la última copia del perfil
+        let copia: Perfil | null = null;
+        try { copia = JSON.parse(localStorage.getItem('vt.perfil') ?? 'null'); } catch { /* sin copia */ }
+        setPerfil(copia);
+      } else {
+        setPerfil((data as Perfil | null) ?? null);
+        try { localStorage.setItem('vt.perfil', JSON.stringify(data)); } catch { /* sin almacenamiento */ }
+      }
     })();
     return () => { vivo = false; };
   }, [supabase, session.user.id]);
 
-  const salir = () => supabase.auth.signOut();
+  const salir = () => { try { localStorage.clear(); } catch { /* nada */ } supabase.auth.signOut(); };
 
   if (perfil === undefined) return <Mensaje titulo="Cargando…" texto="Un momento." />;
   if (perfil === null)
@@ -100,32 +73,7 @@ function Inicio({ supabase, session }: { supabase: SupabaseClient; session: Sess
 
   const nombre = perfil.full_name.split(' ')[0];
   if (perfil.role === 'coach') return <PanelCoach supabase={supabase} nombre={nombre} />;
-  return (
-    <div className="min-h-full flex flex-col">
-      <Cabecera
-        titulo={`Hola, ${nombre}`}
-        texto="Tu plan con Rubén aparecerá aquí muy pronto."
-      />
-      <main className="flex-1 px-5 py-6 flex flex-col gap-4">
-        <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">
-          <h2 id="pilares" className="text-[13px] font-semibold tracking-wider text-texto-suave">LOS CINCO PILARES</h2>
-          <ul className="flex flex-col gap-3">
-            {pilares.map((p) => (
-              <li key={p.slug} className="flex flex-col gap-0.5">
-                <span className="text-base font-semibold">{p.name}</span>
-                {p.description && <span className="text-sm text-texto-suave leading-snug">{p.description}</span>}
-              </li>
-            ))}
-          </ul>
-        </section>
-        <Instalar />
-        <button onClick={salir} className="bg-white text-petroleo border-2 border-petroleo text-base font-bold py-3.5 rounded-2xl">
-          Cerrar sesión
-        </button>
-      </main>
-      <Pie />
-    </div>
-  );
+  return <AppPaciente supabase={supabase} userId={session.user.id} nombre={nombre} email={session.user.email ?? ''} />;
 }
 
 export default function App() {
