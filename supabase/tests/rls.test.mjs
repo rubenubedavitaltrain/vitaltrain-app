@@ -29,12 +29,12 @@ insert into exercises (name) values ('Sentadilla');
 insert into templates (name) values ('Fuerza A');
 insert into template_blocks (template_id, position) select id, 1 from templates;
 insert into template_items (block_id, position, exercise_id, sets, rest_seconds) select b.id,1,e.id,3,90 from template_blocks b, exercises e;
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant execute on all functions in schema public to authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated, anon;
+grant execute on all functions in schema public to authenticated, anon;
 `);
 
-const as = async (uid, sql) => {
-  await db.exec(`reset role; set request.jwt.sub = '${uid}'; set role authenticated;`);
+const as = async (uid, sql, role = 'authenticated') => {
+  await db.exec(`reset role; set request.jwt.sub = '${uid}'; set role ${role};`);
   try { return { rows: (await db.query(sql)).rows }; }
   catch (e) { return { error: e.message }; }
   finally { await db.exec('reset role'); }
@@ -59,6 +59,15 @@ check('Un paciente no ve las notas privadas del coach', (await as(p1, 'select co
 check('Un paciente ve los cinco pilares', (await as(p1, 'select count(*)::int n from pillars')).rows[0].n === 5);
 check('Los cinco pilares tienen su frase', (await as(p1, 'select count(*)::int n from pillars where description is not null')).rows[0].n === 5);
 check('Un paciente no puede cambiar la frase de un pilar', !(await as(p1, "update pillars set description = 'x' where slug = 'movimiento-inteligente' returning id")).rows?.length);
+check('El paciente 1 guarda sus ajustes', !(await as(p1, `insert into patient_settings (patient_id, city) values ('${p1}', 'Valencia')`)).error);
+check('El paciente 2 no ve los ajustes del paciente 1', (await as(p2, 'select count(*)::int n from patient_settings')).rows[0].n === 0);
+check('El coach ve todos los perfiles', (await as(coach, 'select count(*)::int n from profiles')).rows[0].n === 3);
+check('Sin iniciar sesión no se ve ningún dato', (await as('', 'select (select count(*) from profiles) + (select count(*) from pillars) + (select count(*) from workouts) as n', 'anon')).rows[0].n == 0);
+
+// El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
+await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
+await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
+console.log('Diseño de fase 2 aplicado (solo en la prueba)');
 check('Sin el módulo activo, no se puede registrar sueño', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date, 4)`)).error);
 
 console.log(fails ? `\n${fails} prueba(s) fallidas` : '\nTodas las pruebas superadas');
