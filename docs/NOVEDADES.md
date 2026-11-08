@@ -2,6 +2,16 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 7: programas (versión 0.5.0, pendiente de publicar)
+- **Programas** (panel del coach → Programas): de 1 a 12 semanas. En una tabla eliges qué plantilla toca cada día de cada semana. Botón para repetir los días de la semana 1 en todas.
+- **Regla de progresión por semana**: subir o bajar la carga entre -40 % y +20 % (se redondea a 0,5 kg) y una nota que el paciente verá en las sesiones de esa semana. Ejemplo: semana 4 a -30 % con la nota «Semana de descarga».
+- **Asignar** (ficha del paciente → Programa): eliges programa, el lunes de inicio y un mensaje. Se crean todas las sesiones en su calendario.
+- **Cambiar desde una semana**: eliges la semana (la actual o una futura) y otro programa o ninguno. Antes de confirmar te dice cuántas sesiones se quitan y cuántas se quedan. Nunca se borran sesiones hechas, en curso o con series o notas registradas.
+- El paciente ve en Hoy y en Mi semana «nombre del programa · semana 3 de 8».
+- Editar un programa no cambia lo ya asignado: cada asignación es una copia.
+- Base de datos: migración 0007 aplicada en `vitaltrain-dev`.
+- Cómo probarlo (cuando esté publicada): crea dos plantillas, haz un programa de 4 semanas con la semana 4 a -30 %, asígnalo a tu paciente de prueba desde este lunes, haz una sesión desde el móvil y luego usa «Cambiar desde una semana» en la semana 2. La sesión hecha debe seguir ahí.
+
 ## 2026-11-08 · Tareas 4, 5 y 6 (versión 0.4.0, pendiente de publicar)
 - **Plantillas por bloques** (panel del coach → Plantillas): bloques normales, superseries y circuitos con vueltas. En cada ejercicio, series, repeticiones o tiempo, carga, descanso e indicación para el paciente.
 - **Pacientes** (panel del coach → Pacientes): dar de alta con nombre y email (entra con código), pausar o archivar, y la ficha con:
