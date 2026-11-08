@@ -6,6 +6,7 @@ import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Medidas from '../medidas/Medidas';
 import Conversacion, { contarNoLeidos } from '../mensajes/Conversacion';
 import Instalar from '../Instalar';
+import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
@@ -24,6 +25,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
   usarCuenta(userId);
   const [pestaña, setPestaña] = useState<Pestaña>('hoy');
   const [abierta, setAbierta] = useState<string | null>(null);
+  const [ritmo, setRitmo] = useState(false);
   const [pilares, setPilares] = useState<Pilar[]>(() => leer('vt.pilares') ?? []);
   const [modulos, setModulos] = useState<string[]>(() => leer('vt.modulos') ?? ['training']);
   const [recarga, setRecarga] = useState(0);
@@ -62,6 +64,8 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
     return <Entrenamiento supabase={supabase} sesionId={abierta} pacienteId={userId} onSalir={() => { setAbierta(null); setRecarga((r) => r + 1); }} />;
   }
 
+  if (ritmo) return <MiRitmo supabase={supabase} pacienteId={userId} onSalir={() => { setRitmo(false); setRecarga((r) => r + 1); }} />;
+
   const activos = new Set(modulos.map((m) => PILAR_DE_MODULO[m]).filter(Boolean));
 
   return (
@@ -83,6 +87,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
                 </div>
               )}
               {modulos.includes('training') && <TarjetaHoy supabase={supabase} onAbrir={setAbierta} />}
+              {modulos.includes('circadian') && <TarjetaRitmo supabase={supabase} pacienteId={userId} onAbrir={() => setRitmo(true)} />}
               {pilares.length > 0 && (
                 <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">
                   <h2 id="pilares" className="text-xs font-bold tracking-wide text-texto-suave">TUS PILARES</h2>

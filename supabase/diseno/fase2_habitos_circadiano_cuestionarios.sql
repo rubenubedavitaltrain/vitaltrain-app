@@ -58,37 +58,7 @@ create table habit_logs (
 );
 create index habit_logs_patient_idx on habit_logs (patient_id, log_date);
 
--- ============================================================
--- Ritmos circadianos: sueño y comidas
--- ============================================================
-create table sleep_logs (
-  id uuid primary key default gen_random_uuid(),
-  patient_id uuid not null references profiles(id) on delete cascade,
-  night_of date not null,                  -- fecha de la noche en que se acuesta
-  bedtime timestamptz,
-  wake_time timestamptz,
-  sleep_latency_minutes int check (sleep_latency_minutes >= 0),
-  awakenings int check (awakenings >= 0),
-  quality int check (quality between 1 and 5),
-  rested int check (rested between 1 and 5),   -- cómo se levanta
-  is_free_day boolean,                     -- día libre vs laborable (jet lag social)
-  note text,
-  created_at timestamptz not null default now(),
-  unique (patient_id, night_of),
-  check (wake_time is null or bedtime is null or wake_time > bedtime)
-);
-
-create type meal_kind as enum ('breakfast', 'lunch', 'dinner', 'snack', 'other');
-
-create table meal_events (
-  id uuid primary key default gen_random_uuid(),
-  patient_id uuid not null references profiles(id) on delete cascade,
-  eaten_at timestamptz not null,
-  kind meal_kind not null default 'other',
-  note text,
-  created_at timestamptz not null default now()
-);
-create index meal_events_patient_idx on meal_events (patient_id, eaten_at);
+-- Ritmos circadianos: aplicado en supabase/migrations/0014_circadiano.sql
 
 -- ============================================================
 -- Cuestionarios genéricos (cronotipo, check-ins, cuestionarios de consulta)
@@ -131,8 +101,6 @@ create table questionnaire_responses (
 alter table habit_definitions enable row level security;
 alter table patient_habits enable row level security;
 alter table habit_logs enable row level security;
-alter table sleep_logs enable row level security;
-alter table meal_events enable row level security;
 alter table questionnaires enable row level security;
 alter table questionnaire_assignments enable row level security;
 alter table questionnaire_responses enable row level security;
@@ -140,8 +108,6 @@ alter table questionnaire_responses enable row level security;
 create policy coach_all on habit_definitions for all using (is_coach()) with check (is_coach());
 create policy coach_all on patient_habits for all using (is_coach()) with check (is_coach());
 create policy coach_all on habit_logs for all using (is_coach()) with check (is_coach());
-create policy coach_all on sleep_logs for all using (is_coach()) with check (is_coach());
-create policy coach_all on meal_events for all using (is_coach()) with check (is_coach());
 create policy coach_all on questionnaires for all using (is_coach()) with check (is_coach());
 create policy coach_all on questionnaire_assignments for all using (is_coach()) with check (is_coach());
 create policy coach_all on questionnaire_responses for all using (is_coach()) with check (is_coach());
@@ -155,14 +121,6 @@ create policy patient_rw on habit_logs for all
   using (patient_id = auth.uid() and is_active_patient() and patient_has_module('habits'))
   with check (patient_id = auth.uid() and is_active_patient() and patient_has_module('habits')
     and exists (select 1 from patient_habits ph where ph.id = patient_habit_id and ph.patient_id = auth.uid()));
-
--- Circadiano
-create policy patient_rw on sleep_logs for all
-  using (patient_id = auth.uid() and is_active_patient() and patient_has_module('circadian'))
-  with check (patient_id = auth.uid() and is_active_patient() and patient_has_module('circadian'));
-create policy patient_rw on meal_events for all
-  using (patient_id = auth.uid() and is_active_patient() and patient_has_module('circadian'))
-  with check (patient_id = auth.uid() and is_active_patient() and patient_has_module('circadian'));
 
 -- Cuestionarios: ve los asignados y responde los suyos
 create policy patient_read on questionnaire_assignments for select

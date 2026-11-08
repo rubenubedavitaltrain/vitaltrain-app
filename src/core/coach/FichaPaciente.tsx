@@ -6,8 +6,10 @@ import NotasDelPaciente from '../../modules/entrenamiento/ficha/NotasDelPaciente
 import ProgramaPaciente from '../../modules/entrenamiento/ficha/ProgramaPaciente';
 import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Medidas from '../medidas/Medidas';
+import ModulosPaciente, { useModulosPaciente } from './ModulosPaciente';
+import { RitmoCoach } from '../../modules/circadiano/Ritmo';
 
-// Ficha del paciente (núcleo). Cada módulo aporta su sección: de momento, entrenamiento.
+// Ficha del paciente (núcleo). Cada módulo activo aporta su sección.
 
 type Nota = { id: string; body: string; created_at: string };
 
@@ -16,6 +18,8 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
 }) {
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
+  const modulos = useModulosPaciente(supabase, paciente.id);
+  const tiene = (m: string) => modulos.activos?.has(m) ?? false;
 
   async function cambiarEstado(status: Paciente['status']) {
     setError('');
@@ -54,6 +58,8 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         <Progreso key={`p${version}`} supabase={supabase} pacienteId={paciente.id} ancho />
         <div className="grid lg:grid-cols-2 gap-4"><Medidas supabase={supabase} pacienteId={paciente.id} esCoach /></div>
       </section>
+      {tiene('circadian') && <RitmoCoach supabase={supabase} pacienteId={paciente.id} />}
+      <ModulosPaciente supabase={supabase} pacienteId={paciente.id} disponibles={modulos.disponibles} activos={modulos.activos} onCambio={modulos.recargar} />
       <div className="grid lg:grid-cols-2 gap-4">
         <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />
         <NotasPrivadas supabase={supabase} pacienteId={paciente.id} />

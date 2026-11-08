@@ -273,11 +273,24 @@ check('Sin consentimiento no se puede escribir', !!(await as(p3, `insert into me
   check('La hora de España está disponible', (await db.query(`select hoy_local() is not null as ok`)).rows[0].ok === true);
 }
 
+// 0014: ritmos circadianos
+check('Sin el módulo activo no se puede registrar sueño', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date - 1, 4)`)).error);
+await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p1}', 'circadian')`);
+check('Con el módulo activo, el paciente registra su noche', !(await as(p1, `insert into sleep_logs (patient_id, night_of, bedtime, wake_time, quality, rested) values ('${p1}', current_date - 1, (current_date - 1) + time '23:30', current_date + time '07:15', 4, 3)`)).error);
+check('No se puede registrar una noche futura', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date + 2, 4)`)).error);
+check('No se acepta despertar antes de acostarse', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, bedtime, wake_time) values ('${p1}', current_date - 3, (current_date - 3) + time '23:00', (current_date - 3) + time '22:00')`)).error);
+check('El paciente anota una comida', !(await as(p1, `insert into meal_events (patient_id, eaten_at, kind) values ('${p1}', now() - interval '2 hours', 'lunch')`)).error);
+check('No se anota una comida en el futuro', !!(await as(p1, `insert into meal_events (patient_id, eaten_at, kind) values ('${p1}', now() + interval '3 hours', 'dinner')`)).error);
+check('Otro paciente no ve ese sueño ni esas comidas', (await as(p2, 'select (select count(*) from sleep_logs) + (select count(*) from meal_events) as n')).rows[0].n == 0);
+check('Otro paciente no puede escribir en su nombre', !!(await as(p2, `insert into meal_events (patient_id, eaten_at) values ('${p1}', now())`)).error);
+check('El coach ve el sueño y las comidas', (await as(coach, `select (select count(*) from sleep_logs where patient_id = '${p1}') + (select count(*) from meal_events where patient_id = '${p1}') as n`)).rows[0].n == 2);
+check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settings (patient_id, city, latitude, longitude) values ('${p1}', 'Valencia', 39.47, -0.376) on conflict (patient_id) do update set city = excluded.city, latitude = excluded.latitude, longitude = excluded.longitude`)).error);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
 console.log('Diseño de fase 2 aplicado (solo en la prueba)');
-check('Sin el módulo activo, no se puede registrar sueño', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date, 4)`)).error);
+
 
 console.log(fails ? `\n${fails} prueba(s) fallidas` : '\nTodas las pruebas superadas');
 process.exit(fails ? 1 : 0);
