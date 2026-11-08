@@ -2,7 +2,7 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
-## 2026-11-09 · Tareas 16 y 17: ritmos circadianos y hábitos por pilar (versión 0.13.0)
+## 2026-11-08 · Tareas 16 y 17: ritmos circadianos y hábitos por pilar (versión 0.13.0)
 Estos dos módulos se activan **por paciente**. En su ficha hay una sección nueva, **«Qué ve en su app»**, con una casilla por módulo: Entrenamiento, Mensajes, Ritmos circadianos y Hábitos. Quitar uno no borra sus datos.
 
 **Ritmos circadianos**
