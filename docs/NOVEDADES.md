@@ -2,6 +2,16 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 12: panel de inicio (versión 0.10.0)
+- Al entrar como coach, la primera pantalla es **Inicio**.
+- Arriba: pacientes activos, sesiones hechas esta semana sobre las pautadas, cuántos llevan 7 días o más sin entrenar y notas sin leer.
+- **Necesitan atención**: cada paciente con algo pendiente y el motivo (no ha aceptado el consentimiento, días sin entrenar, sesiones de esta semana no hechas, no le queda ninguna sesión pendiente, notas sin leer).
+- **La semana de cada paciente**: una fila por paciente con un círculo por día (hecha, hoy, pendiente, no hecha), cuántas lleva y su última sesión.
+- **Notas sin leer** de todos los pacientes juntas.
+- Tocando cualquier paciente se abre su ficha.
+- No cambia la base de datos.
+- Cómo probarlo: entra como coach. Debe salir Inicio con tu paciente de prueba.
+
 ## 2026-11-08 · Tarea 11: Mi progreso (versión 0.9.0)
 - El paciente tiene una pestaña nueva, **Progreso**, en el menú de abajo.
 - Arriba, tres datos: sesiones hechas esta semana, porcentaje hecho en las últimas 4 semanas y esfuerzo medio del último mes.

@@ -228,8 +228,9 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 9 (hecha en local): consentimiento del paciente (pantalla al entrar, Privacidad en Perfil con retirar, estado en la ficha del coach). Texto 1.1-borrador con los datos del responsable (Rubén Úbeda Rubio, titular de la clínica; contacto info@vitaltrain.com). Pendiente: plazo de conservación y revisión del asesor
 - [ ] Tarea 10 (hecha en local): «Cambiar un ejercicio» en la ficha del paciente. Migración 0010 aplicada (8 nov 2026)
 - [ ] Tarea 11 (hecha en local): Mi progreso. Pestaña «Progreso» del paciente y sección «Progresión» en la ficha del coach (`src/modules/entrenamiento/progreso/Progreso.tsx`): esta semana, % de las últimas 4 semanas, esfuerzo medio, entrenamientos por semana (12 semanas), esfuerzo por semana y carga máxima por día de cada ejercicio. Sin tablas nuevas; gráficas en SVG propio, sin librerías (9 nov 2026)
+- [ ] Tarea 12 (hecha en local): panel de inicio del coach (`src/core/coach/Inicio.tsx`): pacientes activos, sesiones de la semana, quién lleva 7 días o más sin entrenar, notas sin leer, «Necesitan atención» (sin consentimiento, sin entrenar, sesiones no hechas, sin plan pendiente, notas) y la semana de cada paciente en una tabla. Desde cualquier fila se abre su ficha. Sin tablas nuevas (8 nov 2026)
 - [x] Versión de prueba en Cloudflare Pages subida a mano: https://vitaltrain-prueba.pages.dev (proyecto `vitaltrain-prueba`, sin GitHub). Cada versión nueva se sube como zip (8 nov 2026)
-- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: mensajes, perfil (recordatorio, avisos y descarga de datos), documentos, medidas, panel del coach con adherencia y resumen mensual
+- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: mensajes, perfil (recordatorio, avisos y descarga de datos), documentos, medidas y resumen mensual
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

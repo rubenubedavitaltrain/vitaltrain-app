@@ -9,7 +9,7 @@ export type Paciente = { id: string; full_name: string; email: string; phone: st
 
 const ESTADO: Record<Paciente['status'], string> = { active: 'Activo', paused: 'En pausa', archived: 'Archivado' };
 
-export default function Pacientes({ supabase }: { supabase: SupabaseClient }) {
+export default function Pacientes({ supabase, abrirId, onAbierto }: { supabase: SupabaseClient; abrirId?: string | null; onAbierto?: () => void }) {
   const [lista, setLista] = useState<Paciente[] | null>(null);
   const [abierto, setAbierto] = useState<Paciente | null>(null);
   const [alta, setAlta] = useState(false);
@@ -20,6 +20,14 @@ export default function Pacientes({ supabase }: { supabase: SupabaseClient }) {
     setLista((data as Paciente[]) ?? []);
   }
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Abrir directamente la ficha pedida desde el panel de inicio
+  useEffect(() => {
+    if (!abrirId || !lista) return;
+    const p = lista.find((x) => x.id === abrirId);
+    if (p) setAbierto(p);
+    onAbierto?.();
+  }, [abrirId, lista]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (abierto) {
     return <FichaPaciente supabase={supabase} paciente={abierto} onVolver={() => { setAbierto(null); cargar(); }} onCambio={(p) => setAbierto(p)} />;

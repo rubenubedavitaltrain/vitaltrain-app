@@ -2,17 +2,19 @@ import { useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import Biblioteca from '../../modules/entrenamiento/biblioteca/Biblioteca';
 import Pacientes from './Pacientes';
+import Inicio from './Inicio';
 import Programas from '../../modules/entrenamiento/programas/Programas';
 import Plantillas from '../../modules/entrenamiento/plantillas/Plantillas';
 
-// Panel del coach. Cada módulo añade aquí su sección. De momento: inicio y biblioteca.
+// Panel del coach: inicio (resumen de la semana), pacientes, programas, plantillas y biblioteca.
 
 type Seccion = 'inicio' | 'pacientes' | 'programas' | 'plantillas' | 'biblioteca';
 
 export default function PanelCoach({ supabase, nombre }: { supabase: SupabaseClient; nombre: string }) {
   const [seccion, setSeccion] = useState<Seccion>(() => {
-    try { return (localStorage.getItem('vt.coach.seccion') as Seccion) || 'biblioteca'; } catch { return 'biblioteca'; }
+    try { return (localStorage.getItem('vt.coach.seccion') as Seccion) || 'inicio'; } catch { return 'inicio'; }
   });
+  const [abrir, setAbrir] = useState<string | null>(null);
   const ir = (s: Seccion) => {
     setSeccion(s);
     try { localStorage.setItem('vt.coach.seccion', s); } catch { /* sin almacenamiento */ }
@@ -45,15 +47,8 @@ export default function PanelCoach({ supabase, nombre }: { supabase: SupabaseCli
       </header>
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-[max(env(safe-area-inset-bottom),1.5rem)]">
-        {seccion === 'inicio' && (
-          <section className="bg-white rounded-2xl p-6 flex flex-col gap-2">
-            <h2 className="text-2xl font-bold">Hola, {nombre}</h2>
-            <p className="text-texto-suave">
-              El panel con la adherencia de tus pacientes llegará en las próximas tareas. Ya puedes dar de alta pacientes, crear plantillas y asignarlas en su calendario.
-            </p>
-          </section>
-        )}
-        {seccion === 'pacientes' && <Pacientes supabase={supabase} />}
+        {seccion === 'inicio' && <Inicio supabase={supabase} nombre={nombre} onAbrir={(id) => { setAbrir(id); ir('pacientes'); }} />}
+        {seccion === 'pacientes' && <Pacientes supabase={supabase} abrirId={abrir} onAbierto={() => setAbrir(null)} />}
         {seccion === 'programas' && <Programas supabase={supabase} />}
         {seccion === 'plantillas' && <Plantillas supabase={supabase} />}
         {seccion === 'biblioteca' && <Biblioteca supabase={supabase} />}
