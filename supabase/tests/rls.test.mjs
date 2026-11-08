@@ -286,6 +286,37 @@ check('Otro paciente no puede escribir en su nombre', !!(await as(p2, `insert in
 check('El coach ve el sueño y las comidas', (await as(coach, `select (select count(*) from sleep_logs where patient_id = '${p1}') + (select count(*) from meal_events where patient_id = '${p1}') as n`)).rows[0].n == 2);
 check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settings (patient_id, city, latitude, longitude) values ('${p1}', 'Valencia', 39.47, -0.376) on conflict (patient_id) do update set city = excluded.city, latitude = excluded.latitude, longitude = excluded.longitude`)).error);
 
+// 0015: hábitos
+{
+  const nCat = (await db.query(`select count(*)::int n from habit_definitions`)).rows[0].n;
+  check('El catálogo inicial tiene hábitos de los cinco pilares', nCat >= 20 && (await db.query(`select count(distinct pillar_id)::int n from habit_definitions`)).rows[0].n === 5);
+  const hab = (await db.query(`select id from habit_definitions where name = 'Luz natural al despertar'`)).rows[0].id;
+  const hNum = (await db.query(`select id from habit_definitions where name = 'Pasos del día'`)).rows[0].id;
+  check('Un paciente no puede asignarse hábitos', !!(await as(p1, `insert into patient_habits (patient_id, habit_id) values ('${p1}', '${hab}')`)).error);
+  check('El coach asigna un hábito', !(await as(coach, `insert into patient_habits (patient_id, habit_id, target, coach_note) values ('${p1}', '${hab}', 15, 'Mejor en la terraza')`)).error);
+  await as(coach, `insert into patient_habits (patient_id, habit_id) values ('${p2}', '${hNum}')`);
+  const ph = (await db.query(`select id from patient_habits where patient_id = '${p1}'`)).rows[0].id;
+  const ph2 = (await db.query(`select id from patient_habits where patient_id = '${p2}'`)).rows[0].id;
+  check('Días de la semana fuera de rango no se aceptan', !!(await as(coach, `insert into patient_habits (patient_id, habit_id, days_of_week) values ('${p1}', '${hab}', '{0,8}')`)).error);
+  check('Sin el módulo, el paciente no ve sus hábitos', (await as(p1, 'select count(*)::int n from patient_habits')).rows[0].n === 0);
+  check('Sin el módulo, no puede marcar', !!(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done) values ('${ph}', '${p1}', current_date, true)`)).error);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p1}', 'habits'), ('${p2}', 'habits')`);
+  check('Con el módulo, ve su hábito', (await as(p1, 'select count(*)::int n from patient_habits')).rows[0].n === 1);
+  check('El paciente lee el catálogo', (await as(p1, 'select count(*)::int n from habit_definitions')).rows[0].n === nCat);
+  check('Marca el hábito de hoy', !(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done, value_numeric) values ('${ph}', '${p1}', current_date, true, 12)`)).error);
+  check('Puede cambiar lo de hoy', !(await as(p1, `update habit_logs set value_numeric = 20 where patient_habit_id = '${ph}' and log_date = current_date`)).error);
+  check('No marca días futuros', !!(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done) values ('${ph}', '${p1}', current_date + 1, true)`)).error);
+  check('No marca más de una semana atrás', !!(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done) values ('${ph}', '${p1}', current_date - 10, true)`)).error);
+  check('No marca en un hábito de otro paciente', !!(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done) values ('${ph2}', '${p1}', current_date, true)`)).error);
+  check('Otro paciente no ve sus registros', (await as(p2, 'select count(*)::int n from habit_logs')).rows[0].n === 0);
+  check('El paciente no puede cambiar su objetivo', (await as(p1, `update patient_habits set target = 1 where id = '${ph}' returning id`)).rows?.length !== 1);
+  check('Ni editar el catálogo', (await as(p1, `update habit_definitions set name = 'x' where id = '${hab}' returning id`)).rows?.length !== 1);
+  await as(coach, `update patient_habits set is_active = false where id = '${ph}'`);
+  check('Un hábito retirado ya no se puede marcar', !!(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done) values ('${ph}', '${p1}', current_date - 1, true)`)).error);
+  check('El coach ve el registro', (await as(coach, `select count(*)::int n from habit_logs where patient_id = '${p1}'`)).rows[0].n === 1);
+  check('El coach crea un hábito nuevo', !(await as(coach, `insert into habit_definitions (name, kind, rationale) values ('Ducha de contraste', 'check', 'Prueba')`)).error);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

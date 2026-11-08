@@ -7,6 +7,7 @@ import Medidas from '../medidas/Medidas';
 import Conversacion, { contarNoLeidos } from '../mensajes/Conversacion';
 import Instalar from '../Instalar';
 import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
+import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
@@ -26,6 +27,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
   const [pestaña, setPestaña] = useState<Pestaña>('hoy');
   const [abierta, setAbierta] = useState<string | null>(null);
   const [ritmo, setRitmo] = useState(false);
+  const [pilaresHabitos, setPilaresHabitos] = useState<string[]>([]);
   const [pilares, setPilares] = useState<Pilar[]>(() => leer('vt.pilares') ?? []);
   const [modulos, setModulos] = useState<string[]>(() => leer('vt.modulos') ?? ['training']);
   const [recarga, setRecarga] = useState(0);
@@ -66,7 +68,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
 
   if (ritmo) return <MiRitmo supabase={supabase} pacienteId={userId} onSalir={() => { setRitmo(false); setRecarga((r) => r + 1); }} />;
 
-  const activos = new Set(modulos.map((m) => PILAR_DE_MODULO[m]).filter(Boolean));
+  const activos = new Set([...modulos.map((m) => PILAR_DE_MODULO[m]).filter(Boolean), ...(modulos.includes('habits') ? pilaresHabitos : [])]);
 
   return (
     <div className="min-h-full flex flex-col">
@@ -87,6 +89,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
                 </div>
               )}
               {modulos.includes('training') && <TarjetaHoy supabase={supabase} onAbrir={setAbierta} />}
+              {modulos.includes('habits') && <TarjetaHabitos supabase={supabase} pacienteId={userId} onPilares={setPilaresHabitos} />}
               {modulos.includes('circadian') && <TarjetaRitmo supabase={supabase} pacienteId={userId} onAbrir={() => setRitmo(true)} />}
               {pilares.length > 0 && (
                 <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">
@@ -126,7 +129,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
               <h1 className="text-2xl font-bold">Mi progreso</h1>
               <p className="text-[#E3E8E8] text-sm mt-1">Lo que has hecho, semana a semana.</p>
             </header>
-            <div className="p-4 flex flex-col gap-4"><Progreso supabase={supabase} pacienteId={userId} /><Medidas supabase={supabase} pacienteId={userId} /></div>
+            <div className="p-4 flex flex-col gap-4"><Progreso supabase={supabase} pacienteId={userId} />{modulos.includes('habits') && <Constancia supabase={supabase} pacienteId={userId} />}<Medidas supabase={supabase} pacienteId={userId} /></div>
           </div>
         )}
         {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
