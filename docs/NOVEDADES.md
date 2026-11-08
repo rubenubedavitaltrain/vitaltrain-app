@@ -2,6 +2,18 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 9: consentimiento (versión 0.7.0)
+- La primera vez que un paciente entra ve «Antes de empezar»: lo esencial sobre sus datos, un enlace a la información completa y dos casillas. Hasta que no acepta, no ve nada más.
+- «No acepto» le explica que sin consentimiento la app no puede guardar sus datos y que hable contigo.
+- Perfil → Privacidad: versión y fecha aceptadas, el texto completo y «Retirar mi consentimiento».
+- La protección está en la base de datos, no solo en la pantalla: sin consentimiento en vigor el paciente no puede leer ni registrar nada, aunque use otra app o un truco.
+- En tu ficha del paciente aparece si lo ha aceptado, si está pendiente o si lo ha retirado.
+- Si cambias el texto, se sube la versión y cada paciente tendrá que aceptarlo de nuevo.
+- El texto es un **borrador** (1.0-borrador): faltan razón social, NIF, código postal, email de privacidad y el plazo de conservación, y debe revisarlo tu asesor. Copia para él en `docs/legal/consentimiento.md`.
+- Base de datos: migración 0009 aplicada en `vitaltrain-dev`.
+- Cómo probarlo: entra como tu paciente de prueba. Debe salir la pantalla de consentimiento. Acepta, entrena, y luego retíralo en Perfil: el plan debe dejar de verse y volver a pedirte el consentimiento.
+- Qué podría fallar: si el paciente retira el consentimiento con registros sin enviar en el móvil, esos registros no se guardarán.
+
 ## 2026-11-08 · Tarea 8: diseño a la carta (versión 0.6.0, pendiente de publicar)
 - En la ficha del paciente, cada día tiene **«+ Crear sesión»**. Se abre el constructor por bloques a pantalla completa y la sesión se guarda solo para ese paciente. No hace falta crear una plantilla.
 - **Repetir**: eliges los días de la semana (por ejemplo lunes y jueves) y cuántas semanas (1 a 12). Te dice cuántas sesiones se crearán y en qué fechas. Los días ya pasados no se incluyen.

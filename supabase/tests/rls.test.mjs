@@ -28,6 +28,7 @@ const p2 = '33333333-3333-3333-3333-333333333333';
 await db.exec(`
 insert into auth.users values ('${coach}','c@x'),('${p1}','p1@x'),('${p2}','p2@x');
 insert into profiles (id, role, full_name, email) values ('${coach}','coach','Coach','c@x'),('${p1}','patient','P1','p1@x'),('${p2}','patient','P2','p2@x');
+insert into consents (patient_id, version) values ('${p1}','prueba'),('${p2}','prueba');
 insert into exercises (name) values ('Sentadilla');
 insert into templates (name) values ('Fuerza A');
 insert into template_blocks (template_id, position) select id, 1 from templates;
@@ -180,6 +181,32 @@ check('No se puede editar una sesión con notas del paciente', !!(await as(coach
 check('La nota del paciente sigue intacta', (await db.query(`select count(*)::int n from workout_item_feedback where workout_item_id = '${itS}'`)).rows[0].n === 1);
 await as(p2, `update workouts set status = 'completed' where id = '${idsS[0]}'`);
 check('No se puede editar una sesión hecha', !!(await as(coach, `select save_workout(jsonb_build_object('id','${idsS[0]}','name','x','blocks','${bloquesS}'::jsonb))`)).error);
+
+// 0009: consentimiento
+const p3 = '44444444-4444-4444-4444-444444444444';
+await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${p3}','p3@x'); insert into profiles (id, role, full_name, email) values ('${p3}','patient','P3','p3@x');`);
+await as(coach, `select assign_template(${tpl}, '${p3}', current_date)`);
+check('Sin consentimiento, el paciente ve su perfil (para poder aceptarlo)', (await as(p3, 'select count(*)::int n from profiles')).rows[0].n === 1);
+check('Sin consentimiento, el paciente no ve sus entrenamientos', (await as(p3, 'select count(*)::int n from workouts')).rows[0].n === 0);
+check('Sin consentimiento, el paciente no ve los pilares', (await as(p3, 'select count(*)::int n from pillars')).rows[0].n === 0);
+check('El paciente no puede escribir el consentimiento a mano', !!(await as(p3, `insert into consents (patient_id, version) values ('${p3}', 'x')`)).error);
+check('El coach no puede aceptar en nombre del paciente', !!(await as(coach, `select accept_consent('1.0')`)).error);
+check('El paciente acepta el consentimiento', !(await as(p3, `select accept_consent('1.0', 'Prueba')`)).error);
+check('Con consentimiento, ve sus entrenamientos', (await as(p3, 'select count(*)::int n from workouts')).rows[0].n === 1);
+check('Aceptar la misma versión dos veces no duplica', !(await as(p3, `select accept_consent('1.0')`)).error && (await db.query(`select count(*)::int n from consents where patient_id = '${p3}'`)).rows[0].n === 1);
+await as(p3, `select accept_consent('1.1')`);
+check('Una versión nueva sustituye a la anterior', (await db.query(`select count(*) filter (where replaced_at is null and withdrawn_at is null)::int a, count(*)::int t from consents where patient_id = '${p3}'`)).rows[0].a === 1);
+check('El paciente no puede borrar su registro de consentimiento', !(await as(p3, `delete from consents where patient_id = '${p3}' returning id`)).rows?.length);
+check('El paciente no puede cambiar la fecha de aceptación', !(await as(p3, `update consents set accepted_at = now() - interval '1 year' returning id`)).rows?.length);
+check('Otro paciente no ve ese consentimiento', (await as(p1, `select count(*)::int n from consents where patient_id = '${p3}'`)).rows[0].n === 0);
+check('El coach ve el consentimiento', (await as(coach, `select count(*)::int n from consents where patient_id = '${p3}'`)).rows[0].n === 2);
+check('El paciente retira su consentimiento', (await as(p3, 'select withdraw_consent() as r')).rows?.[0]?.r === true);
+check('Tras retirarlo, ya no ve sus entrenamientos', (await as(p3, 'select count(*)::int n from workouts')).rows[0].n === 0);
+const wP3 = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id join workouts w on w.id = b.workout_id where w.patient_id = '${p3}' limit 1`)).rows[0].id;
+check('Tras retirarlo, no puede registrar series', !!(await as(p3, `insert into set_logs (workout_item_id, patient_id, set_number, reps) values ('${wP3}', '${p3}', 1, 5)`)).error);
+check('Nadie puede llamar desde la app a la comprobación interna', !!(await as(p3, 'select _is_patient_account_active()')).error);
+await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'paused' where id = '${p3}'`);
+check('Un paciente en pausa no puede aceptar', !!(await as(p3, `select accept_consent('1.1')`)).error);
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));

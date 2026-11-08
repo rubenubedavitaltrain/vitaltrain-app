@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { MiSemana, TarjetaHoy } from '../../modules/entrenamiento/paciente/Semana';
 import Entrenamiento from '../../modules/entrenamiento/paciente/Entrenamiento';
 import Instalar from '../Instalar';
+import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
 // App del paciente (móvil). Menú inferior. Cada módulo activo aporta su tarjeta a "Hoy".
@@ -23,8 +24,11 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
   const [pilares, setPilares] = useState<Pilar[]>(() => leer('vt.pilares') ?? []);
   const [modulos, setModulos] = useState<string[]>(() => leer('vt.modulos') ?? ['training']);
   const [recarga, setRecarga] = useState(0);
+  const consentimiento = useConsentimiento(supabase, userId);
 
+  const conConsentimiento = consentimiento.estado === 'vigente';
   useEffect(() => {
+    if (!conConsentimiento) return;
     vaciarCola(supabase);
     supabase.from('pillars').select('slug, name, description').order('position').then(({ data }) => {
       if (data) { setPilares(data as Pilar[]); escribir('vt.pilares', data); }
@@ -35,7 +39,17 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
     const online = () => vaciarCola(supabase);
     window.addEventListener('online', online);
     return () => window.removeEventListener('online', online);
-  }, [supabase, userId]);
+  }, [supabase, userId, conConsentimiento]);
+
+  if (consentimiento.estado === 'cargando') return <div className="min-h-full flex items-center justify-center text-texto-suave">Cargando…</div>;
+  if (!conConsentimiento) {
+    return (
+      <PantallaConsentimiento
+        supabase={supabase} nombre={nombre} nuevaVersion={consentimiento.estado === 'nueva-version'}
+        onAceptado={consentimiento.recargar} onSalir={() => supabase.auth.signOut()}
+      />
+    );
+  }
 
   if (abierta) {
     return <Entrenamiento supabase={supabase} sesionId={abierta} pacienteId={userId} onSalir={() => { setAbierta(null); setRecarga((r) => r + 1); }} />;
@@ -78,7 +92,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
           </>
         )}
         {pestaña === 'semana' && <MiSemana supabase={supabase} onAbrir={setAbierta} />}
-        {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} />}
+        {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
       </div>
 
       <nav aria-label="Navegación principal" className="fixed bottom-0 inset-x-0 bg-white border-t border-gris-claro grid grid-cols-3 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] z-20">
@@ -99,7 +113,7 @@ function Boton({ activo, onClick, texto, icono }: { activo: boolean; onClick: ()
   );
 }
 
-function Perfil({ supabase, nombre, email }: { supabase: SupabaseClient; nombre: string; email: string }) {
+function Perfil({ supabase, nombre, email, consentimiento, onRetirado }: { supabase: SupabaseClient; nombre: string; email: string; consentimiento: Consentimiento; onRetirado: () => void }) {
   return (
     <div className="flex flex-col">
       <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),2rem)] pb-6">
@@ -111,8 +125,9 @@ function Perfil({ supabase, nombre, email }: { supabase: SupabaseClient; nombre:
           <div className="text-sm text-texto-suave">{email}</div>
         </div>
         <Instalar />
+        <Privacidad supabase={supabase} actual={consentimiento} onRetirado={onRetirado} />
         <div className="bg-white rounded-2xl p-5 text-sm text-texto-suave">
-          Recordatorios, avisos y privacidad llegarán en las próximas versiones.
+          Recordatorios y avisos llegarán en las próximas versiones.
         </div>
         <button
           onClick={() => {

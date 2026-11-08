@@ -30,6 +30,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-tight">{paciente.full_name}</h2>
           <p className="text-sm text-texto-suave truncate">{paciente.email}{paciente.phone ? ` · ${paciente.phone}` : ''}</p>
+          <EstadoConsentimiento supabase={supabase} pacienteId={paciente.id} />
         </div>
         <div className="flex flex-wrap gap-2">
           {paciente.status !== 'active' && <button onClick={() => cambiarEstado('active')} className="bg-petroleo text-white font-bold px-4 py-2 rounded-xl">Activar</button>}
@@ -52,6 +53,22 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
       </div>
     </div>
   );
+}
+
+function EstadoConsentimiento({ supabase, pacienteId }: { supabase: SupabaseClient; pacienteId: string }) {
+  const [c, setC] = useState<{ version: string; accepted_at: string; withdrawn_at: string | null; replaced_at: string | null } | null | undefined>(undefined);
+  useEffect(() => {
+    supabase.from('consents').select('version, accepted_at, withdrawn_at, replaced_at').eq('patient_id', pacienteId).order('accepted_at', { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => setC((data as typeof c) ?? null));
+  }, [supabase, pacienteId]);
+  if (c === undefined) return null;
+  const f = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  const [texto, color] = !c
+    ? ['Consentimiento pendiente: lo verá al entrar por primera vez', 'text-[#8A5A00]']
+    : c.withdrawn_at
+      ? [`Consentimiento retirado el ${f(c.withdrawn_at)}: no puede usar la app`, 'text-[#8A2C1D]']
+      : [`Consentimiento aceptado el ${f(c.accepted_at)} (versión ${c.version})`, 'text-petroleo'];
+  return <p className={`text-xs font-semibold mt-1 ${color}`}>{texto}</p>;
 }
 
 function NotasPrivadas({ supabase, pacienteId }: { supabase: SupabaseClient; pacienteId: string }) {

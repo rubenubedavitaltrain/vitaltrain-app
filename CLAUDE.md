@@ -167,10 +167,10 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/functions/alta-paciente`: función de servidor que crea la cuenta, el perfil y activa el módulo de entrenamiento. Solo la puede usar el coach (lo comprueba ella misma). Se despliega desde el editor de Edge Functions de Supabase con «Verify JWT with legacy secret» desactivado: el proyecto firma las sesiones con clave ECC. Desplegada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0007_programas.sql`: programas de 1 a 12 semanas. `programs`, `program_weeks` (carga en % de -50 a 50 y nota para el paciente), `program_slots` (semana, día, plantilla) y `program_assignments` (empieza siempre en lunes; estados active, replaced, cancelled). `workouts` gana `program_assignment_id` y `program_week`. Funciones: `save_program(jsonb)`, `assign_program`, `replace_program_from_week` (solo semana actual o futuras; borra solo sesiones `scheduled` sin series ni notas). Aplicada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0008_sesion_a_medida.sql`: `save_workout(jsonb)` crea una sesión a medida para un paciente en una o varias fechas (máx. 84), o edita una suya si está pendiente y sin series ni notas. `_fill_workout` es interna. Aplicada en `vitaltrain-dev` el 8 nov 2026.
-- Pendiente, migraciones `0009` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
+- `supabase/migrations/0009_consentimiento.sql`: `consents` (versión, aceptado, retirado, sustituido, dispositivo). `is_active_patient()` exige ahora un consentimiento en vigor: sin él, el paciente no ve ni registra nada. Solo se escribe con `accept_consent(versión)` y `withdraw_consent()`; el coach lo ve pero no puede aceptar por el paciente. El texto vive en `src/core/legal/textoConsentimiento.ts` (cambiarlo exige subir la versión) y su copia para el asesor en `docs/legal/consentimiento.md` (`node scripts/consentimiento-md.mts`).
+- Pendiente, migraciones `0010` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
   - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
-  - `consents`: versión del texto, aceptado, retirado.
   - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
   - `patient_settings`: añadir hora del recordatorio y avisos activos.
 
@@ -224,7 +224,9 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tareas 4-6 (hechas en local, pendientes de publicar y probar): constructor de plantillas por bloques; pacientes (lista, alta, ficha con semana, asignar, copiar semana, detalle registrado, notas del paciente, notas privadas, pausar o archivar); app del paciente (Hoy, Mi semana, Perfil, entrenamiento con series precargadas, descanso, vídeo vertical, nota y "no puedo", final con esfuerzo y sensaciones, modo sin conexión con cola de envío)
 - [ ] Tarea 7 (hecha en local, pendiente de publicar y probar): programas de 1 a 12 semanas con regla de progresión, asignar desde un lunes y «Cambiar desde una semana». Migración 0007 aplicada en `vitaltrain-dev` (8 nov 2026)
 - [ ] Tarea 8 (hecha en local, pendiente de publicar y probar): diseño a la carta desde la ficha del paciente. Crear sesión sin plantilla, repetir en varios días y semanas, partir de una plantilla, editar y duplicar sesiones, guardar como plantilla. El constructor por bloques es común (`src/modules/entrenamiento/constructor/Bloques.tsx`). Migración 0008 aplicada (8 nov 2026)
-- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: Mi progreso, mensajes, perfil (recordatorio, avisos, privacidad y descarga de datos), documentos, medidas, panel del coach con adherencia y resumen mensual
+- [ ] Tarea 9 (hecha en local): consentimiento del paciente (pantalla al entrar, Privacidad en Perfil con retirar, estado en la ficha del coach). Texto 1.0-borrador pendiente de revisión del asesor y de completar razón social, NIF, código postal, email de privacidad y plazo de conservación
+- [x] Versión de prueba en Cloudflare Pages subida a mano: https://vitaltrain-prueba.pages.dev (proyecto `vitaltrain-prueba`, sin GitHub). Cada versión nueva se sube como zip (8 nov 2026)
+- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: Mi progreso, mensajes, perfil (recordatorio, avisos y descarga de datos), documentos, medidas, panel del coach con adherencia y resumen mensual
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos
