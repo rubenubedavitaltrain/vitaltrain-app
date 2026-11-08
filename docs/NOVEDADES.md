@@ -2,6 +2,15 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 10: cambiar un ejercicio en todo el plan (versión 0.8.0)
+- En la ficha del paciente, junto a «Copiar semana anterior», está **«Cambiar un ejercicio»**.
+- Muestra los ejercicios que tiene en sus sesiones pendientes y en cuántas aparece. Eliges el que quieres quitar y el que lo sustituye.
+- Se mantienen series, repeticiones y descanso. La carga puedes mantenerla, quitarla o poner una nueva; la indicación para el paciente también se puede cambiar.
+- Antes de confirmar te dice en qué sesiones y fechas se cambiará.
+- Nunca toca sesiones hechas ni ejercicios en los que el paciente ya haya registrado series o notas.
+- Base de datos: migración 0010 aplicada en `vitaltrain-dev`.
+- Cómo probarlo: con tu paciente de prueba, pulsa «Cambiar un ejercicio», elige uno de sus ejercicios, cámbialo por otro con una carga nueva y abre una de sus sesiones pendientes para comprobarlo.
+
 ## 2026-11-08 · Consentimiento 1.1-borrador (versión 0.7.2)
 - Completados los datos del responsable: Rubén Úbeda Rubio, titular de Clínica Vitaltrain, Calle Sorní 40, 2, 46004 Valencia, contacto info@vitaltrain.com.
 - Quitadas las líneas de delegado de protección de datos y de menores, que no aplican.

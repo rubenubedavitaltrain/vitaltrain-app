@@ -4,6 +4,7 @@ import { DIAS_CORTOS, desdeIso, iso, lunes, rangoSemana, sumarDias } from '../..
 import { MOTIVOS } from '../paciente/tipos';
 import { comoLista } from '../paciente/datos';
 import SesionAMedida from './SesionAMedida';
+import CambiarEjercicio from './CambiarEjercicio';
 
 // Sección de entrenamiento en la ficha del paciente: semana, crear una sesión a medida o asignar una plantilla,
 // editar o duplicar sesiones, copiar la semana anterior, ver lo que ha registrado y borrar sesiones pendientes.
@@ -20,6 +21,7 @@ export default function SemanaCoach({ supabase, pacienteId, nombrePaciente }: { 
   const [detalle, setDetalle] = useState<Sesion | null>(null);
   const [aviso, setAviso] = useState('');
   const [aMedida, setAMedida] = useState<ModoSesion | null>(null);
+  const [cambiando, setCambiando] = useState(false);
 
   async function cargar() {
     const { data } = await supabase
@@ -52,6 +54,7 @@ export default function SemanaCoach({ supabase, pacienteId, nombrePaciente }: { 
         <span className="font-semibold min-w-32 text-center">{rangoSemana(inicio)}</span>
         <button aria-label="Semana siguiente" onClick={() => setInicio(sumarDias(inicio, 7))} className="px-3 py-2 rounded-lg bg-fondo font-bold">›</button>
         <button onClick={copiarAnterior} className="px-3 py-2 rounded-lg border-2 border-petroleo text-petroleo font-bold text-sm">Copiar semana anterior</button>
+        <button onClick={() => setCambiando(true)} className="px-3 py-2 rounded-lg border-2 border-petroleo text-petroleo font-bold text-sm">Cambiar un ejercicio</button>
       </div>
       <p className="text-sm text-texto-suave">{sesiones.length ? `${hechas} de ${sesiones.length} sesiones hechas` : 'Sin sesiones esta semana'}</p>
       {aviso && <p role="status" className="text-sm font-semibold">{aviso}</p>}
@@ -84,6 +87,9 @@ export default function SemanaCoach({ supabase, pacienteId, nombrePaciente }: { 
           onEditar={() => { setAMedida({ tipo: 'editar', id: detalle.id }); setDetalle(null); }}
           onDuplicar={() => { setAMedida({ tipo: 'duplicar', id: detalle.id }); setDetalle(null); }}
         />
+      )}
+      {cambiando && (
+        <CambiarEjercicio supabase={supabase} pacienteId={pacienteId} onCerrar={() => setCambiando(false)} onHecho={(t) => { setCambiando(false); setAviso(t); cargar(); }} />
       )}
       {aMedida && (
         <SesionAMedida

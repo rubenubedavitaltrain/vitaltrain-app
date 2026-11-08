@@ -208,6 +208,29 @@ check('Nadie puede llamar desde la app a la comprobación interna', !!(await as(
 await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'paused' where id = '${p3}'`);
 check('Un paciente en pausa no puede aceptar', !!(await as(p3, `select accept_consent('1.1')`)).error);
 
+// 0010: cambiar un ejercicio en todo el plan
+await db.exec(`reset role; set request.jwt.sub = ''; insert into exercises (name) values ('Ejercicio sustituto prueba'), ('Ejercicio archivado prueba') ; update exercises set is_archived = true where name = 'Ejercicio archivado prueba';`);
+const exA = (await db.query("select id from exercises where name = 'Sentadilla'")).rows[0].id;
+const exB = (await db.query("select id from exercises where name = 'Ejercicio sustituto prueba'")).rows[0].id;
+const exArch = (await db.query("select id from exercises where name = 'Ejercicio archivado prueba'")).rows[0].id;
+const bloq = JSON.stringify([{ name: 'P', items: [{ exercise_id: exA, sets: 3, target: '10', load_kg: '20', rest_seconds: 60, instructions: 'Baja lento' }] }]);
+const cx = await as(coach, `select save_workout(jsonb_build_object('patient_id','${p1}','name','Cambio','dates', jsonb_build_array(current_date + 1, current_date + 2, current_date + 3),'blocks','${bloq}'::jsonb)) as r`);
+const [c1, c2, c3] = cx.rows[0].r.ids;
+const itC2 = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${c2}'`)).rows[0].id;
+await as(p1, `insert into set_logs (workout_item_id, patient_id, set_number, reps) values ('${itC2}', '${p1}', 1, 10)`);
+await db.exec(`reset role; set request.jwt.sub = ''; update workouts set status = 'completed' where id = '${c3}'`);
+check('Un paciente no puede cambiar ejercicios', !!(await as(p1, `select replace_exercise('${p1}', '${exA}', '${exB}')`)).error);
+check('No se puede cambiar por un ejercicio archivado', !!(await as(coach, `select replace_exercise('${p1}', '${exA}', '${exArch}')`)).error);
+const esperados = (await db.query(`select count(*)::int n from workout_items i join workout_blocks b on b.id = i.block_id join workouts w on w.id = b.workout_id where w.patient_id = '${p1}' and w.status = 'scheduled' and w.scheduled_date >= current_date + 1 and i.exercise_id = '${exA}' and not exists (select 1 from set_logs l where l.workout_item_id = i.id) and not exists (select 1 from workout_item_feedback f where f.workout_item_id = i.id)`)).rows[0].n;
+const rx = await as(coach, `select replace_exercise('${p1}', '${exA}', '${exB}', current_date + 1, 8, false, null) as n`);
+check('Cambiar ejercicio toca solo las sesiones pendientes sin registros', !rx.error && rx.rows[0].n === esperados && esperados >= 1);
+const ejDe = async (w) => (await db.query(`select i.exercise_id, i.load_kg::float kg, i.instructions, i.sets from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${w}'`)).rows[0];
+const r1 = await ejDe(c1);
+check('El ejercicio nuevo mantiene series y aplica la carga nueva', r1.exercise_id === exB && r1.kg === 8 && r1.sets === 3 && r1.instructions === 'Baja lento');
+check('No cambia la sesión con series registradas', (await ejDe(c2)).exercise_id === exA);
+check('No cambia la sesión hecha', (await ejDe(c3)).exercise_id === exA);
+check('No cambia sesiones de otros pacientes', (await db.query(`select count(*)::int n from workout_items i join workout_blocks b on b.id = i.block_id join workouts w on w.id = b.workout_id where w.patient_id <> '${p1}' and i.exercise_id = '${exB}'`)).rows[0].n === 0);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
