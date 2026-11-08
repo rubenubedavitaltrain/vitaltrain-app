@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DIAS_CORTOS, desdeIso, iso, lunes, rangoSemana, sumarDias } from '../../../lib/fechas';
 import { MOTIVOS } from '../paciente/tipos';
+import { comoLista } from '../paciente/datos';
 import SesionAMedida from './SesionAMedida';
 
 // Sección de entrenamiento en la ficha del paciente: semana, crear una sesión a medida o asignar una plantilla,
@@ -171,7 +172,9 @@ function Detalle({ supabase, sesion, onCerrar, onBorrada, onEditar, onDuplicar }
       .then(({ data }) => {
         const w = data as unknown as { feeling: string | null; patient_notes: string | null; workout_blocks: BloqueDetalle[] } | null;
         setExtra(w ? { feeling: w.feeling, patient_notes: w.patient_notes } : null);
-        setBloques((w?.workout_blocks ?? []).sort((a, b) => a.position - b.position));
+        const bs = (w?.workout_blocks ?? []).sort((a, b) => a.position - b.position);
+        bs.forEach((b) => b.workout_items.forEach((i) => { i.set_logs = comoLista(i.set_logs); i.workout_item_feedback = comoLista(i.workout_item_feedback); }));
+        setBloques(bs);
       });
   }, [sesion.id, supabase]);
 

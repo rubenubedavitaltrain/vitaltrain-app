@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { comoLista } from '../paciente/datos';
 import { diaMes, desdeIso, iso, lunes, sumarDias } from '../../../lib/fechas';
 
 // Sección "Programa" en la ficha del paciente: programa en curso, asignar uno nuevo
@@ -182,7 +183,7 @@ function Cambiar({ supabase, asignacion, onCerrar, onHecho }: { supabase: Supaba
 
   const desde = iso(sumarDias(inicio, (semana - 1) * 7));
   const afectadas = (sesiones ?? []).filter((s) => s.scheduled_date >= desde);
-  const conRegistros = (s: SesionPrograma) => s.workout_blocks.some((b) => b.workout_items.some((i) => (i.set_logs[0]?.count ?? 0) > 0 || (i.workout_item_feedback[0]?.count ?? 0) > 0));
+  const conRegistros = (s: SesionPrograma) => s.workout_blocks.some((b) => b.workout_items.some((i) => (comoLista(i.set_logs)[0]?.count ?? 0) > 0 || (comoLista(i.workout_item_feedback)[0]?.count ?? 0) > 0));
   const seQuitan = afectadas.filter((s) => s.status === 'scheduled' && !conRegistros(s)).length;
   const seQuedan = afectadas.length - seQuitan;
 

@@ -48,9 +48,17 @@ const SELECT_SESION =
   'workout_blocks(id, position, name, type, rounds, workout_items(id, position, sets, target, load_kg, rest_seconds, instructions, ' +
   'exercises(name, video_id, description), set_logs(set_number, reps, load_kg, done), workout_item_feedback(note, cannot_do, reason)))';
 
+/** La base de datos devuelve la nota de un ejercicio como objeto suelto (o null), porque solo puede haber una. La app trabaja con listas. */
+export function comoLista<T>(x: T | T[] | null | undefined): T[] {
+  return Array.isArray(x) ? x : x ? [x] : [];
+}
+
 function ordenar(s: Sesion): Sesion {
   s.workout_blocks.sort((a, b) => a.position - b.position);
-  s.workout_blocks.forEach((b) => b.workout_items.sort((a, c) => a.position - c.position));
+  s.workout_blocks.forEach((b) => {
+    b.workout_items.sort((a, c) => a.position - c.position);
+    b.workout_items.forEach((i) => { i.set_logs = comoLista(i.set_logs); i.workout_item_feedback = comoLista(i.workout_item_feedback); });
+  });
   return s;
 }
 
@@ -89,14 +97,14 @@ export async function cargarSesion(supabase: SupabaseClient, id: string): Promis
   const { data, error } = await supabase.from('workouts').select(SELECT_SESION).eq('id', id).single();
   if (error || !data) {
     const copia = leer<Sesion>(CLAVE_SESION(id));
-    if (copia) return copia;
+    if (copia) return ordenar(copia);
     throw error ?? new Error('Sin datos');
   }
   const s = ordenar(data as unknown as Sesion);
   // Si hay cambios de esta sesión sin enviar, se respeta la copia local
   if ((leer<Op[]>(CLAVE_COLA()) ?? []).some((o) => o.s === id)) {
     const local = leer<Sesion>(CLAVE_SESION(id));
-    if (local) return local;
+    if (local) return ordenar(local);
   }
   escribir(CLAVE_SESION(id), s);
   return s;

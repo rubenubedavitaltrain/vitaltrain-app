@@ -2,6 +2,11 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Arreglo (versión 0.7.1)
+- Al abrir la sesión de hoy en el móvil del paciente, la pantalla se quedaba en blanco. La base de datos entrega la nota de cada ejercicio como un dato suelto y la app esperaba una lista. Corregido en el entrenamiento del paciente, en el detalle de la sesión del coach y en «Cambiar desde una semana».
+- Si en algún momento una pantalla falla, ahora sale un mensaje con «Volver a cargar» en vez de quedarse en blanco.
+- Lo detectó la primera prueba real de Rubén. Las capturas de prueba usaban datos simulados con otro formato; ahora se simulan como llegan de verdad.
+
 ## 2026-11-08 · Tarea 9: consentimiento (versión 0.7.0)
 - La primera vez que un paciente entra ve «Antes de empezar»: lo esencial sobre sus datos, un enlace a la información completa y dos casillas. Hasta que no acepta, no ve nada más.
 - «No acepto» le explica que sin consentimiento la app no puede guardar sus datos y que hable contigo.
