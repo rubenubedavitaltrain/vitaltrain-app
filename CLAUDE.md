@@ -216,7 +216,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Tarea 1: proyecto React + PWA creado, con iconos, cabeceras de seguridad y compilación comprobada en cada cambio (26 oct 2026)
 - [x] Identidad visual de la app decidida: opción A (26 oct 2026)
 - [x] Cloudflare Pages conectado: https://vitaltrain-app.pages.dev se publica solo con cada cambio en main (26 oct 2026)
-- [ ] Tarea 2: tablas en `vitaltrain-dev` (0001, 0002 núcleo, 0003), pantalla de acceso con código de 6 dígitos, Mailgun como SMTP, cuenta de coach
+- [x] Tarea 2: tablas en `vitaltrain-dev` (0001, 0002 núcleo, 0003), acceso con código de 6 dígitos por Mailgun (acceso@vitaltrain.com), cuenta de coach `ruben.ubeda@vitaltrain.com`. Probado en el móvil (8 nov 2026)
+- Supabase `vitaltrain-dev`: proyecto `jlcrmozctsvgnousstbu`. Altas libres desactivadas, código de 6 dígitos que caduca en 15 min, plantilla de email en español con el código en el asunto
 - [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
