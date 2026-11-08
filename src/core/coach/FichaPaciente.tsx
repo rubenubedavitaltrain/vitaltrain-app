@@ -5,6 +5,7 @@ import SemanaCoach from '../../modules/entrenamiento/ficha/SemanaCoach';
 import NotasDelPaciente from '../../modules/entrenamiento/ficha/NotasDelPaciente';
 import ProgramaPaciente from '../../modules/entrenamiento/ficha/ProgramaPaciente';
 import Progreso from '../../modules/entrenamiento/progreso/Progreso';
+import Medidas from '../medidas/Medidas';
 
 // Ficha del paciente (núcleo). Cada módulo aporta su sección: de momento, entrenamiento.
 
@@ -51,6 +52,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
       <section className="flex flex-col gap-3" aria-labelledby="progresion">
         <h3 id="progresion" className="text-lg font-bold px-1">Progresión</h3>
         <Progreso key={`p${version}`} supabase={supabase} pacienteId={paciente.id} ancho />
+        <div className="grid lg:grid-cols-2 gap-4"><Medidas supabase={supabase} pacienteId={paciente.id} esCoach /></div>
       </section>
       <div className="grid lg:grid-cols-2 gap-4">
         <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />

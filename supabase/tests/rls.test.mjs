@@ -231,6 +231,17 @@ check('No cambia la sesión con series registradas', (await ejDe(c2)).exercise_i
 check('No cambia la sesión hecha', (await ejDe(c3)).exercise_id === exA);
 check('No cambia sesiones de otros pacientes', (await db.query(`select count(*)::int n from workout_items i join workout_blocks b on b.id = i.block_id join workouts w on w.id = b.workout_id where w.patient_id <> '${p1}' and i.exercise_id = '${exB}'`)).rows[0].n === 0);
 
+// 0011: medidas
+check('El paciente anota sus medidas', !(await as(p1, `insert into body_measurements (patient_id, weight_kg, waist_cm) values ('${p1}', 72.5, 81)`)).error);
+check('Anotar otra vez el mismo día actualiza', !(await as(p1, `insert into body_measurements (patient_id, weight_kg) values ('${p1}', 72) on conflict (patient_id, measured_on) do update set weight_kg = excluded.weight_kg`)).error && (await db.query(`select count(*)::int n, max(weight_kg)::float w from body_measurements where patient_id = '${p1}'`)).rows[0].w === 72);
+check('No se pueden anotar medidas vacías', !!(await as(p1, `insert into body_measurements (patient_id, measured_on) values ('${p1}', current_date - 1)`)).error);
+check('No se puede anotar una fecha futura', !!(await as(p1, `insert into body_measurements (patient_id, measured_on, weight_kg) values ('${p1}', current_date + 1, 70)`)).error);
+check('No se aceptan valores imposibles', !!(await as(p1, `insert into body_measurements (patient_id, measured_on, weight_kg) values ('${p1}', current_date - 2, 900)`)).error);
+check('Un paciente no puede anotar medidas de otro', !!(await as(p2, `insert into body_measurements (patient_id, weight_kg) values ('${p1}', 60)`)).error);
+check('Otro paciente no ve esas medidas', (await as(p2, 'select count(*)::int n from body_measurements')).rows[0].n === 0);
+check('El coach ve las medidas', (await as(coach, `select count(*)::int n from body_measurements where patient_id = '${p1}'`)).rows[0].n === 1);
+check('Sin consentimiento no puede anotar medidas', !!(await as(p3, `insert into body_measurements (patient_id, weight_kg) values ('${p3}', 60)`)).error);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

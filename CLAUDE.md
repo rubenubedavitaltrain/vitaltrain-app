@@ -169,9 +169,9 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0008_sesion_a_medida.sql`: `save_workout(jsonb)` crea una sesión a medida para un paciente en una o varias fechas (máx. 84), o edita una suya si está pendiente y sin series ni notas. `_fill_workout` es interna. Aplicada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0009_consentimiento.sql`: `consents` (versión, aceptado, retirado, sustituido, dispositivo). `is_active_patient()` exige ahora un consentimiento en vigor: sin él, el paciente no ve ni registra nada. Solo se escribe con `accept_consent(versión)` y `withdraw_consent()`; el coach lo ve pero no puede aceptar por el paciente. El texto vive en `src/core/legal/textoConsentimiento.ts` (cambiarlo exige subir la versión) y su copia para el asesor en `docs/legal/consentimiento.md` (`node scripts/consentimiento-md.mts`).
 - `supabase/migrations/0010_cambiar_ejercicio.sql`: `replace_exercise(paciente, de, a, desde, carga, quitar_carga, indicación)` cambia un ejercicio por otro en todas las sesiones pendientes del paciente desde una fecha. No toca sesiones hechas ni ejercicios con series o notas. Mantiene series, repeticiones y descanso. Aplicada en `vitaltrain-dev` el 8 nov 2026.
-- Pendiente, migraciones `0011` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
+- `supabase/migrations/0011_medidas.sql`: `body_measurements` (peso 20-350 kg, cintura y cadera 30-250 cm, una fila por paciente y día, al menos un valor, nunca fecha futura). Es del núcleo: la anota cualquier paciente activo con consentimiento, y el coach. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- Pendiente, migraciones `0012` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
-  - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
   - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
   - `patient_settings`: añadir hora del recordatorio y avisos activos.
 
@@ -229,8 +229,9 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 10 (hecha en local): «Cambiar un ejercicio» en la ficha del paciente. Migración 0010 aplicada (8 nov 2026)
 - [ ] Tarea 11 (hecha en local): Mi progreso. Pestaña «Progreso» del paciente y sección «Progresión» en la ficha del coach (`src/modules/entrenamiento/progreso/Progreso.tsx`): esta semana, % de las últimas 4 semanas, esfuerzo medio, entrenamientos por semana (12 semanas), esfuerzo por semana y carga máxima por día de cada ejercicio. Sin tablas nuevas; gráficas en SVG propio, sin librerías (9 nov 2026)
 - [ ] Tarea 12 (hecha en local): panel de inicio del coach (`src/core/coach/Inicio.tsx`): pacientes activos, sesiones de la semana, quién lleva 7 días o más sin entrenar, notas sin leer, «Necesitan atención» (sin consentimiento, sin entrenar, sesiones no hechas, sin plan pendiente, notas) y la semana de cada paciente en una tabla. Desde cualquier fila se abre su ficha. Sin tablas nuevas (8 nov 2026)
+- [ ] Tarea 13 (hecha en local): Mis medidas (`src/core/medidas/Medidas.tsx`), en la pestaña Progreso del paciente y en la ficha del coach, con gráfica por medida. La gráfica de línea es común (`src/core/graficas.tsx`). Migración 0011 aplicada (8 nov 2026)
 - [x] Versión de prueba en Cloudflare Pages subida a mano: https://vitaltrain-prueba.pages.dev (proyecto `vitaltrain-prueba`, sin GitHub). Cada versión nueva se sube como zip (8 nov 2026)
-- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: mensajes, perfil (recordatorio, avisos y descarga de datos), documentos, medidas y resumen mensual
+- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: mensajes, perfil (recordatorio, avisos y descarga de datos), documentos y resumen mensual
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

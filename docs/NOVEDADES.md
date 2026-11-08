@@ -2,6 +2,14 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 13: Mis medidas (versión 0.11.0)
+- En la pestaña Progreso del paciente, debajo de las gráficas, está **Mis medidas**: peso, cintura y cadera. Opcional y sin fotos.
+- «Anotar» abre una ventana con el día y las tres medidas. Se rellena solo lo que se quiera. Si ya anotó ese día, se sustituye.
+- Se ve el último valor de cada medida, cuánto ha cambiado desde la primera anotación y una gráfica de la que elijas.
+- En tu ficha del paciente aparece lo mismo y también puedes anotar tú, por ejemplo en consulta.
+- Base de datos: migración 0011 aplicada en `vitaltrain-dev`.
+- Cómo probarlo: como paciente de prueba, Progreso → Mis medidas → Anotar. Luego mira su ficha como coach.
+
 ## 2026-11-08 · Tarea 12: panel de inicio (versión 0.10.0)
 - Al entrar como coach, la primera pantalla es **Inicio**.
 - Arriba: pacientes activos, sesiones hechas esta semana sobre las pautadas, cuántos llevan 7 días o más sin entrenar y notas sin leer.

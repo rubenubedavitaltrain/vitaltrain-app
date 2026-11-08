@@ -47,3 +47,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-08 | Base legal propuesta: consentimiento explícito (art. 9.2.a) para datos de salud y ejecución del servicio (art. 6.1.b) para los de contacto | A confirmar por el asesor: en un centro sanitario podría encajar también el art. 9.2.h |
 | 2026-11-08 | Gráficas de progreso dibujadas a mano en SVG, sin librería de gráficos | Son tres gráficas sencillas. Una librería añadiría peso a la app del móvil y otra dependencia que mantener |
 | 2026-11-08 | La carga por ejercicio muestra la serie más pesada de cada día | Es la medida más simple de progresión de fuerza y la que Rubén mira. Repeticiones aparecen al tocar el punto |
+| 2026-11-08 | Las medidas son del núcleo, no un módulo que haya que activar | Sirven a todos los pilares (entrenamiento, alimentación, ritmos). Cualquier paciente activo con consentimiento puede anotarlas |

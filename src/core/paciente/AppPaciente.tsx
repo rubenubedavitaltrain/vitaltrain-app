@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { MiSemana, TarjetaHoy } from '../../modules/entrenamiento/paciente/Semana';
 import Entrenamiento from '../../modules/entrenamiento/paciente/Entrenamiento';
 import Progreso from '../../modules/entrenamiento/progreso/Progreso';
+import Medidas from '../medidas/Medidas';
 import Instalar from '../Instalar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
@@ -99,7 +100,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
               <h1 className="text-2xl font-bold">Mi progreso</h1>
               <p className="text-[#E3E8E8] text-sm mt-1">Lo que has hecho, semana a semana.</p>
             </header>
-            <div className="p-4"><Progreso supabase={supabase} pacienteId={userId} /></div>
+            <div className="p-4 flex flex-col gap-4"><Progreso supabase={supabase} pacienteId={userId} /><Medidas supabase={supabase} pacienteId={userId} /></div>
           </div>
         )}
         {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
