@@ -2,6 +2,18 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 14: mensajes (versión 0.12.0)
+- El paciente tiene una pestaña nueva, **Mensajes**, para escribirte. Junto al icono aparece un número cuando tiene mensajes tuyos sin leer.
+- Tú tienes la sección **Mensajes** en el panel: a la izquierda los pacientes, con los que tienen mensajes sin leer arriba; a la derecha la conversación, con su última sesión hecha y un botón para ver su ficha.
+- **Respuestas rápidas**: frases que pones con un toque y puedes retocar antes de enviar.
+- Ves si el paciente ha leído tu mensaje («leído» o «enviado»).
+- En Inicio, los mensajes sin leer cuentan en «Notas y mensajes sin leer» y en «Necesitan atención».
+- La conversación se actualiza sola cada 15 segundos mientras está abierta.
+- Todavía no hay aviso en el móvil ni por email cuando llega un mensaje: el paciente lo ve al abrir la app. Llegará con los recordatorios.
+- Seguridad: nadie puede editar mensajes ni hacerse pasar por otro; un paciente solo ve su conversación. Comprobado con pruebas.
+- Base de datos: migración 0012 aplicada en `vitaltrain-dev`.
+- Cómo probarlo: escribe desde el móvil como paciente de prueba y contesta desde el panel.
+
 ## 2026-11-08 · Tarea 13: Mis medidas (versión 0.11.0)
 - En la pestaña Progreso del paciente, debajo de las gráficas, está **Mis medidas**: peso, cintura y cadera. Opcional y sin fotos.
 - «Anotar» abre una ventana con el día y las tres medidas. Se rellena solo lo que se quiera. Si ya anotó ese día, se sustituye.

@@ -73,7 +73,7 @@ function Inicio({ supabase, session }: { supabase: SupabaseClient; session: Sess
     return <Mensaje titulo="Tu acceso está en pausa" texto="Si crees que es un error, escribe a Rubén." onSalir={salir} />;
 
   const nombre = perfil.full_name.split(' ')[0];
-  if (perfil.role === 'coach') return <PanelCoach supabase={supabase} nombre={nombre} />;
+  if (perfil.role === 'coach') return <PanelCoach supabase={supabase} nombre={nombre} userId={session.user.id} />;
   return <AppPaciente supabase={supabase} userId={session.user.id} nombre={nombre} email={session.user.email ?? ''} />;
 }
 

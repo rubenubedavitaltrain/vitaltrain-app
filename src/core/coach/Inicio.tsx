@@ -11,7 +11,7 @@ type Sesion = { patient_id: string; scheduled_date: string; status: string };
 type Nota = { id: string; patient_id: string; note: string | null; cannot_do: boolean; reason: string | null; created_at: string; workout_items: unknown };
 type Fila = {
   p: Paciente; dias: ('hecho' | 'pendiente' | 'perdido' | 'futuro' | null)[]; hechas: number; pautadas: number;
-  ultima: string | null; proximas: number; sinConsentimiento: boolean; notas: number;
+  ultima: string | null; proximas: number; sinConsentimiento: boolean; notas: number; mensajes: number;
 };
 
 const uno = <T,>(x: T | T[] | null | undefined): T | null => (Array.isArray(x) ? x[0] ?? null : x ?? null);
@@ -19,7 +19,7 @@ const diasDesde = (f: string) => Math.round((desdeIso(hoyIso()).getTime() - desd
 const fecha = (f: string) => desdeIso(f).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 
 export default function Inicio({ supabase, nombre, onAbrir }: { supabase: SupabaseClient; nombre: string; onAbrir: (id: string) => void }) {
-  const [datos, setDatos] = useState<{ pacientes: Paciente[]; sesiones: Sesion[]; hechas: Sesion[]; notas: Nota[]; consentidos: string[] } | null>(null);
+  const [datos, setDatos] = useState<{ pacientes: Paciente[]; sesiones: Sesion[]; hechas: Sesion[]; notas: Nota[]; consentidos: string[]; mensajes: string[] } | null>(null);
   const [error, setError] = useState(false);
   const inicio = useMemo(() => lunes(new Date()), []);
   const hoy = hoyIso();
@@ -33,11 +33,13 @@ export default function Inicio({ supabase, nombre, onAbrir }: { supabase: Supaba
       supabase.from('workouts').select('patient_id, scheduled_date, status').eq('status', 'completed').gte('scheduled_date', iso(sumarDias(inicio, -90))).order('scheduled_date', { ascending: false }),
       supabase.from('workout_item_feedback').select('id, patient_id, note, cannot_do, reason, created_at, workout_items(exercises(name), workout_blocks(workouts(scheduled_date)))').is('read_by_coach_at', null).order('created_at', { ascending: false }).limit(50),
       supabase.from('consents').select('patient_id').is('withdrawn_at', null).is('replaced_at', null),
-    ]).then(([p, s, h, n, c]) => {
-      if (p.error || s.error || h.error || n.error || c.error) return setError(true);
+      supabase.from('messages').select('patient_id, sender_id').is('read_at', null).limit(1000),
+    ]).then(([p, s, h, n, c, m]) => {
+      if (p.error || s.error || h.error || n.error || c.error || m.error) return setError(true);
       setDatos({
         pacientes: (p.data as Paciente[]) ?? [], sesiones: (s.data as Sesion[]) ?? [], hechas: (h.data as Sesion[]) ?? [],
         notas: (n.data as Nota[]) ?? [], consentidos: ((c.data as { patient_id: string }[]) ?? []).map((x) => x.patient_id),
+        mensajes: ((m.data as { patient_id: string; sender_id: string }[]) ?? []).filter((x) => x.patient_id === x.sender_id).map((x) => x.patient_id),
       });
     });
   }, [supabase, inicio]);
@@ -64,6 +66,7 @@ export default function Inicio({ supabase, nombre, onAbrir }: { supabase: Supaba
         proximas: suyas.filter((s) => s.scheduled_date >= hoy && s.status === 'scheduled').length,
         sinConsentimiento: !datos.consentidos.includes(p.id),
         notas: datos.notas.filter((n) => n.patient_id === p.id).length,
+        mensajes: datos.mensajes.filter((x) => x === p.id).length,
       };
     });
   }, [datos, inicio, hoy]);
@@ -83,6 +86,7 @@ export default function Inicio({ supabase, nombre, onAbrir }: { supabase: Supaba
       if (f.dias.includes('perdido')) motivos.push(`${f.dias.filter((d) => d === 'perdido').length} sin hacer esta semana`);
       if (f.proximas === 0) motivos.push('Sin sesiones pendientes: necesita plan');
       if (f.notas) motivos.push(`${f.notas} ${f.notas === 1 ? 'nota sin leer' : 'notas sin leer'}`);
+      if (f.mensajes) motivos.push(`${f.mensajes} ${f.mensajes === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}`);
       return { f, motivos };
     })
     .filter((x) => x.motivos.length);
@@ -99,7 +103,7 @@ export default function Inicio({ supabase, nombre, onAbrir }: { supabase: Supaba
         <Dato titulo="Pacientes activos" valor={String(filas.length)} />
         <Dato titulo="Sesiones esta semana" valor={pautadas ? `${hechas} de ${pautadas}` : '—'} nota={pautadas ? `${Math.round((hechas / pautadas) * 100)} % hechas` : 'Sin sesiones pautadas'} />
         <Dato titulo="7 días o más sin entrenar" valor={String(sinEntrenar)} destacado={sinEntrenar > 0} />
-        <Dato titulo="Notas sin leer" valor={String(datos.notas.length)} destacado={datos.notas.length > 0} />
+        <Dato titulo="Notas y mensajes sin leer" valor={String(datos.notas.length + datos.mensajes.length)} nota={`${datos.notas.length} notas · ${datos.mensajes.length} mensajes`} destacado={datos.notas.length + datos.mensajes.length > 0} />
       </div>
 
       {filas.length === 0 && <p className="bg-white rounded-2xl p-6 text-texto-suave">Aún no tienes pacientes activos. Dalos de alta en Pacientes.</p>}

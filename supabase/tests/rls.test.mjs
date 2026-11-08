@@ -242,6 +242,22 @@ check('Otro paciente no ve esas medidas', (await as(p2, 'select count(*)::int n 
 check('El coach ve las medidas', (await as(coach, `select count(*)::int n from body_measurements where patient_id = '${p1}'`)).rows[0].n === 1);
 check('Sin consentimiento no puede anotar medidas', !!(await as(p3, `insert into body_measurements (patient_id, weight_kg) values ('${p3}', 60)`)).error);
 
+// 0012: mensajes
+{ const r0 = await as(p1, `insert into messages (patient_id, sender_id, body) values ('${p1}', '${p1}', 'Hola Rubén')`); check('El paciente escribe a su coach', !r0.error); }
+// !(await as(p1, `insert into messages (patient_id, sender_id, body) values ('${p1}', '${p1}', 'Hola Rubén')`)).error);
+check('Un mensaje nuevo siempre llega sin leer', !(await as(p1, `insert into messages (patient_id, sender_id, body, read_at) values ('${p1}', '${p1}', 'Truco', now())`)).error && (await db.query(`select count(*)::int n from messages where body = 'Truco' and read_at is null`)).rows[0].n === 1);
+check('El paciente no puede hacerse pasar por el coach', (await as(p1, `insert into messages (patient_id, sender_id, body) values ('${p1}', '${coach}', 'Falso') returning sender_id`)).rows?.[0]?.sender_id !== coach);
+check('Un paciente no puede escribir en otra conversación', !!(await as(p2, `insert into messages (patient_id, sender_id, body) values ('${p1}', '${p2}', 'Intruso')`)).error);
+check('El coach responde', !(await as(coach, `insert into messages (patient_id, sender_id, body) values ('${p1}', '${coach}', 'Hola, dime')`)).error);
+check('El coach no puede escribir en una conversación de otro coach o inexistente', !!(await as(coach, `insert into messages (patient_id, sender_id, body) values ('${coach}', '${coach}', 'x')`)).error);
+check('El paciente ve solo su conversación', (await as(p1, 'select count(*)::int n from messages')).rows[0].n === 4 && (await as(p2, 'select count(*)::int n from messages')).rows[0].n === 0);
+check('El paciente no puede editar mensajes', !(await as(p1, `update messages set body = 'cambiado' returning id`)).rows?.length);
+check('El paciente no puede borrar mensajes', !(await as(p1, `delete from messages returning id`)).rows?.length);
+check('El paciente marca como leído lo que recibe', (await as(p1, `select mark_messages_read('${p1}') as n`)).rows?.[0]?.n === 1 && (await db.query(`select count(*)::int n from messages where patient_id = '${p1}' and sender_id = '${p1}' and read_at is not null and body <> 'Truco'`)).rows[0].n === 0);
+check('Un paciente no puede marcar la conversación de otro', !!(await as(p2, `select mark_messages_read('${p1}')`)).error);
+check('El coach marca como leídos los del paciente', (await as(coach, `select mark_messages_read('${p1}') as n`)).rows?.[0]?.n === 3);
+check('Sin consentimiento no se puede escribir', !!(await as(p3, `insert into messages (patient_id, sender_id, body) values ('${p3}', '${p3}', 'x')`)).error);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

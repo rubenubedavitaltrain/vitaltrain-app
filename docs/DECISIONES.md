@@ -48,3 +48,5 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-08 | Gráficas de progreso dibujadas a mano en SVG, sin librería de gráficos | Son tres gráficas sencillas. Una librería añadiría peso a la app del móvil y otra dependencia que mantener |
 | 2026-11-08 | La carga por ejercicio muestra la serie más pesada de cada día | Es la medida más simple de progresión de fuerza y la que Rubén mira. Repeticiones aparecen al tocar el punto |
 | 2026-11-08 | Las medidas son del núcleo, no un módulo que haya que activar | Sirven a todos los pilares (entrenamiento, alimentación, ritmos). Cualquier paciente activo con consentimiento puede anotarlas |
+| 2026-11-08 | Mensajes que se actualizan cada 15 s con la conversación abierta, sin tiempo real | Más simple y fiable con pocos pacientes. El tiempo real de Supabase se puede activar después sin cambiar la pantalla |
+| 2026-11-08 | Los mensajes no se pueden editar; solo el coach puede borrar | Es un registro de la comunicación con el paciente |

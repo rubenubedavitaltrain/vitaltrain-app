@@ -4,6 +4,7 @@ import { MiSemana, TarjetaHoy } from '../../modules/entrenamiento/paciente/Seman
 import Entrenamiento from '../../modules/entrenamiento/paciente/Entrenamiento';
 import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Medidas from '../medidas/Medidas';
+import Conversacion, { contarNoLeidos } from '../mensajes/Conversacion';
 import Instalar from '../Instalar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
@@ -11,7 +12,7 @@ import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/
 // App del paciente (móvil). Menú inferior. Cada módulo activo aporta su tarjeta a "Hoy".
 
 type Pilar = { slug: string; name: string; description: string | null };
-type Pestaña = 'hoy' | 'semana' | 'progreso' | 'perfil';
+type Pestaña = 'hoy' | 'semana' | 'progreso' | 'mensajes' | 'perfil';
 
 // Qué pilar ilumina cada módulo
 const PILAR_DE_MODULO: Record<string, string> = { training: 'movimiento-inteligente', circadian: 'ritmos-circadianos' };
@@ -27,6 +28,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
   const [modulos, setModulos] = useState<string[]>(() => leer('vt.modulos') ?? ['training']);
   const [recarga, setRecarga] = useState(0);
   const consentimiento = useConsentimiento(supabase, userId);
+  const [noLeidos, setNoLeidos] = useState(0);
 
   const conConsentimiento = consentimiento.estado === 'vigente';
   useEffect(() => {
@@ -38,9 +40,12 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
     supabase.from('patient_modules').select('module_slug').eq('patient_id', userId).then(({ data }) => {
       if (data) { const m = data.map((x) => x.module_slug as string); setModulos(m); escribir('vt.modulos', m); }
     });
+    const contar = () => contarNoLeidos(supabase, userId).then(setNoLeidos).catch(() => {});
+    contar();
+    const t = window.setInterval(contar, 60000);
     const online = () => vaciarCola(supabase);
     window.addEventListener('online', online);
-    return () => window.removeEventListener('online', online);
+    return () => { window.removeEventListener('online', online); window.clearInterval(t); };
   }, [supabase, userId, conConsentimiento]);
 
   if (consentimiento.estado === 'cargando') return <div className="min-h-full flex items-center justify-center text-texto-suave">Cargando…</div>;
@@ -94,6 +99,15 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
           </>
         )}
         {pestaña === 'semana' && <MiSemana supabase={supabase} onAbrir={setAbierta} />}
+        {pestaña === 'mensajes' && (
+          <div className="flex flex-col h-[calc(100dvh-5.5rem)]">
+            <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),1.5rem)] pb-4 shrink-0">
+              <h1 className="text-2xl font-bold">Mensajes</h1>
+              <p className="text-[#E3E8E8] text-sm">Con Rubén. Para urgencias, llama al 112.</p>
+            </header>
+            <Conversacion supabase={supabase} pacienteId={userId} yo={userId} esCoach={false} alto="flex-1" onLeidos={() => setNoLeidos(0)} />
+          </div>
+        )}
         {pestaña === 'progreso' && (
           <div className="flex flex-col">
             <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),2rem)] pb-6">
@@ -106,20 +120,24 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
         {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
       </div>
 
-      <nav aria-label="Navegación principal" className="fixed bottom-0 inset-x-0 bg-white border-t border-gris-claro grid grid-cols-4 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] z-20">
+      <nav aria-label="Navegación principal" className="fixed bottom-0 inset-x-0 bg-white border-t border-gris-claro grid grid-cols-5 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] z-20">
         <Boton activo={pestaña === 'hoy'} onClick={() => setPestaña('hoy')} texto="Hoy" icono={<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />} />
         <Boton activo={pestaña === 'semana'} onClick={() => setPestaña('semana')} texto="Semana" icono={<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>} />
         <Boton activo={pestaña === 'progreso'} onClick={() => setPestaña('progreso')} texto="Progreso" icono={<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />} />
+        <Boton activo={pestaña === 'mensajes'} onClick={() => setPestaña('mensajes')} texto="Mensajes" aviso={noLeidos} icono={<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />} />
         <Boton activo={pestaña === 'perfil'} onClick={() => setPestaña('perfil')} texto="Perfil" icono={<><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>} />
       </nav>
     </div>
   );
 }
 
-function Boton({ activo, onClick, texto, icono }: { activo: boolean; onClick: () => void; texto: string; icono: React.ReactNode }) {
+function Boton({ activo, onClick, texto, icono, aviso = 0 }: { activo: boolean; onClick: () => void; texto: string; icono: React.ReactNode; aviso?: number }) {
   return (
     <button onClick={onClick} aria-current={activo ? 'page' : undefined} className={`flex flex-col items-center gap-1 py-1.5 text-[13px] ${activo ? 'text-petroleo font-bold' : 'text-texto-suave font-medium'}`}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icono}</svg>
+      <span className="relative">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icono}</svg>
+        {aviso > 0 && <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-mostaza text-[#1F2424] text-[10px] font-bold flex items-center justify-center" aria-label={`${aviso} sin leer`}>{aviso}</span>}
+      </span>
       {texto}
     </button>
   );
