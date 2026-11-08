@@ -75,6 +75,37 @@ check('Un paciente en pausa no ve la biblioteca', (await as(p2, 'select count(*)
 await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'active' where id = '${p2}'`);
 check('Un paciente sigue sin poder cambiar su estado', !!(await as(p1, `update profiles set status = 'archived' where id = '${p1}'`)).error);
 
+// ---------- Plantillas, asignación, copia de semana y registro (0006) ----------
+const ex2 = (await db.query("select id from exercises where video_id = '_hpras2Fn5o'")).rows[0].id;
+const tplJson = JSON.stringify({ name: 'Fuerza B', blocks: [
+  { name: 'Calentamiento', type: 'normal', rounds: 1, items: [{ exercise_id: ex2, sets: 2, target: '10 reps', load_kg: 8, rest_seconds: 60 }] },
+  { name: 'Bloque principal', type: 'superset', rounds: 3, items: [{ exercise_id: ex2, sets: 3, target: '8-10 reps', load_kg: 12, rest_seconds: 90 }] }
+]}).replace(/'/g, "''");
+const saved = await as(coach, `select save_template('${tplJson}'::jsonb) as id`);
+check('El coach guarda una plantilla completa de una vez', !saved.error && !!saved.rows[0].id);
+const tplB = saved.rows?.[0]?.id;
+check('La plantilla tiene sus 2 bloques y 2 ejercicios', (await db.query(`select count(*)::int n from template_items i join template_blocks b on b.id = i.block_id where b.template_id = '${tplB}'`)).rows[0].n === 2);
+const resaved = await as(coach, `select save_template('${tplJson.replace('Fuerza B', 'Fuerza B2').replace('{"name"', `{"id":"${tplB}","name"`)}'::jsonb) as id`);
+check('Editar la plantilla la reemplaza sin duplicar bloques', resaved.rows?.[0]?.id === tplB && (await db.query(`select count(*)::int n from template_blocks where template_id = '${tplB}'`)).rows[0].n === 2);
+check('Un paciente no puede guardar plantillas', !!(await as(p1, `select save_template('{"name":"x","blocks":[]}'::jsonb)`)).error);
+const lunes = `date_trunc('week', current_date)::date`;
+const asig = await as(coach, `select assign_template('${tplB}', '${p1}', ${lunes} + 2, 'Ve con calma') as id`);
+check('Asignar copia también la carga pautada', !asig.error && (await db.query(`select count(*)::int n from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${asig.rows[0].id}' and i.load_kg = 12`)).rows[0].n === 1);
+check('No se puede asignar a alguien que no es paciente', !!(await as(coach, `select assign_template('${tplB}', '${coach}', current_date)`)).error);
+const wB = asig.rows[0].id;
+check('El paciente marca su entrenamiento como hecho con esfuerzo', !(await as(p1, `update workouts set status = 'completed', rpe = 7, feeling = 'bien', completed_at = now() where id = '${wB}'`)).error);
+check('El paciente no puede cambiar la fecha de su entrenamiento', !!(await as(p1, `update workouts set scheduled_date = scheduled_date + 1 where id = '${wB}'`)).error);
+check('El paciente no puede cambiar el mensaje del coach', !!(await as(p1, `update workouts set coach_message = 'x' where id = '${wB}'`)).error);
+const copia = await as(coach, `select copy_week('${p1}', ${lunes}, ${lunes} + 7) as n`);
+check('Copiar semana crea las sesiones en la semana siguiente', !copia.error && copia.rows[0].n >= 1 && (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}' and scheduled_date = ${lunes} + 9 and status = 'scheduled'`)).rows[0].n === 1);
+check('Un paciente no puede copiar semanas', !!(await as(p1, `select copy_week('${p1}', ${lunes}, ${lunes} + 14)`)).error);
+const itemB = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${wB}' limit 1`)).rows[0].id;
+check('El paciente deja una nota y marca "no puedo" con motivo', !(await as(p1, `insert into workout_item_feedback (workout_item_id, patient_id, note, cannot_do, reason) values ('${itemB}', '${p1}', 'Molestia en la rodilla', true, 'pain')`)).error);
+check('Otro paciente no ve esa nota', (await as(p2, 'select count(*)::int n from workout_item_feedback')).rows[0].n === 0);
+check('Otro paciente no puede dejar notas en ejercicios ajenos', !!(await as(p2, `insert into workout_item_feedback (workout_item_id, patient_id, note) values ('${itemB}', '${p2}', 'x')`)).error);
+check('El paciente no puede marcar su nota como leída', !!(await as(p1, `update workout_item_feedback set read_by_coach_at = now() where workout_item_id = '${itemB}'`)).error);
+check('El coach ve la nota y la marca como leída', !(await as(coach, `update workout_item_feedback set read_by_coach_at = now() where workout_item_id = '${itemB}'`)).error);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
