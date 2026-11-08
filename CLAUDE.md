@@ -157,11 +157,8 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `exercises`; `templates` → `template_blocks` → `template_items`.
   - `workouts` → `workout_blocks` → `workout_items` (copia al asignar), `set_logs`.
   - `checkins`, `messages`, `memberships`, `push_subscriptions`.
-- `supabase/migrations/0002_plataforma_modular.sql`: núcleo modular y nuevos motores.
-  - `pillars`, `modules`, `patient_modules`, `patient_settings`.
-  - `habit_definitions`, `patient_habits`, `habit_logs`.
-  - `sleep_logs`, `meal_events`.
-  - `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`.
+- `supabase/migrations/0002_plataforma_modular.sql`: núcleo modular: `pillars`, `modules`, `patient_modules`, `patient_settings`.
+- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: diseño **no aplicado** de `habit_definitions`, `patient_habits`, `habit_logs`, `sleep_logs`, `meal_events`, `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`. Cada parte se pasa a una migración nueva cuando se construya su módulo. La prueba de seguridad comprueba que el diseño sigue siendo válido.
 
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
 - Pendiente, migración `0004` (Fase 1 ampliada), a diseñar al construir cada pantalla:
@@ -200,7 +197,9 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - No empezar un módulo nuevo hasta que el anterior esté en uso real por pacientes.
 - Mantener actualizada la sección 10, `docs/DECISIONES.md` (fecha, decisión, motivo) y `docs/NOVEDADES.md` (qué cambió y cómo probarlo, en lenguaje llano).
 - Cada propuesta de cambio explica en español llano qué hace, cómo probarlo en el móvil y qué podría fallar.
-- La migración 0002 es diseño: aplicar ahora solo pilares, módulos y ajustes del paciente; el resto cuando se construya su módulo.
+- Las migraciones se aplican en `vitaltrain-dev` desde el editor SQL de Supabase, en orden, y se anotan en `docs/NOVEDADES.md`. Nunca editar una migración ya aplicada: se crea otra nueva.
+- Acceso: `signInWithOtp` con `shouldCreateUser: false` y `verifyOtp` tipo `email`. En Supabase: altas libres desactivadas, código de 6 dígitos, plantilla de email con `{{ .Token }}`.
+- Variables de entorno de la app (Cloudflare Pages, producción y vista previa): `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (clave pública). La `service_role` nunca va en la app ni en Cloudflare.
 - Pendiente Fase 1: limitar qué columnas de `workouts` puede cambiar el paciente (solo estado, fechas de inicio y fin, esfuerzo, sensaciones y notas).
 
 ## 10. Estado actual
@@ -216,8 +215,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Prototipo v2 (16 pantallas) aprobado (26 oct 2026)
 - [x] Tarea 1: proyecto React + PWA creado, con iconos, cabeceras de seguridad y compilación comprobada en cada cambio (26 oct 2026)
 - [x] Identidad visual de la app decidida: opción A (26 oct 2026)
-- [ ] Conectar Cloudflare Pages al repositorio (lo hace Rubén)
-- [ ] Login con código de 6 dígitos (Mailgun como SMTP)
+- [x] Cloudflare Pages conectado: https://vitaltrain-app.pages.dev se publica solo con cada cambio en main (26 oct 2026)
+- [ ] Tarea 2: tablas en `vitaltrain-dev` (0001, 0002 núcleo, 0003), pantalla de acceso con código de 6 dígitos, Mailgun como SMTP, cuenta de coach
 - [ ] Fase 1: las 17 funciones de la sección 3
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
