@@ -12,6 +12,9 @@ create or replace function auth.uid() returns uuid language sql stable as $$ sel
 create role authenticated;
 create role anon;
 grant usage on schema public to authenticated;
+-- Como en Supabase: lo que se crea en public queda permitido a anon y authenticated salvo que una migración lo revoque
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated, anon;
+alter default privileges in schema public grant execute on functions to authenticated, anon;
 `);
 const dir = new URL('../migrations/', import.meta.url);
 for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort()) {
@@ -29,8 +32,6 @@ insert into exercises (name) values ('Sentadilla');
 insert into templates (name) values ('Fuerza A');
 insert into template_blocks (template_id, position) select id, 1 from templates;
 insert into template_items (block_id, position, exercise_id, sets, rest_seconds) select b.id,1,e.id,3,90 from template_blocks b, exercises e where e.name = 'Sentadilla';
-grant select, insert, update, delete on all tables in schema public to authenticated, anon;
-grant execute on all functions in schema public to authenticated, anon;
 `);
 
 const as = async (uid, sql, role = 'authenticated') => {
@@ -116,6 +117,46 @@ await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status 
 check('Un paciente en pausa no puede cambiar su perfil', !(await as(p2, `update profiles set full_name = 'x' where id = '${p2}' returning id`)).rows?.length);
 await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'active' where id = '${p2}'`);
 check('No se puede repetir un email cambiando mayúsculas', !!(await as(coach, `update profiles set email = 'P1@X' where id = '${p2}'`)).error);
+
+// ---------- Programas (0007) ----------
+const tplA = (await db.query(`select id from templates where name = 'Fuerza A'`)).rows[0].id;
+const progJson = JSON.stringify({ name: 'Fuerza base', weeks: 3,
+  week_rules: [{ week_number: 1, load_change_pct: 0 }, { week_number: 2, load_change_pct: 10, note: 'Sube un poco la carga.' }, { week_number: 3, load_change_pct: -20, note: 'Semana de descarga.' }],
+  slots: [1, 2, 3].flatMap((w) => [{ week_number: w, day_of_week: 1, template_id: tplB }, { week_number: w, day_of_week: 3, template_id: tplA }]) });
+const prog = await as(coach, `select save_program('${progJson}'::jsonb) as id`);
+check('El coach guarda un programa de 3 semanas', !prog.error && !!prog.rows[0].id);
+const progId = prog.rows?.[0]?.id;
+check('Un paciente no puede guardar programas', !!(await as(p2, `select save_program('{"name":"x","weeks":1}'::jsonb)`)).error);
+check('Un programa no puede pasar de 12 semanas', !!(await as(coach, `select save_program('{"name":"x","weeks":13}'::jsonb)`)).error);
+const lunesPasado = `date_trunc('week', current_date)::date - 7`;
+check('Un programa solo puede empezar en lunes', !!(await as(coach, `select assign_program('${progId}', '${p2}', ${lunesPasado} + 1)`)).error);
+const asig2 = await as(coach, `select assign_program('${progId}', '${p2}', ${lunesPasado}, 'Vamos.') as id`);
+check('Asignar el programa crea sus 6 sesiones', !asig2.error && (await db.query(`select count(*)::int n from workouts where program_assignment_id = '${asig2.rows[0].id}'`)).rows[0].n === 6);
+const aId = asig2.rows?.[0]?.id;
+const cargaSemana = async (w) => (await db.query(`select i.load_kg::float x from workout_items i join workout_blocks b on b.id = i.block_id join workouts wo on wo.id = b.workout_id where wo.program_assignment_id = '${aId}' and wo.program_week = ${w} and wo.name like 'Fuerza B%' and i.load_kg is not null order by i.load_kg desc limit 1`)).rows[0].x;
+check('La progresión ajusta la carga por semana (12 → 13 → 9,5 kg)', (await cargaSemana(1)) === 12 && (await cargaSemana(2)) === 13 && (await cargaSemana(3)) === 9.5);
+check('La nota de la semana llega al paciente', (await db.query(`select coach_message from workouts where program_assignment_id = '${aId}' and program_week = 2 limit 1`)).rows[0].coach_message === 'Vamos. Sube un poco la carga.');
+check('Un paciente no puede asignar programas', !!(await as(p2, `select assign_program('${progId}', '${p2}', ${lunesPasado})`)).error);
+check('Nadie puede llamar desde la app a la copia interna', !!(await as(coach, `select _copy_template_to_workout('${tplA}', '${p2}', current_date, null, 0, null, null)`)).error);
+check('El paciente ve su programa y su nombre', (await as(p2, 'select p.name from program_assignments a join programs p on p.id = a.program_id')).rows?.[0]?.name === 'Fuerza base');
+check('Otro paciente no ve ese programa', (await as(p1, 'select count(*)::int n from programs')).rows[0].n === 0);
+const w = async (week, day) => (await db.query(`select id from workouts where program_assignment_id = '${aId}' and scheduled_date = ${lunesPasado} + ${(week - 1) * 7 + day - 1}`)).rows[0].id;
+const s21 = await w(2, 1), s23 = await w(2, 3), s31 = await w(3, 1), s33 = await w(3, 3);
+await as(p2, `update workouts set status = 'completed', rpe = 6 where id = '${s21}'`);
+const it23 = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${s23}' limit 1`)).rows[0].id;
+await as(p2, `insert into set_logs (workout_item_id, patient_id, set_number, reps) values ('${it23}', '${p2}', 1, 8)`);
+const it31 = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id where b.workout_id = '${s31}' limit 1`)).rows[0].id;
+await as(p2, `insert into workout_item_feedback (workout_item_id, patient_id, note) values ('${it31}', '${p2}', 'Ojo rodilla')`);
+check('El paciente no puede cambiar la semana de programa de una sesión', !!(await as(p2, `update workouts set program_week = 1 where id = '${s33}'`)).error);
+check('No se puede cambiar el programa desde una semana pasada', !!(await as(coach, `select replace_program_from_week('${aId}', 1, '${progId}')`)).error);
+check('Un paciente no puede cambiar programas', !!(await as(p2, `select replace_program_from_week('${aId}', 2, null)`)).error);
+const cambio = await as(coach, `select replace_program_from_week('${aId}', 2, '${progId}', null) as r`);
+const r = cambio.rows?.[0]?.r;
+check('Cambiar desde la semana 2 quita solo la sesión pendiente sin registros', !cambio.error && r.removed === 1 && r.kept === 3);
+check('Nunca se borran sesiones hechas, con series o con notas', (await db.query(`select count(*)::int n from workouts where id in ('${s21}', '${s23}', '${s31}')`)).rows[0].n === 3 && (await db.query(`select count(*)::int n from workouts where id = '${s33}'`)).rows[0].n === 0);
+check('El nuevo programa empieza ese mismo lunes', (await db.query(`select start_date = ${lunesPasado} + 7 as ok from program_assignments where id = '${r?.new_assignment}'`)).rows[0]?.ok === true);
+check('El programa anterior queda como sustituido', (await db.query(`select status::text s, replaced_from_week n from program_assignments where id = '${aId}'`)).rows[0].s === 'replaced');
+check('Un programa sustituido no se puede volver a cambiar', !!(await as(coach, `select replace_program_from_week('${aId}', 3, null)`)).error);
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));

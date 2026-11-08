@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Paciente } from './Pacientes';
 import SemanaCoach from '../../modules/entrenamiento/ficha/SemanaCoach';
 import NotasDelPaciente from '../../modules/entrenamiento/ficha/NotasDelPaciente';
+import ProgramaPaciente from '../../modules/entrenamiento/ficha/ProgramaPaciente';
 
 // Ficha del paciente (núcleo). Cada módulo aporta su sección: de momento, entrenamiento.
 
@@ -12,6 +13,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
   supabase: SupabaseClient; paciente: Paciente; onVolver: () => void; onCambio: (p: Paciente) => void;
 }) {
   const [error, setError] = useState('');
+  const [version, setVersion] = useState(0);
 
   async function cambiarEstado(status: Paciente['status']) {
     setError('');
@@ -42,7 +44,8 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         {error && <p role="alert" className="w-full font-semibold text-[#8A2C1D]">{error}</p>}
       </header>
 
-      <SemanaCoach supabase={supabase} pacienteId={paciente.id} />
+      <ProgramaPaciente supabase={supabase} pacienteId={paciente.id} onCambio={() => setVersion((v) => v + 1)} />
+      <SemanaCoach key={version} supabase={supabase} pacienteId={paciente.id} />
       <div className="grid lg:grid-cols-2 gap-4">
         <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />
         <NotasPrivadas supabase={supabase} pacienteId={paciente.id} />

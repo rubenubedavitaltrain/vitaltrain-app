@@ -17,7 +17,7 @@ export type Sesion = {
   rpe: number | null; feeling: string | null; patient_notes: string | null; started_at: string | null; completed_at: string | null;
   workout_blocks: BloqueSesion[];
 };
-export type SesionCorta = { id: string; scheduled_date: string; name: string; status: Estado; coach_message: string | null; ejercicios: number };
+export type SesionCorta = { id: string; scheduled_date: string; name: string; status: Estado; coach_message: string | null; ejercicios: number; programa: { nombre: string; semana: number; semanas: number } | null };
 
 // Todo lo guardado en el móvil va ligado al usuario, para que dos personas en el mismo móvil no se mezclen.
 let usuario = 'anon';
@@ -58,7 +58,7 @@ function ordenar(s: Sesion): Sesion {
 export async function cargarSemana(supabase: SupabaseClient, desde: string, hasta: string): Promise<SesionCorta[]> {
   const { data, error } = await supabase
     .from('workouts')
-    .select('id, scheduled_date, name, status, coach_message, workout_blocks(workout_items(count))')
+    .select('id, scheduled_date, name, status, coach_message, program_week, program_assignments(programs(name, weeks)), workout_blocks(workout_items(count))')
     .gte('scheduled_date', desde)
     .lte('scheduled_date', hasta)
     .order('scheduled_date');
@@ -67,9 +67,16 @@ export async function cargarSemana(supabase: SupabaseClient, desde: string, hast
     if (copia) return copia;
     throw error;
   }
-  const lista = ((data ?? []) as unknown as (Omit<SesionCorta, 'ejercicios'> & { workout_blocks: { workout_items: { count: number }[] }[] })[]).map((w) => ({
+  type Fila = Omit<SesionCorta, 'ejercicios' | 'programa'> & {
+    program_week: number | null; program_assignments: { programs: { name: string; weeks: number } | null } | null;
+    workout_blocks: { workout_items: { count: number }[] }[];
+  };
+  const lista: SesionCorta[] = ((data ?? []) as unknown as Fila[]).map((w) => ({
     id: w.id, scheduled_date: w.scheduled_date, name: w.name, status: w.status, coach_message: w.coach_message,
-    ejercicios: w.workout_blocks.reduce((s, b) => s + (b.workout_items[0]?.count ?? 0), 0)
+    ejercicios: w.workout_blocks.reduce((s, b) => s + (b.workout_items[0]?.count ?? 0), 0),
+    programa: w.program_week && w.program_assignments?.programs
+      ? { nombre: w.program_assignments.programs.name, semana: w.program_week, semanas: w.program_assignments.programs.weeks }
+      : null
   }));
   const todas = leer<Record<string, SesionCorta[]>>(CLAVE_SEMANA()) ?? {};
   todas[`${desde}_${hasta}`] = lista;

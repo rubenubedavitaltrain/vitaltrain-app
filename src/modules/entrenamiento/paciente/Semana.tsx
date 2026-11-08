@@ -38,6 +38,7 @@ export function TarjetaHoy({ supabase, onAbrir }: { supabase: SupabaseClient; on
       {deHoy.map((s) => (
         <div key={s.id} className="bg-white rounded-2xl p-5 flex flex-col gap-3">
           <div className="text-xs font-bold tracking-wide text-texto-suave">HOY · {s.ejercicios} EJERCICIOS</div>
+          {s.programa && <div className="text-sm text-texto-suave -mt-2">{s.programa.nombre} · semana {s.programa.semana} de {s.programa.semanas}</div>}
           <h2 className="text-2xl font-bold leading-tight">{s.name}</h2>
           {s.coach_message && <p className="border-l-4 border-mostaza pl-3">{s.coach_message}</p>}
           <button onClick={() => onAbrir(s.id)} className={`py-4 rounded-2xl text-lg font-bold ${s.status === 'completed' ? 'bg-fondo text-petroleo' : 'bg-mostaza text-[#1F2424]'}`}>
@@ -106,7 +107,7 @@ export function MiSemana({ supabase, onAbrir }: { supabase: SupabaseClient; onAb
               <Dia i={i} d={d} />
               <span className="flex-1">
                 <span className="block font-bold">{s.name}</span>
-                <span className="block text-sm text-texto-suave">{s.ejercicios} ejercicios</span>
+                <span className="block text-sm text-texto-suave">{s.ejercicios} ejercicios{s.programa ? ` · semana ${s.programa.semana} de ${s.programa.semanas}` : ''}</span>
               </span>
               {f === hoy && s.status !== 'completed' ? (
                 <span className="text-xs font-bold bg-mostaza text-[#1F2424] px-2.5 py-1 rounded-full">HOY</span>

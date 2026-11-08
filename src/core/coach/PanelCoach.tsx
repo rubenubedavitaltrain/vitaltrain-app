@@ -2,11 +2,12 @@ import { useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import Biblioteca from '../../modules/entrenamiento/biblioteca/Biblioteca';
 import Pacientes from './Pacientes';
+import Programas from '../../modules/entrenamiento/programas/Programas';
 import Plantillas from '../../modules/entrenamiento/plantillas/Plantillas';
 
 // Panel del coach. Cada módulo añade aquí su sección. De momento: inicio y biblioteca.
 
-type Seccion = 'inicio' | 'pacientes' | 'plantillas' | 'biblioteca';
+type Seccion = 'inicio' | 'pacientes' | 'programas' | 'plantillas' | 'biblioteca';
 
 export default function PanelCoach({ supabase, nombre }: { supabase: SupabaseClient; nombre: string }) {
   const [seccion, setSeccion] = useState<Seccion>(() => {
@@ -37,6 +38,7 @@ export default function PanelCoach({ supabase, nombre }: { supabase: SupabaseCli
         <nav aria-label="Panel del coach" className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1 flex gap-1 overflow-x-auto -mx-1 px-1">
           {pestaña('inicio', 'Inicio')}
           {pestaña('pacientes', 'Pacientes')}
+          {pestaña('programas', 'Programas')}
           {pestaña('plantillas', 'Plantillas')}
           {pestaña('biblioteca', 'Biblioteca')}
         </nav>
@@ -52,6 +54,7 @@ export default function PanelCoach({ supabase, nombre }: { supabase: SupabaseCli
           </section>
         )}
         {seccion === 'pacientes' && <Pacientes supabase={supabase} />}
+        {seccion === 'programas' && <Programas supabase={supabase} />}
         {seccion === 'plantillas' && <Plantillas supabase={supabase} />}
         {seccion === 'biblioteca' && <Biblioteca supabase={supabase} />}
       </main>
