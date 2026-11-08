@@ -2,6 +2,30 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Tareas 16 y 17: ritmos circadianos y hábitos por pilar (versión 0.13.0)
+Estos dos módulos se activan **por paciente**. En su ficha hay una sección nueva, **«Qué ve en su app»**, con una casilla por módulo: Entrenamiento, Mensajes, Ritmos circadianos y Hábitos. Quitar uno no borra sus datos.
+
+**Ritmos circadianos**
+- En Hoy aparece «Tu luz de hoy»: amanecer, ventana UVB y atardecer, y dos botones: «Anotar sueño» y «Anotar comida».
+- «Ver más» abre **Mi ritmo**:
+  - **Panel solar** de su ciudad: amanecer, mediodía solar, atardecer, primera y última luz, horas de sol, altura del sol ahora, ventanas UVA (sol por encima de 10°) y UVB (por encima de 30°) y cuántos días quedan con ventana UVB. Se puede pasar de día con las flechas. Para Llíria hoy: amanecer 07:39, mediodía 12:47, atardecer 17:55, UVB 11:16–14:18, 16 días con UVB. Cuadra con MyCircadian (diferencias de 1 minuto).
+  - Todo se calcula en el móvil con la ciudad que elige el paciente (63 ciudades de España, Andorra y Lisboa). No usa GPS ni servicios externos.
+  - No muestra índice UV ni luxómetro: eso necesita datos meteorológicos o el sensor del móvil. Lo indica como estimación.
+  - **Mi sueño**: registro en menos de 20 segundos (noche, hora de acostarse y levantarse, cuánto tardó en dormirse, despertares, calidad, cómo se levantó, si al día siguiente libraba). Gráfica de las últimas 2 semanas.
+  - **Mis horarios de comida**: solo la hora y el tipo. Ve su ventana del día y una gráfica de 14 días. Sin calorías.
+- En tu ficha: noches anotadas, sueño medio, hora media de acostarse y levantarse, **regularidad** (cuánto varía), **jet lag social** (diferencia del punto medio del sueño entre días libres y laborables), calidad y descanso, **ventana de alimentación** media y tiempo entre la última comida y la cama. Con las dos gráficas y el panel solar de su ciudad. Puedes elegir su ciudad y anotar una noche tú.
+
+**Hábitos por pilar**
+- Catálogo inicial de 23 hábitos de los cinco pilares (alimentación, movimiento, ritmos, regulación emocional y naturaleza), cada uno con su instrucción en una línea y su porqué. Puedes crear los tuyos desde el panel.
+- En la ficha, «+ Asignar hábito»: eliges del catálogo (filtrado por pilar), pones el objetivo si es de cantidad, qué días toca y una indicación personal.
+- El paciente ve en Hoy **«Hábitos de hoy»** agrupados por pilar y los marca de un toque (sí/no, cantidad con + y −, escala 1-5 u hora). Tocando el nombre ve tu indicación y el porqué.
+- Los pilares con hábitos asignados se encienden en «Tus pilares».
+- **Constancia**: cuadrícula de 14 días por hábito con el % cumplido. La ve el paciente en Progreso y tú en la ficha.
+- Seguridad: el paciente no puede asignarse hábitos, cambiar objetivos ni marcar días futuros o de hace más de una semana. Comprobado con pruebas.
+
+- Base de datos: migraciones 0014 y 0015 aplicadas en `vitaltrain-dev`.
+- Cómo probarlo: sube el zip `vitaltrain-app-0.13.0-para-cloudflare.zip` a vitaltrain-prueba. En la ficha de tu paciente de prueba marca «Ritmos circadianos» y «Hábitos», asígnale dos o tres hábitos y entra con su cuenta en el móvil.
+
 ## 2026-11-08 · Correcciones de la revisión de seguridad (versión 0.12.1)
 Un revisor independiente ha repasado toda la base de datos y la app. No ha encontrado forma de que un paciente vea datos de otro ni de saltarse el consentimiento. Sí encontró cuatro fallos que podían perder o falsear datos; están corregidos:
 - **Quitar una sesión del calendario podía borrar una nota del paciente** (por ejemplo, «No puedo hacerlo: dolor»). Ahora la base de datos impide borrar cualquier ejercicio con series o notas, se haga desde donde se haga.

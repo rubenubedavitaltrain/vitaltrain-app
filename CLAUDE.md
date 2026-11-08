@@ -65,8 +65,8 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Seguimiento | Mi progreso (gráficas), medidas opcionales, resumen mensual para la revisión | 1 |
 | Documentos | PDFs que el coach comparte con el paciente, por pilar | 1 |
 | Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
-| Ritmos circadianos | Sueño, luz, horarios de comida, anclas del día | 2 |
-| Hábitos | Protocolos diarios por pilar asignados por el coach | 2 |
+| Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0). Falta: línea temporal «Mi día» con anclas y recordatorios | 2 |
+| Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
 | Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
 | Respiración y regulación | Ejercicios guiados con temporizador | 4 |
@@ -158,7 +158,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `workouts` → `workout_blocks` → `workout_items` (copia al asignar), `set_logs`.
   - `checkins`, `messages`, `memberships`, `push_subscriptions`.
 - `supabase/migrations/0002_plataforma_modular.sql`: núcleo modular: `pillars`, `modules`, `patient_modules`, `patient_settings`.
-- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: diseño **no aplicado** de `habit_definitions`, `patient_habits`, `habit_logs`, `sleep_logs`, `meal_events`, `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`. Cada parte se pasa a una migración nueva cuando se construya su módulo. La prueba de seguridad comprueba que el diseño sigue siendo válido.
+- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: diseño **no aplicado** de `questionnaires`, `questionnaire_assignments`, `questionnaire_responses` (hábitos y circadiano ya pasaron a 0014 y 0015). Cada parte se pasa a una migración nueva cuando se construya su módulo. La prueba de seguridad comprueba que el diseño sigue siendo válido.
 
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
 - `supabase/migrations/0004_biblioteca_ejercicios.sql`: duración del vídeo en `exercises`, un vídeo no puede repetirse, y carga de los 156 Shorts del canal (lista en `supabase/datos/ejercicios_youtube.json`). Los vídeos están como "Oculto" en YouTube: nunca ponerlos en "Privado" o dejarán de verse en la app.
@@ -172,7 +172,10 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0011_medidas.sql`: `body_measurements` (peso 20-350 kg, cintura y cadera 30-250 cm, una fila por paciente y día, al menos un valor, nunca fecha futura). Es del núcleo: la anota cualquier paciente activo con consentimiento, y el coach. Aplicada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0012_mensajes.sql`: deja lista la tabla `messages` (de 0001): un disparador fija el remitente (quien está conectado), la fecha y «sin leer» al crear; el paciente solo escribe en su conversación; el coach solo en conversaciones de pacientes; nadie edita mensajes y solo el coach puede borrar; `mark_messages_read(paciente)` marca como leídos solo los recibidos. Módulo `messages` disponible. Aplicada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0013_correcciones_revision.sql`: correcciones de la revisión independiente: un disparador impide borrar ejercicios con series o notas del paciente venga de donde venga; una nota cambiada por el paciente vuelve a «sin leer»; `hoy_local()` da la fecha de España (las medidas y «Cambiar desde una semana» la usan). Aplicada en `vitaltrain-dev` el 8 nov 2026.
-- Pendiente, migraciones `0014` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
+- `supabase/migrations/0014_circadiano.sql`: `sleep_logs` (una noche por paciente y fecha, despertar posterior a acostarse y menos de 20 h, sin noches ni horas futuras) y `meal_events` (hora y tipo; últimos 30 días). El paciente escribe solo con el módulo `circadian` activo. La ciudad va en `patient_settings` (latitud y longitud de la ciudad, no GPS). Aplicada en `vitaltrain-dev` el 9 nov 2026.
+- `supabase/migrations/0015_habitos.sql`: motor de hábitos (`habit_definitions`, `patient_habits`, `habit_logs`) y catálogo inicial de 23 hábitos por pilar. El paciente ve y marca sus hábitos solo con el módulo `habits`; marca hoy o la última semana, solo en hábitos suyos y activos; no puede asignarse ni cambiar objetivos. Aplicada en `vitaltrain-dev` el 9 nov 2026.
+- Código: `src/modules/circadiano/` (`sol.ts` cálculo solar NOAA/Meeus, `ciudades.ts`, `PanelSolar`, `Registros`, `Graficas`, `Ritmo` con la tarjeta de Hoy, Mi ritmo y la sección del coach) y `src/modules/habitos/` (`datos.ts`, `Habitos.tsx` con la tarjeta de Hoy y Constancia, `HabitosCoach.tsx`). Activación por paciente en `src/core/coach/ModulosPaciente.tsx`.
+- Pendiente, migraciones `0016` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
   - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
   - `patient_settings`: añadir hora del recordatorio y avisos activos.
@@ -199,7 +202,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - Justificar cada dependencia nueva antes de instalarla.
 - Cambios de base de datos siempre como migración nueva numerada.
 - Respetar el contrato de módulo (sección 2). No mezclar código de un módulo en otro.
-- No empezar un módulo nuevo hasta que el anterior esté en uso real por pacientes.
+- No empezar un módulo nuevo hasta que el anterior esté en uso real por pacientes. Excepción decidida por Rubén el 9 nov 2026: ritmos circadianos y hábitos se adelantan mientras GitHub está suspendido.
 - Mantener actualizada la sección 10, `docs/DECISIONES.md` (fecha, decisión, motivo) y `docs/NOVEDADES.md` (qué cambió y cómo probarlo, en lenguaje llano).
 - Cada propuesta de cambio explica en español llano qué hace, cómo probarlo en el móvil y qué podría fallar.
 - Las migraciones se aplican en `vitaltrain-dev` desde el editor SQL de Supabase, en orden, y se anotan en `docs/NOVEDADES.md`. Nunca editar una migración ya aplicada: se crea otra nueva.
@@ -235,6 +238,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 14 (hecha en local): mensajes. Pestaña Mensajes del paciente (5 pestañas) y sección Mensajes del coach con bandeja por paciente, no leídos, respuestas rápidas y contexto (última sesión, ver ficha). Se actualiza cada 15 s con la conversación abierta; aviso de no leídos en el menú cada 60 s. Aún sin aviso push ni email (8 nov 2026)
 - [x] Revisión de seguridad independiente (8 nov 2026): ningún acceso a datos de otro paciente ni forma de saltarse el consentimiento. Corregidos los 4 fallos de pérdida o calidad de datos (0013 y app). Quedan anotados, de prioridad baja: exigir en la base de datos la versión vigente del consentimiento; fechas y longitudes que el paciente puede poner en sus propias filas; limpiar colas viejas de otra cuenta en el móvil; alta de paciente que falla a medias; comprobar el módulo activo al registrar entrenamiento
 - [x] Versión de prueba en Cloudflare Pages subida a mano: https://vitaltrain-prueba.pages.dev (proyecto `vitaltrain-prueba`, sin GitHub). Cada versión nueva se sube como zip (8 nov 2026)
+- [ ] Tarea 16 (hecha en local): ritmos circadianos. Panel solar por ciudad, sueño, comidas, indicadores del coach (regularidad, jet lag social, ventana de alimentación). Migración 0014 aplicada (9 nov 2026)
+- [ ] Tarea 17 (hecha en local): hábitos por pilar y activación de módulos por paciente en la ficha. Migración 0015 aplicada (9 nov 2026)
 - [ ] Fase 1: las 17 funciones de la sección 3. Quedan: perfil (recordatorio, avisos push o email de mensajes y descarga de datos), documentos y resumen mensual
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
