@@ -10,7 +10,7 @@ const md = [
   '',
   'Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433',
   '',
-  '> Borrador para revisión del asesor de protección de datos. Los datos entre [corchetes] están por completar.',
+  '> Borrador para revisión del asesor de protección de datos. Queda por fijar el plazo de conservación (entre corchetes).',
   '> Este archivo se genera desde `src/core/legal/textoConsentimiento.ts`: los cambios se hacen allí.',
   '',
   '## Lo esencial (primera pantalla)',

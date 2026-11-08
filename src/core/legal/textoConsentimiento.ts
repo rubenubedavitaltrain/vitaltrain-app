@@ -1,9 +1,9 @@
 // Texto del consentimiento que acepta el paciente al entrar por primera vez.
 // Cada cambio del texto sube la versión: el paciente tendrá que aceptarlo de nuevo.
 // Copia legible para el asesor en docs/legal/consentimiento.md (se genera desde este archivo).
-// BORRADOR pendiente de revisión por el asesor de protección de datos. Los datos entre [corchetes] los completa Rubén.
+// BORRADOR pendiente de revisión por el asesor de protección de datos. Falta el plazo de conservación (entre corchetes).
 
-export const VERSION_CONSENTIMIENTO = '1.0-borrador';
+export const VERSION_CONSENTIMIENTO = '1.1-borrador';
 export const FECHA_CONSENTIMIENTO = '8 de noviembre de 2026';
 
 /** Primera capa: lo esencial, en la pantalla de aceptación. */
@@ -13,7 +13,7 @@ export const RESUMEN: string[] = [
   'Solo los ve tu profesional. No se usan para publicidad, no se venden y no se toman decisiones automáticas sobre ti.',
   'La app no diagnostica ni decide tratamientos. Muestra lo que te pauta tu profesional y registra lo que haces.',
   'Los datos se guardan en servidores de la Unión Europea.',
-  'Puedes retirar tu consentimiento cuando quieras desde Perfil, y ejercer tus derechos escribiendo a [email de privacidad].',
+  'Puedes retirar tu consentimiento cuando quieras desde Perfil, y ejercer tus derechos escribiendo a info@vitaltrain.com.',
 ];
 
 export type Seccion = { titulo: string; parrafos: string[] };
@@ -23,10 +23,9 @@ export const SECCIONES: Seccion[] = [
   {
     titulo: '1. Quién es responsable de tus datos',
     parrafos: [
-      'Responsable: [razón social], con NIF [NIF], que actúa como Clínica Vitaltrain, Centro Sanitario Nº Registro 22433.',
-      'Dirección: Carrer de Sorní 40, [código postal] Valencia. Teléfono: 640 92 42 38. Email para temas de privacidad: [email de privacidad].',
+      'Responsable: Rubén Úbeda Rubio, con NIF 33452055G, titular de Clínica Vitaltrain, Centro Sanitario Nº Registro 22433.',
+      'Dirección: Carrer de Sorní 40, 46004 Valencia. Teléfono: 640 92 42 38. Email para temas de privacidad: info@vitaltrain.com.',
       'Profesional que te acompaña: Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209.',
-      '[Si la clínica tiene delegado de protección de datos, indicar aquí su contacto.]',
     ],
   },
   {
@@ -82,7 +81,7 @@ export const SECCIONES: Seccion[] = [
     parrafos: [
       'Puedes acceder a tus datos, rectificarlos, pedir que se supriman, oponerte o pedir que se limite su uso, y solicitar una copia para llevarla a otro servicio (portabilidad).',
       'Puedes retirar tu consentimiento en cualquier momento desde Perfil → Privacidad. Retirarlo no afecta a lo tratado antes.',
-      'Para ejercer tus derechos, escribe a [email de privacidad] indicando qué necesitas.',
+      'Para ejercer tus derechos, escribe a info@vitaltrain.com indicando qué necesitas.',
       'Si crees que no hemos tratado bien tus datos, puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).',
     ],
   },
@@ -99,7 +98,7 @@ export const SECCIONES: Seccion[] = [
     titulo: '9. Uso responsable',
     parrafos: [
       'La app no sustituye la atención sanitaria. Si sientes dolor intenso, mareo o cualquier síntoma que te preocupe, para y contacta con tu profesional. En una urgencia, llama al 112.',
-      'La app es para personas mayores de edad. [Si se atiende a menores, el consentimiento lo da su representante legal en consulta.]',
+      'La app es para personas mayores de edad.',
     ],
   },
   {
