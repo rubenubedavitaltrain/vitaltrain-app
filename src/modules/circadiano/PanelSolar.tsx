@@ -101,9 +101,9 @@ function ArcoSolar({ fecha, lat, lon, ahora }: { fecha: Date; lat: number; lon: 
   const pasos = 144; // cada 10 minutos
   const base = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
   const alturas = Array.from({ length: pasos + 1 }, (_, i) => alturaSol(new Date(base.valueOf() + i * 600000), lat, lon));
-  const lo = -60, hi = Math.max(75, Math.ceil(Math.max(...alturas) / 10) * 10);
+  const lo = -30, hi = Math.max(60, Math.ceil(Math.max(...alturas) / 10) * 10);
   const px = (i: number) => (W * i) / pasos;
-  const py = (a: number) => top + (H - top - bottom) * (1 - (a - lo) / (hi - lo));
+  const py = (a: number) => top + (H - top - bottom) * (1 - (Math.max(a, lo) - lo) / (hi - lo));
   const curva = alturas.map((a, i) => `${i ? 'L' : 'M'}${px(i).toFixed(1)},${py(a).toFixed(1)}`).join(' ');
   // Zona bajo la curva y por encima de un umbral
   const banda = (umbral: number) => {
