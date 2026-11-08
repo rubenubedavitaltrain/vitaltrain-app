@@ -1,7 +1,7 @@
 -- Consentimiento del paciente (art. 9.2.a RGPD).
 -- Sin un consentimiento en vigor el paciente no puede leer ni registrar nada de salud:
 -- is_active_patient() pasa a exigirlo, y todas las reglas de acceso del paciente dependen de ella.
--- El texto de cada versión vive en la app (src/core/legal/consentimiento.ts) y en docs/legal/.
+-- El texto de cada versión vive en la app (src/core/legal/textoConsentimiento.ts) y en docs/legal/.
 -- Depende de 0001-0008.
 
 create table consents (
