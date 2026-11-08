@@ -2,6 +2,17 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-08 · Tarea 11: Mi progreso (versión 0.9.0)
+- El paciente tiene una pestaña nueva, **Progreso**, en el menú de abajo.
+- Arriba, tres datos: sesiones hechas esta semana, porcentaje hecho en las últimas 4 semanas y esfuerzo medio del último mes.
+- **Entrenamientos por semana** (12 semanas): la barra gris son las sesiones pautadas y la oscura las hechas.
+- **Esfuerzo medio por semana**, de 1 a 10.
+- **Carga por ejercicio**: eliges un ejercicio y ves la serie más pesada de cada día, con el último valor, el máximo y cuánto ha subido desde el principio.
+- Tocando una barra o un punto se ve el dato exacto.
+- En tu ficha del paciente aparece lo mismo en la sección **Progresión**.
+- No cambia la base de datos: usa lo que el paciente ya registra.
+- Cómo probarlo: entra como tu paciente de prueba, abre Progreso. Con la sesión que hiciste deberías ver una barra esta semana y, si anotaste kilos, el ejercicio en «Carga por ejercicio».
+
 ## 2026-11-08 · Tarea 10: cambiar un ejercicio en todo el plan (versión 0.8.0)
 - En la ficha del paciente, junto a «Copiar semana anterior», está **«Cambiar un ejercicio»**.
 - Muestra los ejercicios que tiene en sus sesiones pendientes y en cuántas aparece. Eliges el que quieres quitar y el que lo sustituye.

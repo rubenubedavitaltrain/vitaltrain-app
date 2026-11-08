@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { MiSemana, TarjetaHoy } from '../../modules/entrenamiento/paciente/Semana';
 import Entrenamiento from '../../modules/entrenamiento/paciente/Entrenamiento';
+import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Instalar from '../Instalar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
@@ -9,7 +10,7 @@ import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/
 // App del paciente (móvil). Menú inferior. Cada módulo activo aporta su tarjeta a "Hoy".
 
 type Pilar = { slug: string; name: string; description: string | null };
-type Pestaña = 'hoy' | 'semana' | 'perfil';
+type Pestaña = 'hoy' | 'semana' | 'progreso' | 'perfil';
 
 // Qué pilar ilumina cada módulo
 const PILAR_DE_MODULO: Record<string, string> = { training: 'movimiento-inteligente', circadian: 'ritmos-circadianos' };
@@ -92,12 +93,22 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
           </>
         )}
         {pestaña === 'semana' && <MiSemana supabase={supabase} onAbrir={setAbierta} />}
+        {pestaña === 'progreso' && (
+          <div className="flex flex-col">
+            <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),2rem)] pb-6">
+              <h1 className="text-2xl font-bold">Mi progreso</h1>
+              <p className="text-[#E3E8E8] text-sm mt-1">Lo que has hecho, semana a semana.</p>
+            </header>
+            <div className="p-4"><Progreso supabase={supabase} pacienteId={userId} /></div>
+          </div>
+        )}
         {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
       </div>
 
-      <nav aria-label="Navegación principal" className="fixed bottom-0 inset-x-0 bg-white border-t border-gris-claro grid grid-cols-3 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] z-20">
+      <nav aria-label="Navegación principal" className="fixed bottom-0 inset-x-0 bg-white border-t border-gris-claro grid grid-cols-4 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] z-20">
         <Boton activo={pestaña === 'hoy'} onClick={() => setPestaña('hoy')} texto="Hoy" icono={<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />} />
         <Boton activo={pestaña === 'semana'} onClick={() => setPestaña('semana')} texto="Semana" icono={<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>} />
+        <Boton activo={pestaña === 'progreso'} onClick={() => setPestaña('progreso')} texto="Progreso" icono={<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />} />
         <Boton activo={pestaña === 'perfil'} onClick={() => setPestaña('perfil')} texto="Perfil" icono={<><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>} />
       </nav>
     </div>
