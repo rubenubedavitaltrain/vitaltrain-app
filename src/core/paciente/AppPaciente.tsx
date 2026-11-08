@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { MiSemana, TarjetaHoy } from '../../modules/entrenamiento/paciente/Semana';
 import Entrenamiento from '../../modules/entrenamiento/paciente/Entrenamiento';
 import Instalar from '../Instalar';
-import { vaciarCola } from '../../modules/entrenamiento/paciente/datos';
+import { pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
 // App del paciente (móvil). Menú inferior. Cada módulo activo aporta su tarjeta a "Hoy".
 
@@ -17,6 +17,7 @@ function leer<T>(k: string): T | null { try { const v = localStorage.getItem(k);
 function escribir(k: string, v: unknown) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* nada */ } }
 
 export default function AppPaciente({ supabase, userId, nombre, email }: { supabase: SupabaseClient; userId: string; nombre: string; email: string }) {
+  usarCuenta(userId);
   const [pestaña, setPestaña] = useState<Pestaña>('hoy');
   const [abierta, setAbierta] = useState<string | null>(null);
   const [pilares, setPilares] = useState<Pilar[]>(() => leer('vt.pilares') ?? []);
@@ -113,7 +114,16 @@ function Perfil({ supabase, nombre, email }: { supabase: SupabaseClient; nombre:
         <div className="bg-white rounded-2xl p-5 text-sm text-texto-suave">
           Recordatorios, avisos y privacidad llegarán en las próximas versiones.
         </div>
-        <button onClick={() => supabase.auth.signOut()} className="bg-white text-petroleo border-2 border-petroleo font-bold py-3.5 rounded-2xl">Cerrar sesión</button>
+        <button
+          onClick={() => {
+            const n = pendientes();
+            if (n && !window.confirm(`Tienes ${n} registros sin enviar porque no hay conexión. Se enviarán cuando vuelvas a entrar con esta cuenta. ¿Cerrar sesión igualmente?`)) return;
+            supabase.auth.signOut();
+          }}
+          className="bg-white text-petroleo border-2 border-petroleo font-bold py-3.5 rounded-2xl"
+        >
+          Cerrar sesión
+        </button>
         <p className="text-center text-xs text-texto-suave mt-2">
           Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433 · Versión {__APP_VERSION__}
         </p>

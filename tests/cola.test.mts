@@ -1,0 +1,22 @@
+const store: Record<string,string> = {};
+(globalThis as any).localStorage = { getItem:(k:string)=>store[k]??null, setItem:(k:string,v:string)=>{store[k]=v}, removeItem:(k:string)=>{delete store[k]}, };
+Object.defineProperty(globalThis,'localStorage',{value:(globalThis as any).localStorage}); 
+let online = false; Object.defineProperty(globalThis,'navigator',{value:{ get onLine(){return online} }});
+const { enviar, vaciarCola, pendientes, usarCuenta, limpiarCuenta } = await import('../src/modules/entrenamiento/paciente/datos.ts');
+const enviados: any[] = []; let falloRed = false; let lento = 0;
+const q = (op:any) => ({ upsert:async(f:any)=>{ await new Promise(r=>setTimeout(r,lento)); if(falloRed) return {status:0,error:{message:'Failed to fetch'}}; enviados.push(['up',f.set_number??f.note]); return {status:201,error:null}; },
+  delete:()=>({eq:()=>({eq:async()=>{enviados.push(['del']); return {status:204,error:null}}})}), update:()=>({eq:async()=>{enviados.push(['upd']); return {status:204,error:null}}}) });
+const sb:any = { from:q, auth:{ getSession: async()=>({}) } };
+usarCuenta('u1');
+const set = (n:number)=>({ s:'w', t:'set', fila:{workout_item_id:'i',patient_id:'u1',set_number:n,reps:10,load_kg:5,done:true} } as any);
+let ok=true; const check=(m:string,c:boolean)=>{console.log((c?'OK   ':'FALLO')+' '+m); if(!c) ok=false};
+check('Sin red queda pendiente', (await enviar(sb,set(1)))==='pendiente' && pendientes()===1);
+await enviar(sb,set(2)); check('Dos pendientes', pendientes()===2);
+online=true; lento=30;
+const p1 = vaciarCola(sb); const p2 = enviar(sb,set(3)); await Promise.all([p1,p2]);
+check('Al volver la red se envían los tres en orden', JSON.stringify(enviados.map(e=>e[1]))==='[1,2,3]' && pendientes()===0);
+falloRed=true; check('Fallo de red en mitad: no se pierde', (await enviar(sb,set(4)))==='pendiente' && pendientes()===1);
+falloRed=false; await vaciarCola(sb); check('Reintento posterior lo envía', pendientes()===0 && enviados.length===4);
+online=false; await enviar(sb,set(5)); limpiarCuenta('u1'); check('Cerrar sesión conserva lo no enviado', pendientes()===1);
+usarCuenta('u2'); check('Otra cuenta no ve la cola de la primera', pendientes()===0);
+console.log(ok?'\nCola OK':'\nHAY FALLOS'); process.exit(ok?0:1);

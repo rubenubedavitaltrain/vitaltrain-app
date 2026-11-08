@@ -164,7 +164,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0004_biblioteca_ejercicios.sql`: duración del vídeo en `exercises`, un vídeo no puede repetirse, y carga de los 156 Shorts del canal (lista en `supabase/datos/ejercicios_youtube.json`). Los vídeos están como "Oculto" en YouTube: nunca ponerlos en "Privado" o dejarán de verse en la app.
 - `supabase/migrations/0005_ajuste_perfiles_admin.sql`: el guardián de perfiles ya no bloquea los cambios hechos desde el panel de Supabase (sin usuario conectado).
 - `supabase/migrations/0006_plantillas_y_registro.sql`: carga pautada (`load_kg`) en plantillas y entrenamientos, `save_template(jsonb)` (guarda la plantilla entera de una vez), `copy_week`, guardián de columnas de `workouts` para el paciente (solo estado, inicio, fin, esfuerzo, sensaciones y notas) y `workout_item_feedback` (nota y "no puedo hacerlo" con motivo: pain, no_equipment, dont_know, other).
-- `supabase/functions/alta-paciente`: función de servidor que crea la cuenta, el perfil y activa el módulo de entrenamiento. Solo la puede usar el coach. Se despliega desde el editor de Edge Functions de Supabase.
+- `supabase/functions/alta-paciente`: función de servidor que crea la cuenta, el perfil y activa el módulo de entrenamiento. Solo la puede usar el coach (lo comprueba ella misma). Se despliega desde el editor de Edge Functions de Supabase con «Verify JWT with legacy secret» desactivado: el proyecto firma las sesiones con clave ECC. Desplegada en `vitaltrain-dev` el 8 nov 2026.
 - Pendiente, migraciones `0007` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
   - `programs` (duración 1-12 semanas), `program_weeks` (número, regla de progresión) y `program_slots` (semana, día, plantilla): programas de varias semanas.
   - `program_assignments` (paciente, programa, fecha de inicio, estado, semana en que se sustituyó, asignación que la sustituye). Asignar crea `workouts` como copia, igual que una plantilla, enlazados a la asignación y con su número de semana.
@@ -189,7 +189,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 
 ## 9. Reglas de trabajo para Claude Code
 
-- Comandos: `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad.
+- Comandos: `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad, `npm run test:cola` para la cola sin conexión.
 - Versiones de dependencias fijadas, con al menos dos semanas desde su publicación.
 
 - Tareas pequeñas y comprobables. Cada una termina con algo que Rubén pueda probar en el móvil.

@@ -40,7 +40,7 @@ export default function Entrenamiento({ supabase, sesionId, pacienteId, onSalir 
 
   async function mandar(op: Parameters<typeof enviar>[1]) {
     const r = await enviar(supabase, op);
-    if (r === 'pendiente') setSinRed(true);
+    setSinRed(r === 'pendiente');
     if (r === 'error') setError('No se ha podido guardar el último cambio.');
   }
 
@@ -48,7 +48,7 @@ export default function Entrenamiento({ supabase, sesionId, pacienteId, onSalir 
     if (s && s.status === 'scheduled') {
       const started_at = new Date().toISOString();
       actualizar((x) => ({ ...x, status: 'in_progress', started_at }));
-      mandar({ t: 'sesion', id: s.id, cambios: { status: 'in_progress', started_at } });
+      mandar({ s: s.id, t: 'sesion', id: s.id, cambios: { status: 'in_progress', started_at } });
     }
   }
 
@@ -61,10 +61,10 @@ export default function Entrenamiento({ supabase, sesionId, pacienteId, onSalir 
       return x;
     });
     if (hecho) {
-      mandar({ t: 'set', fila: { workout_item_id: item.id, patient_id: pacienteId, set_number: n, reps, load_kg: kg, done: true } });
+      mandar({ s: sesionId, t: 'set', fila: { workout_item_id: item.id, patient_id: pacienteId, set_number: n, reps, load_kg: kg, done: true } });
       if (item.rest_seconds) setDescanso({ fin: Date.now() + item.rest_seconds * 1000, total: item.rest_seconds });
     } else {
-      mandar({ t: 'borrarSet', workout_item_id: item.id, set_number: n });
+      mandar({ s: sesionId, t: 'borrarSet', workout_item_id: item.id, set_number: n });
     }
   }
 
@@ -74,7 +74,7 @@ export default function Entrenamiento({ supabase, sesionId, pacienteId, onSalir 
       it.workout_item_feedback = [{ note, cannot_do, reason }];
       return x;
     });
-    mandar({ t: 'feedback', fila: { workout_item_id: item.id, patient_id: pacienteId, note, cannot_do, reason } });
+    mandar({ s: sesionId, t: 'feedback', fila: { workout_item_id: item.id, patient_id: pacienteId, note, cannot_do, reason } });
     setFeedbackDe(null);
   }
 
@@ -304,7 +304,7 @@ function Final({ s, onHecho, onVolver, mandar }: {
 
   async function guardar() {
     const cambios = { status: 'completed' as const, rpe, feeling: sensacion, patient_notes: notas.trim() || null, completed_at: new Date().toISOString(), ...(s.started_at ? {} : { started_at: new Date().toISOString() }) };
-    await mandar({ t: 'sesion', id: s.id, cambios });
+    await mandar({ s: s.id, t: 'sesion', id: s.id, cambios });
     setHecho(true);
     setTimeout(() => onHecho(cambios), 1800);
   }

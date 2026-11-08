@@ -106,6 +106,17 @@ check('Otro paciente no puede dejar notas en ejercicios ajenos', !!(await as(p2,
 check('El paciente no puede marcar su nota como leída', !!(await as(p1, `update workout_item_feedback set read_by_coach_at = now() where workout_item_id = '${itemB}'`)).error);
 check('El coach ve la nota y la marca como leída', !(await as(coach, `update workout_item_feedback set read_by_coach_at = now() where workout_item_id = '${itemB}'`)).error);
 
+check('Copiar la misma semana otra vez no duplica sesiones', !(await as(coach, `select copy_week('${p1}', ${lunes}, ${lunes} + 7)`)).error && (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}' and scheduled_date = ${lunes} + 9`)).rows[0].n === 1);
+check('No se puede copiar una semana sobre sí misma', !!(await as(coach, `select copy_week('${p1}', ${lunes}, ${lunes})`)).error);
+check('Renombrar una plantilla sin enviar bloques no borra su contenido', (await as(coach, `select save_template('{"id":"${tplB}","name":"Fuerza B renombrada"}'::jsonb)`)).rows?.length === 1 && (await db.query(`select count(*)::int n from template_blocks where template_id = '${tplB}'`)).rows[0].n === 2);
+const itemOtro = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id join workouts w on w.id = b.workout_id where w.patient_id = '${p1}' and i.id <> '${itemB}' limit 1`)).rows[0].id;
+await as(p1, `insert into workout_item_feedback (workout_item_id, patient_id, note, read_by_coach_at) values ('${itemOtro}', '${p1}', 'hola', now())`);
+check('Una nota nueva del paciente siempre llega sin leer', (await db.query(`select read_by_coach_at from workout_item_feedback where workout_item_id = '${itemOtro}'`)).rows[0].read_by_coach_at === null);
+await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'paused' where id = '${p2}'`);
+check('Un paciente en pausa no puede cambiar su perfil', !(await as(p2, `update profiles set full_name = 'x' where id = '${p2}' returning id`)).rows?.length);
+await db.exec(`reset role; set request.jwt.sub = ''; update profiles set status = 'active' where id = '${p2}'`);
+check('No se puede repetir un email cambiando mayúsculas', !!(await as(coach, `update profiles set email = 'P1@X' where id = '${p2}'`)).error);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

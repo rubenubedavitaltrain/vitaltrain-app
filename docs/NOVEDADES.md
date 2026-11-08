@@ -14,6 +14,7 @@ Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito pa
   - Entrenamiento: vídeo vertical, series con repeticiones y kilos ya rellenos, marcar cada serie, temporizador de descanso con +15 s y saltar, nota a Rubén y «No puedo hacerlo» con motivo.
   - Final: esfuerzo de 1 a 10, sensaciones y notas.
   - Sin conexión: el entrenamiento abierto sigue funcionando y lo registrado se envía solo al volver la red.
+- Base de datos: migración 0006 aplicada en `vitaltrain-dev` y función `alta-paciente` instalada.
 - Cómo probarlo (cuando esté publicada): crea una plantilla, da de alta un paciente de prueba con tu email +paciente, asígnale la plantilla hoy y entra como ese paciente desde el móvil.
 
 ## 2026-11-08 · Tarea 3 (versión 0.3.0, pendiente de publicar)

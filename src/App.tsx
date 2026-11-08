@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import Acceso from './core/acceso/Acceso';
 import PanelCoach from './core/coach/PanelCoach';
 import AppPaciente from './core/paciente/AppPaciente';
+import { limpiarCuenta } from './modules/entrenamiento/paciente/datos';
 
 type Perfil = { full_name: string; role: 'coach' | 'patient'; status: 'active' | 'paused' | 'archived' };
 
@@ -63,7 +64,7 @@ function Inicio({ supabase, session }: { supabase: SupabaseClient; session: Sess
     return () => { vivo = false; };
   }, [supabase, session.user.id]);
 
-  const salir = () => { try { localStorage.clear(); } catch { /* nada */ } supabase.auth.signOut(); };
+  const salir = () => supabase.auth.signOut();
 
   if (perfil === undefined) return <Mensaje titulo="Cargando…" texto="Un momento." />;
   if (perfil === null)
@@ -82,7 +83,13 @@ export default function App() {
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    let anterior: string | null = null;
+    const { data } = supabase.auth.onAuthStateChange((evento, s) => {
+      // Al cerrar sesión se borra del móvil lo guardado de esa cuenta (salvo lo que falta por enviar)
+      if (evento === 'SIGNED_OUT' && anterior) limpiarCuenta(anterior);
+      anterior = s?.user.id ?? null;
+      setSession(s);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 

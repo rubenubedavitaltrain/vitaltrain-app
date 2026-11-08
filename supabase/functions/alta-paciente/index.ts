@@ -33,8 +33,8 @@ Deno.serve(async (req) => {
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   const { data: quien } = await admin.auth.getUser(token);
   if (!quien?.user) return responder(401, { error: 'Sesión no válida' });
-  const { data: perfil } = await admin.from('profiles').select('role').eq('id', quien.user.id).maybeSingle();
-  if (perfil?.role !== 'coach') return responder(403, { error: 'Solo el coach puede dar de alta pacientes' });
+  const { data: perfil } = await admin.from('profiles').select('role, status').eq('id', quien.user.id).maybeSingle();
+  if (perfil?.role !== 'coach' || perfil?.status !== 'active') return responder(403, { error: 'Solo el coach puede dar de alta pacientes' });
 
   // 2. Datos del paciente
   let datos: { email?: string; full_name?: string; phone?: string };
@@ -62,7 +62,12 @@ Deno.serve(async (req) => {
     await admin.auth.admin.deleteUser(id);
     return responder(500, { error: 'No se ha podido crear el perfil' });
   }
-  await admin.from('patient_modules').insert({ patient_id: id, module_slug: 'training' });
+  const { error: errModulo } = await admin.from('patient_modules').insert({ patient_id: id, module_slug: 'training' });
+  if (errModulo) {
+    await admin.from('profiles').delete().eq('id', id);
+    await admin.auth.admin.deleteUser(id);
+    return responder(500, { error: 'No se ha podido activar el entrenamiento' });
+  }
 
   return responder(200, { id, email, full_name: nombre });
 });

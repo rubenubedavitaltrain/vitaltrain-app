@@ -19,9 +19,22 @@ export type Sesion = {
 };
 export type SesionCorta = { id: string; scheduled_date: string; name: string; status: Estado; coach_message: string | null; ejercicios: number };
 
-const CLAVE_SESION = (id: string) => `vt.sesion.${id}`;
-const CLAVE_COLA = 'vt.cola';
-const CLAVE_SEMANA = 'vt.semana';
+// Todo lo guardado en el móvil va ligado al usuario, para que dos personas en el mismo móvil no se mezclen.
+let usuario = 'anon';
+export function usarCuenta(id: string) { usuario = id; }
+const CLAVE_SESION = (id: string) => `vt.${usuario}.sesion.${id}`;
+const CLAVE_COLA = () => `vt.${usuario}.cola`;
+const CLAVE_FALLIDOS = () => `vt.${usuario}.fallidos`;
+const CLAVE_SEMANA = () => `vt.${usuario}.semana`;
+
+/** Borra lo guardado en el móvil de esta cuenta, salvo lo que aún no se ha enviado. */
+export function limpiarCuenta(id: string) {
+  try {
+    const cola = localStorage.getItem(`vt.${id}.cola`);
+    Object.keys(localStorage).filter((k) => k.startsWith(`vt.${id}.`) || k === 'vt.perfil' || k === 'vt.pilares' || k === 'vt.modulos').forEach((k) => localStorage.removeItem(k));
+    if (cola && cola !== '[]') localStorage.setItem(`vt.${id}.cola`, cola);
+  } catch { /* sin almacenamiento */ }
+}
 
 function leer<T>(k: string): T | null {
   try { const v = localStorage.getItem(k); return v ? (JSON.parse(v) as T) : null; } catch { return null; }
@@ -50,7 +63,7 @@ export async function cargarSemana(supabase: SupabaseClient, desde: string, hast
     .lte('scheduled_date', hasta)
     .order('scheduled_date');
   if (error) {
-    const copia = leer<Record<string, SesionCorta[]>>(CLAVE_SEMANA)?.[`${desde}_${hasta}`];
+    const copia = leer<Record<string, SesionCorta[]>>(CLAVE_SEMANA())?.[`${desde}_${hasta}`];
     if (copia) return copia;
     throw error;
   }
@@ -58,9 +71,9 @@ export async function cargarSemana(supabase: SupabaseClient, desde: string, hast
     id: w.id, scheduled_date: w.scheduled_date, name: w.name, status: w.status, coach_message: w.coach_message,
     ejercicios: w.workout_blocks.reduce((s, b) => s + (b.workout_items[0]?.count ?? 0), 0)
   }));
-  const todas = leer<Record<string, SesionCorta[]>>(CLAVE_SEMANA) ?? {};
+  const todas = leer<Record<string, SesionCorta[]>>(CLAVE_SEMANA()) ?? {};
   todas[`${desde}_${hasta}`] = lista;
-  escribir(CLAVE_SEMANA, todas);
+  escribir(CLAVE_SEMANA(), todas);
   return lista;
 }
 
@@ -73,8 +86,8 @@ export async function cargarSesion(supabase: SupabaseClient, id: string): Promis
     throw error ?? new Error('Sin datos');
   }
   const s = ordenar(data as unknown as Sesion);
-  // Si hay cambios sin enviar, se respetan los locales
-  if (pendientes() > 0) {
+  // Si hay cambios de esta sesión sin enviar, se respeta la copia local
+  if ((leer<Op[]>(CLAVE_COLA()) ?? []).some((o) => o.s === id)) {
     const local = leer<Sesion>(CLAVE_SESION(id));
     if (local) return local;
   }
@@ -87,14 +100,18 @@ export function guardarCopia(s: Sesion) {
 }
 
 // ---------- Cola de cambios ----------
-type Op =
+// Todo lo que registra el paciente pasa por esta cola, en orden. Si no hay red, se queda en el móvil
+// y se envía al volver. Cada cambio lleva el id de su sesión (s).
+type Op = { s: string } & (
   | { t: 'set'; fila: { workout_item_id: string; patient_id: string; set_number: number; reps: number | null; load_kg: number | null; done: boolean } }
   | { t: 'borrarSet'; workout_item_id: string; set_number: number }
   | { t: 'feedback'; fila: { workout_item_id: string; patient_id: string; note: string | null; cannot_do: boolean; reason: string | null } }
-  | { t: 'sesion'; id: string; cambios: Partial<Pick<Sesion, 'status' | 'rpe' | 'feeling' | 'patient_notes' | 'started_at' | 'completed_at'>> };
+  | { t: 'sesion'; id: string; cambios: Partial<Pick<Sesion, 'status' | 'rpe' | 'feeling' | 'patient_notes' | 'started_at' | 'completed_at'>> }
+);
+export type CambioPaciente = Op;
 
 export function pendientes(): number {
-  return leer<Op[]>(CLAVE_COLA)?.length ?? 0;
+  return leer<Op[]>(CLAVE_COLA())?.length ?? 0;
 }
 
 async function ejecutar(supabase: SupabaseClient, op: Op) {
@@ -104,51 +121,45 @@ async function ejecutar(supabase: SupabaseClient, op: Op) {
   return supabase.from('workouts').update(op.cambios).eq('id', op.id);
 }
 
-const esDeRed = (e: { message?: string } | null) => !!e && /fetch|network|Failed|Load failed|offline/i.test(e.message ?? '');
-
-/** Envía un cambio. Si no hay red, lo deja en cola y devuelve 'pendiente'. */
-export async function enviar(supabase: SupabaseClient, op: Op): Promise<'ok' | 'pendiente' | 'error'> {
-  if (pendientes() > 0 || !navigator.onLine) {
-    escribir(CLAVE_COLA, [...(leer<Op[]>(CLAVE_COLA) ?? []), op]);
-    vaciarCola(supabase);
-    return 'pendiente';
-  }
-  try {
-    const { error } = await ejecutar(supabase, op);
-    if (!error) return 'ok';
-    if (esDeRed(error)) {
-      escribir(CLAVE_COLA, [...(leer<Op[]>(CLAVE_COLA) ?? []), op]);
-      return 'pendiente';
-    }
-    return 'error';
-  } catch {
-    escribir(CLAVE_COLA, [...(leer<Op[]>(CLAVE_COLA) ?? []), op]);
-    return 'pendiente';
-  }
+/** ¿Merece la pena reintentar? Sin red, sesión caducada o fallo del servidor: sí. */
+function reintentable(r: { status?: number; error: { message?: string; code?: string } | null }): boolean {
+  if (!r.error) return false;
+  const st = r.status ?? 0;
+  return st === 0 || st === 401 || st === 408 || st === 429 || st >= 500 || /fetch|network|Failed|Load failed|JWT|offline/i.test(r.error.message ?? '');
 }
 
-let vaciando = false;
-/** Envía lo pendiente en orden. Se para en el primer fallo de red y lo reintenta más tarde. */
-export async function vaciarCola(supabase: SupabaseClient): Promise<number> {
-  if (vaciando || !navigator.onLine) return pendientes();
-  vaciando = true;
-  try {
-    let cola = leer<Op[]>(CLAVE_COLA) ?? [];
-    while (cola.length) {
-      try {
-        const { error } = await ejecutar(supabase, cola[0]);
-        if (error && esDeRed(error)) break;
-        // Un error que no es de red (p. ej. permiso) no se puede arreglar reintentando: se descarta
-      } catch {
-        break;
-      }
-      cola = cola.slice(1);
-      escribir(CLAVE_COLA, cola);
+/** Registra un cambio: lo añade a la cola y la vacía. Devuelve 'pendiente' si no se ha podido enviar aún. */
+export async function enviar(supabase: SupabaseClient, op: Op): Promise<'ok' | 'pendiente' | 'error'> {
+  escribir(CLAVE_COLA(), [...(leer<Op[]>(CLAVE_COLA()) ?? []), op]);
+  const antes = (leer<Op[]>(CLAVE_FALLIDOS()) ?? []).length;
+  await vaciarCola(supabase);
+  if ((leer<Op[]>(CLAVE_FALLIDOS()) ?? []).length > antes) return 'error';
+  return pendientes() > 0 ? 'pendiente' : 'ok';
+}
+
+let vaciando: Promise<number> | null = null;
+/** Envía lo pendiente en orden, uno a uno. Si algo falla por red o sesión, para y lo deja para luego. */
+export function vaciarCola(supabase: SupabaseClient): Promise<number> {
+  if (vaciando) return vaciando.then(() => (pendientes() ? vaciarCola(supabase) : 0));
+  const tarea = async (): Promise<number> => {
+    if (!navigator.onLine) return pendientes();
+    await supabase.auth.getSession(); // renueva la sesión si ha caducado
+    for (;;) {
+      const cola = leer<Op[]>(CLAVE_COLA()) ?? [];
+      if (!cola.length) return 0;
+      let r: { status?: number; error: { message?: string; code?: string } | null };
+      try { r = await ejecutar(supabase, cola[0]); } catch (e) { r = { status: 0, error: { message: String(e) } }; }
+      if (reintentable(r)) return pendientes();
+      // Se quita el primero de la cola actual (puede haber crecido mientras se enviaba)
+      const actual = leer<Op[]>(CLAVE_COLA()) ?? [];
+      escribir(CLAVE_COLA(), actual.slice(1));
+      if (r.error) escribir(CLAVE_FALLIDOS(), [...(leer<Op[]>(CLAVE_FALLIDOS()) ?? []), cola[0]]);
     }
-    return cola.length;
-  } finally {
-    vaciando = false;
-  }
+  };
+  // .finally se ejecuta después de asignar, así el candado siempre se libera
+  const p = tarea().finally(() => { vaciando = null; });
+  vaciando = p;
+  return p;
 }
 
 /** Número que el paciente ve precargado: el primero que aparezca en "8-10 reps" → 8. */

@@ -75,6 +75,8 @@ begin
     update templates set name = trim(p->>'name'), description = nullif(trim(p->>'description'), '')
     where id = v_id;
     if not found then raise exception 'Plantilla no encontrada'; end if;
+    -- Solo se rehacen los bloques si vienen en la petición (renombrar no borra el contenido)
+    if not (p ? 'blocks') then return v_id; end if;
     delete from template_blocks where template_id = v_id;
   end if;
 
@@ -122,9 +124,21 @@ begin
   if extract(isodow from p_from_monday) <> 1 or extract(isodow from p_to_monday) <> 1 then
     raise exception 'Las semanas empiezan en lunes';
   end if;
-  for v_w in select * from workouts
-             where patient_id = p_patient and scheduled_date between p_from_monday and p_from_monday + 6
-             order by scheduled_date loop
+  if p_from_monday = p_to_monday then
+    raise exception 'La semana de origen y la de destino son la misma';
+  end if;
+  if not exists (select 1 from profiles where id = p_patient and role = 'patient') then
+    raise exception 'Paciente no encontrado';
+  end if;
+  for v_w in select * from workouts w
+             where w.patient_id = p_patient and w.scheduled_date between p_from_monday and p_from_monday + 6
+               -- No duplicar: se salta si ese día ya tiene una sesión con el mismo nombre
+               and not exists (
+                 select 1 from workouts d
+                 where d.patient_id = p_patient
+                   and d.scheduled_date = p_to_monday + (w.scheduled_date - p_from_monday)
+                   and d.name = w.name)
+             order by w.scheduled_date loop
     insert into workouts (patient_id, source_template_id, scheduled_date, name, coach_message)
     values (p_patient, v_w.source_template_id, p_to_monday + (v_w.scheduled_date - p_from_monday), v_w.name, v_w.coach_message)
     returning id into v_new_w;
@@ -150,7 +164,8 @@ returns trigger language plpgsql security definer set search_path = public
 as $$
 begin
   if auth.uid() is not null and not is_coach() then
-    if new.patient_id is distinct from old.patient_id
+    if new.id is distinct from old.id
+       or new.patient_id is distinct from old.patient_id
        or new.source_template_id is distinct from old.source_template_id
        or new.scheduled_date is distinct from old.scheduled_date
        or new.name is distinct from old.name
@@ -200,11 +215,27 @@ create or replace function guard_feedback_columns()
 returns trigger language plpgsql security definer set search_path = public
 as $$
 begin
-  if auth.uid() is not null and not is_coach() and new.read_by_coach_at is distinct from old.read_by_coach_at then
-    raise exception 'No tienes permiso para cambiar estos datos';
+  if auth.uid() is not null and not is_coach() then
+    if tg_op = 'INSERT' then
+      new.read_by_coach_at := null;
+    elsif new.read_by_coach_at is distinct from old.read_by_coach_at then
+      raise exception 'No tienes permiso para cambiar estos datos';
+    end if;
   end if;
   return new;
 end;
 $$;
-create trigger workout_item_feedback_guard before update on workout_item_feedback
+create trigger workout_item_feedback_guard before insert or update on workout_item_feedback
   for each row execute function guard_feedback_columns();
+
+-- ============================================================
+-- Ajustes de perfiles
+-- ============================================================
+-- Un paciente en pausa o archivado no puede cambiar su perfil
+drop policy patient_update_own_profile on profiles;
+create policy patient_update_own_profile on profiles for update
+  using (id = auth.uid() and (is_coach() or is_active_patient()))
+  with check (id = auth.uid());
+
+-- El email no se puede repetir aunque cambien mayúsculas
+create unique index profiles_email_lower on profiles (lower(email));
