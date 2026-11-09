@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Revisiones from '../historia/Revisiones';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DIAS_CORTOS, desdeIso, hoyIso, iso, lunes, rangoSemana, sumarDias } from '../../lib/fechas';
 import { MOTIVOS } from '../../modules/entrenamiento/paciente/tipos';
@@ -105,6 +106,8 @@ export default function Inicio({ supabase, nombre, onAbrir }: { supabase: Supaba
         <Dato titulo="7 días o más sin entrenar" valor={String(sinEntrenar)} destacado={sinEntrenar > 0} />
         <Dato titulo="Notas y mensajes sin leer" valor={String(datos.notas.length + datos.mensajes.length)} nota={`${datos.notas.length} notas · ${datos.mensajes.length} mensajes`} destacado={datos.notas.length + datos.mensajes.length > 0} />
       </div>
+
+      <Revisiones supabase={supabase} onAbrir={onAbrir} />
 
       {filas.length === 0 && <p className="bg-white rounded-2xl p-6 text-texto-suave">Aún no tienes pacientes activos. Dalos de alta en Pacientes.</p>}
 
