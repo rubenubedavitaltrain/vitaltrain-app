@@ -13,3 +13,4 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: node supabase/tests/rls.test.mjs
+      - run: npm run test:cola

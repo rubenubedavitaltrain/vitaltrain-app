@@ -65,13 +65,28 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Seguimiento | Mi progreso (gráficas), medidas opcionales, resumen mensual para la revisión | 1 |
 | Documentos | PDFs que el coach comparte con el paciente, por pilar | 1 |
 | Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
-| Ritmos circadianos | Sueño, luz, horarios de comida, anclas del día | 2 |
-| Hábitos | Protocolos diarios por pilar asignados por el coach | 2 |
-| Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta | 3 |
+| Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0); «Mi día» con anclas y hábitos en su hora (0.15.0). Falta: recordatorios | 2 |
+| Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
+| Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta. Hecho (0.17.0): rMEQ y check-in semanal. Falta: editor de cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
 | Respiración y regulación | Ejercicios guiados con temporizador | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
 | Wearables | Datos de sueño y actividad (Apple Health requiere app nativa vía Capacitor) | 5 |
+
+### Planes de acceso (decidido el 9 nov 2026)
+
+El cobro lo hace WooCommerce Subscriptions con Stripe en vitaltrain.com (ya instalado y en uso). La app no cobra: un webhook de WooCommerce abre o cierra módulos según el estado de la suscripción del mismo email.
+
+| Plan | Precio | Qué abre en la app |
+|---|---|---|
+| Ritmo (gratis) | 0 € | Lo básico del sol: panel solar de su ciudad y ventana de vitamina D. Estilo MyCircadian |
+| Comunidad | 15 €/mes hasta el 1 ene 2027, luego 25 €/mes (anual 150 €, luego 250 €). Producto WooCommerce 13847 | Comunidad de la web + ritmos circadianos completos (registros de sueño y comidas, datos e indicadores, cuestionarios) y hábitos |
+| Entrenamiento personal | Como ahora (producto «Entrenamiento online», 39-59 €/mes) | Entrenamiento pautado por Rubén + ritmos circadianos completos. Sin comunidad |
+| Completo | 79 €/mes (producto nuevo, por crear) | Entrenamiento personal + comunidad + todo lo de la app |
+
+Pacientes de consulta: al aceptar las condiciones del cuestionario de admisión ya están en el CRM interno (historia clínica). En la app tienen el plan gratuito más una comunicación básica con Rubén (mensajes). Nada más por ser paciente: comunidad y entrenamiento se pagan aparte.
+
+Pendiente de construir: módulo «sol» separado del circadiano completo, alta libre del plan gratuito (con consentimiento y EIPD antes), webhook de WooCommerce y producto Completo de 79 €.
 
 Nutrición queda fuera por ahora. Los planes de alimentación se comparten como PDF en Documentos.
 
@@ -95,7 +110,7 @@ Paciente (móvil, menú de 5 pestañas: Hoy, Semana, Progreso, Mensajes, Perfil)
 Coach (ordenador):
 12. Panel: adherencia semanal, pacientes sin entrenar, notas y mensajes sin leer.
 13. Ficha del paciente: calendario semanal, copiar semana anterior, notas del paciente, progresión, notas privadas.
-14. Constructor de entrenamientos por bloques.
+14. Constructor de entrenamientos por bloques. Rubén diseña desde cero para cada paciente (8 nov 2026): el constructor se usa directamente en la ficha del paciente; las plantillas son opcionales.
 15. Programas de 1 a 12 semanas, con una regla de progresión por semana; al asignar se crean las sesiones en el calendario del paciente. En un programa en curso, "Cambiar desde una semana": se elige la semana (la actual o cualquier futura), se borran solo las sesiones pendientes desde ese lunes y se asigna en su lugar otro programa o semanas nuevas. Las sesiones hechas, en curso o con registros nunca se borran.
 16. Mensajes: bandeja por paciente con contexto y respuestas rápidas.
 17. Resumen mensual por paciente: adherencia, esfuerzo, cargas, medidas, notas; conclusiones del coach; PDF y compartir con el paciente.
@@ -158,19 +173,32 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `workouts` → `workout_blocks` → `workout_items` (copia al asignar), `set_logs`.
   - `checkins`, `messages`, `memberships`, `push_subscriptions`.
 - `supabase/migrations/0002_plataforma_modular.sql`: núcleo modular: `pillars`, `modules`, `patient_modules`, `patient_settings`.
-- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: diseño **no aplicado** de `habit_definitions`, `patient_habits`, `habit_logs`, `sleep_logs`, `meal_events`, `questionnaires`, `questionnaire_assignments`, `questionnaire_responses`. Cada parte se pasa a una migración nueva cuando se construya su módulo. La prueba de seguridad comprueba que el diseño sigue siendo válido.
+- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: lo que queda del diseño de fase 2 (hábitos, circadiano y cuestionarios ya pasaron a 0014, 0015 y 0020). La prueba de seguridad comprueba que sigue siendo válido.
 
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
-- Pendiente, migración `0004` (Fase 1 ampliada), a diseñar al construir cada pantalla:
-  - `workout_item_feedback`: nota y motivo de "no puedo hacerlo" por ejercicio asignado.
-  - `programs` (duración 1-12 semanas), `program_weeks` (número, regla de progresión) y `program_slots` (semana, día, plantilla): programas de varias semanas.
-  - `program_assignments` (paciente, programa, fecha de inicio, estado, semana en que se sustituyó, asignación que la sustituye). Asignar crea `workouts` como copia, igual que una plantilla, enlazados a la asignación y con su número de semana.
-  - Función `replace_program_from_week(asignación, semana, nuevo programa o null)`: borra los `workouts` de esa asignación desde el lunes de esa semana que estén en estado `scheduled` y sin `set_logs`, cierra la asignación y crea la nueva. Solo el coach puede llamarla. Con pruebas de que nunca borra sesiones hechas ni registros.
-  - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
-  - `body_measurements`: peso, cintura, cadera, fecha. Sin fotos.
-  - `consents`: versión del texto, aceptado, retirado.
-  - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
-  - `patient_settings`: añadir hora del recordatorio y avisos activos.
+- `supabase/migrations/0004_biblioteca_ejercicios.sql`: duración del vídeo en `exercises`, un vídeo no puede repetirse, y carga de los 156 Shorts del canal (lista en `supabase/datos/ejercicios_youtube.json`). Los vídeos están como "Oculto" en YouTube: nunca ponerlos en "Privado" o dejarán de verse en la app.
+- `supabase/migrations/0005_ajuste_perfiles_admin.sql`: el guardián de perfiles ya no bloquea los cambios hechos desde el panel de Supabase (sin usuario conectado).
+- `supabase/migrations/0006_plantillas_y_registro.sql`: carga pautada (`load_kg`) en plantillas y entrenamientos, `save_template(jsonb)` (guarda la plantilla entera de una vez), `copy_week`, guardián de columnas de `workouts` para el paciente (solo estado, inicio, fin, esfuerzo, sensaciones y notas) y `workout_item_feedback` (nota y "no puedo hacerlo" con motivo: pain, no_equipment, dont_know, other).
+- `supabase/functions/alta-paciente`: función de servidor que crea la cuenta, el perfil y activa el módulo de entrenamiento. Solo la puede usar el coach (lo comprueba ella misma). Se despliega desde el editor de Edge Functions de Supabase con «Verify JWT with legacy secret» desactivado: el proyecto firma las sesiones con clave ECC. Desplegada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0007_programas.sql`: programas de 1 a 12 semanas. `programs`, `program_weeks` (carga en % de -50 a 50 y nota para el paciente), `program_slots` (semana, día, plantilla) y `program_assignments` (empieza siempre en lunes; estados active, replaced, cancelled). `workouts` gana `program_assignment_id` y `program_week`. Funciones: `save_program(jsonb)`, `assign_program`, `replace_program_from_week` (solo semana actual o futuras; borra solo sesiones `scheduled` sin series ni notas). Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0008_sesion_a_medida.sql`: `save_workout(jsonb)` crea una sesión a medida para un paciente en una o varias fechas (máx. 84), o edita una suya si está pendiente y sin series ni notas. `_fill_workout` es interna. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0009_consentimiento.sql`: `consents` (versión, aceptado, retirado, sustituido, dispositivo). `is_active_patient()` exige ahora un consentimiento en vigor: sin él, el paciente no ve ni registra nada. Solo se escribe con `accept_consent(versión)` y `withdraw_consent()`; el coach lo ve pero no puede aceptar por el paciente. El texto vive en `src/core/legal/textoConsentimiento.ts` (cambiarlo exige subir la versión) y su copia para el asesor en `docs/legal/consentimiento.md` (`node scripts/consentimiento-md.mts`).
+- `supabase/migrations/0010_cambiar_ejercicio.sql`: `replace_exercise(paciente, de, a, desde, carga, quitar_carga, indicación)` cambia un ejercicio por otro en todas las sesiones pendientes del paciente desde una fecha. No toca sesiones hechas ni ejercicios con series o notas. Mantiene series, repeticiones y descanso. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0011_medidas.sql`: `body_measurements` (peso 20-350 kg, cintura y cadera 30-250 cm, una fila por paciente y día, al menos un valor, nunca fecha futura). Es del núcleo: la anota cualquier paciente activo con consentimiento, y el coach. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0012_mensajes.sql`: deja lista la tabla `messages` (de 0001): un disparador fija el remitente (quien está conectado), la fecha y «sin leer» al crear; el paciente solo escribe en su conversación; el coach solo en conversaciones de pacientes; nadie edita mensajes y solo el coach puede borrar; `mark_messages_read(paciente)` marca como leídos solo los recibidos. Módulo `messages` disponible. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0013_correcciones_revision.sql`: correcciones de la revisión independiente: un disparador impide borrar ejercicios con series o notas del paciente venga de donde venga; una nota cambiada por el paciente vuelve a «sin leer»; `hoy_local()` da la fecha de España (las medidas y «Cambiar desde una semana» la usan). Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0014_circadiano.sql`: `sleep_logs` (una noche por paciente y fecha, despertar posterior a acostarse y menos de 20 h, sin noches ni horas futuras) y `meal_events` (hora y tipo; últimos 30 días). El paciente escribe solo con el módulo `circadian` activo. La ciudad va en `patient_settings` (latitud y longitud de la ciudad, no GPS). Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- `supabase/migrations/0015_habitos.sql`: motor de hábitos (`habit_definitions`, `patient_habits`, `habit_logs`) y catálogo inicial de 23 hábitos por pilar. El paciente ve y marca sus hábitos solo con el módulo `habits`; marca hoy o la última semana, solo en hábitos suyos y activos; no puede asignarse ni cambiar objetivos. Aplicada en `vitaltrain-dev` el 8 nov 2026.
+- Código: `src/modules/circadiano/` (`sol.ts` cálculo solar NOAA/Meeus, `ciudades.ts`, `PanelSolar`, `Registros`, `Graficas`, `Ritmo` con la tarjeta de Hoy, Mi ritmo y la sección del coach) y `src/modules/habitos/` (`datos.ts`, `Habitos.tsx` con la tarjeta de Hoy y Constancia, `HabitosCoach.tsx`). Activación por paciente en `src/core/coach/ModulosPaciente.tsx`.
+- `supabase/migrations/0016_documentos.sql`: `patient_documents` y bucket privado `documentos` (solo PDF, 20 MB). El coach sube y borra; el paciente abre solo los suyos compartidos. Aplicada en `vitaltrain-dev` el 9 nov 2026.
+- `supabase/migrations/0017_resumen_mensual.sql`: `monthly_reviews` (mes, conclusiones, objetivos, foto fija `snapshot`, `shared_at`). Aplicada el 9 nov 2026.
+- `supabase/migrations/0018_historia_clinica.sql`: historia clínica. `clinical_records` (+ `clinical_record_versions`), `consultations` (borrador/cerrada) y `consultation_addenda`, `clinical_documents` + bucket privado `historia` (PDF, imagen, Word; 50 MB), `access_log`, `is_coach_mfa()`, `registrar_acceso()`. Aplicada el 9 nov 2026.
+- Código: `src/core/documentos/`, `src/core/resumen/` y `src/core/historia/` (`DobleFactor.tsx`, `Historia.tsx` con línea de tiempo, consultas, ficha, documentos clínicos y registro de accesos).
+- `supabase/migrations/0019_avisos.sql`: `patient_settings` gana `reminder_enabled`, `reminder_time`, `notify_messages`; `app_settings` (solo la clave pública VAPID), `notification_log` (avisos enviados, sin repetir), `guardar_suscripcion()` y `guardar_secreto_avisos()` (Vault). Aplicada el 9 nov 2026. `supabase/manual/reloj_avisos.sql`: pg_cron cada 15 min → función `avisos` (aplicado en dev).
+- `supabase/functions/avisos`: web push (npm:web-push) y email de respaldo por la API de Mailgun (región UE). Secretos: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, CRON_SECRET, MAILGUN_API_KEY (y APP_URL en producción). Desplegada en dev el 9 nov 2026; «Verify JWT» debe ir desactivado.
+- Código: `src/core/avisos/` y `public/push-sw.js` (cargado por el service worker).
+- `supabase/migrations/0020_cuestionarios.sql`: `questionnaires` (preguntas en JSON: single, scale, text; `scored`), `questionnaire_assignments` (una vez o `weekly`), `questionnaire_responses` (una por asignación y periodo: `unico` o semana ISO). Un disparador valida las respuestas, fija el periodo, calcula la puntuación y, en el rMEQ, guarda `chronotype` y `chronotype_score` en `patient_settings`. El paciente solo inserta, con el módulo `questionnaires`. Cuestionarios iniciales: `rmeq` y `checkin-semanal`. Aplicada el 9 nov 2026.
+- Código: `src/modules/cuestionarios/` (`datos.ts`, `Cuestionarios.tsx` con la tarjeta de Hoy y el formulario, `CuestionariosCoach.tsx`). El resumen mensual incluye las medias del check-in.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -179,14 +207,19 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 ## 8. Marco legal y de datos
 
 - Datos de salud: categoría especial (art. 9 RGPD). Todo alojado en la UE.
-- No guardar diagnósticos ni historia clínica en la plataforma. La historia clínica sigue en su sistema actual.
+- **Historia clínica en la plataforma** (decidido el 9 nov 2026, con el visto bueno del asesor; antes no se guardaba). Requisitos que no se pueden relajar:
+  - Solo el coach con doble factor (sesión `aal2`); lo comprueba la base de datos (`is_coach_mfa()`).
+  - Conservación: nada clínico se borra. Ficha con versiones, consultas cerradas con adendas, documentos borrables solo 24 h, perfiles con historia no eliminables.
+  - Registro de accesos (`access_log`) escrito por la base de datos, sin edición ni borrado.
+  - Pacientes reales solo en `vitaltrain-prod` (Pro, copias de seguridad, DPA firmado). Nunca en `vitaltrain-dev`.
+  - El paciente no ve su historia en la app; el derecho de acceso se atiende con una exportación (pendiente).
 - DPA firmado con Supabase y el hosting antes de meter pacientes reales. Revisión por el asesor de protección de datos.
 - Producto sanitario: el software que genera de forma autónoma recomendaciones diagnósticas o terapéuticas puede considerarse producto sanitario (Reglamento UE 2017/745). Por eso la app no decide: muestra lo que el profesional pauta y registra lo que hace el paciente. Cualquier función de IA genera borradores para el coach, nunca recomendaciones directas al paciente. Validarlo con asesoría antes de la fase 5.
 - Nunca usar datos reales en desarrollo. Claves solo en variables de entorno.
 
 ## 9. Reglas de trabajo para Claude Code
 
-- Comandos: `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad.
+- Comandos: comprobar tipos con `npx tsc --noEmit` (nunca `tsc -b`: escribe .js junto a los .tsx y Vite los cogería antes). `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad, `npm run test:cola` para la cola sin conexión.
 - Versiones de dependencias fijadas, con al menos dos semanas desde su publicación.
 
 - Tareas pequeñas y comprobables. Cada una termina con algo que Rubén pueda probar en el móvil.
@@ -194,13 +227,12 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - Justificar cada dependencia nueva antes de instalarla.
 - Cambios de base de datos siempre como migración nueva numerada.
 - Respetar el contrato de módulo (sección 2). No mezclar código de un módulo en otro.
-- No empezar un módulo nuevo hasta que el anterior esté en uso real por pacientes.
+- No empezar un módulo nuevo hasta que el anterior esté en uso real por pacientes. Excepción decidida por Rubén el 8 nov 2026: ritmos circadianos y hábitos se adelantan mientras GitHub está suspendido.
 - Mantener actualizada la sección 10, `docs/DECISIONES.md` (fecha, decisión, motivo) y `docs/NOVEDADES.md` (qué cambió y cómo probarlo, en lenguaje llano).
 - Cada propuesta de cambio explica en español llano qué hace, cómo probarlo en el móvil y qué podría fallar.
 - Las migraciones se aplican en `vitaltrain-dev` desde el editor SQL de Supabase, en orden, y se anotan en `docs/NOVEDADES.md`. Nunca editar una migración ya aplicada: se crea otra nueva.
 - Acceso: `signInWithOtp` con `shouldCreateUser: false` y `verifyOtp` tipo `email`. En Supabase: altas libres desactivadas, código de 6 dígitos, plantilla de email con `{{ .Token }}`.
 - Variables de entorno de la app (Cloudflare Pages, producción y vista previa): `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (clave pública). La `service_role` nunca va en la app ni en Cloudflare.
-- Pendiente Fase 1: limitar qué columnas de `workouts` puede cambiar el paciente (solo estado, fechas de inicio y fin, esfuerzo, sensaciones y notas).
 
 ## 10. Estado actual
 
@@ -216,8 +248,29 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Tarea 1: proyecto React + PWA creado, con iconos, cabeceras de seguridad y compilación comprobada en cada cambio (26 oct 2026)
 - [x] Identidad visual de la app decidida: opción A (26 oct 2026)
 - [x] Cloudflare Pages conectado: https://vitaltrain-app.pages.dev se publica solo con cada cambio en main (26 oct 2026)
-- [ ] Tarea 2: tablas en `vitaltrain-dev` (0001, 0002 núcleo, 0003), pantalla de acceso con código de 6 dígitos, Mailgun como SMTP, cuenta de coach
-- [ ] Fase 1: las 17 funciones de la sección 3
+- [x] Tarea 2: tablas en `vitaltrain-dev` (0001, 0002 núcleo, 0003), acceso con código de 6 dígitos por Mailgun (acceso@vitaltrain.com), cuenta de coach `ruben.ubeda@vitaltrain.com`. Probado en el móvil (8 nov 2026)
+- Supabase `vitaltrain-dev`: proyecto `jlcrmozctsvgnousstbu`. Altas libres desactivadas, código de 6 dígitos que caduca en 15 min, plantilla de email en español con el código en el asunto
+- [x] GitHub suspendió la cuenta `rubenubedavitaltrain` (8 nov 2026, ticket 4972927) y la restableció el 9 nov 2026. Todas las ramas subidas ese día. Supabase tiene un segundo Owner con email y contraseña (`ruben.ubeda@vitaltrain.com`) para no depender de GitHub
+- [ ] Tarea 3: biblioteca de ejercicios. Hecho: migraciones 0004 y 0005 aplicadas en `vitaltrain-dev` (156 ejercicios), pantalla de biblioteca del coach (buscar, filtrar por etiqueta, ver vídeo vertical, renombrar, etiquetar, indicaciones, archivar, añadir por enlace), franja gris de arriba corregida. Falta: publicar (depende de GitHub) y que Rubén lo pruebe
+- [ ] Tareas 4-6 (hechas en local, pendientes de publicar y probar): constructor de plantillas por bloques; pacientes (lista, alta, ficha con semana, asignar, copiar semana, detalle registrado, notas del paciente, notas privadas, pausar o archivar); app del paciente (Hoy, Mi semana, Perfil, entrenamiento con series precargadas, descanso, vídeo vertical, nota y "no puedo", final con esfuerzo y sensaciones, modo sin conexión con cola de envío)
+- [ ] Tarea 7 (hecha en local, pendiente de publicar y probar): programas de 1 a 12 semanas con regla de progresión, asignar desde un lunes y «Cambiar desde una semana». Migración 0007 aplicada en `vitaltrain-dev` (8 nov 2026)
+- [ ] Tarea 8 (hecha en local, pendiente de publicar y probar): diseño a la carta desde la ficha del paciente. Crear sesión sin plantilla, repetir en varios días y semanas, partir de una plantilla, editar y duplicar sesiones, guardar como plantilla. El constructor por bloques es común (`src/modules/entrenamiento/constructor/Bloques.tsx`). Migración 0008 aplicada (8 nov 2026)
+- [ ] Tarea 9 (hecha en local): consentimiento del paciente (pantalla al entrar, Privacidad en Perfil con retirar, estado en la ficha del coach). Texto 1.1-borrador con los datos del responsable (Rubén Úbeda Rubio, titular de la clínica; contacto info@vitaltrain.com). Pendiente: plazo de conservación y revisión del asesor
+- [ ] Tarea 10 (hecha en local): «Cambiar un ejercicio» en la ficha del paciente. Migración 0010 aplicada (8 nov 2026)
+- [ ] Tarea 11 (hecha en local): Mi progreso. Pestaña «Progreso» del paciente y sección «Progresión» en la ficha del coach (`src/modules/entrenamiento/progreso/Progreso.tsx`): esta semana, % de las últimas 4 semanas, esfuerzo medio, entrenamientos por semana (12 semanas), esfuerzo por semana y carga máxima por día de cada ejercicio. Sin tablas nuevas; gráficas en SVG propio, sin librerías (8 nov 2026)
+- [ ] Tarea 12 (hecha en local): panel de inicio del coach (`src/core/coach/Inicio.tsx`): pacientes activos, sesiones de la semana, quién lleva 7 días o más sin entrenar, notas sin leer, «Necesitan atención» (sin consentimiento, sin entrenar, sesiones no hechas, sin plan pendiente, notas) y la semana de cada paciente en una tabla. Desde cualquier fila se abre su ficha. Sin tablas nuevas (8 nov 2026)
+- [ ] Tarea 13 (hecha en local): Mis medidas (`src/core/medidas/Medidas.tsx`), en la pestaña Progreso del paciente y en la ficha del coach, con gráfica por medida. La gráfica de línea es común (`src/core/graficas.tsx`). Migración 0011 aplicada (8 nov 2026)
+- [ ] Tarea 14 (hecha en local): mensajes. Pestaña Mensajes del paciente (5 pestañas) y sección Mensajes del coach con bandeja por paciente, no leídos, respuestas rápidas y contexto (última sesión, ver ficha). Se actualiza cada 15 s con la conversación abierta; aviso de no leídos en el menú cada 60 s. Aún sin aviso push ni email (8 nov 2026)
+- [x] Revisión de seguridad independiente (8 nov 2026): ningún acceso a datos de otro paciente ni forma de saltarse el consentimiento. Corregidos los 4 fallos de pérdida o calidad de datos (0013 y app). Quedan anotados, de prioridad baja: exigir en la base de datos la versión vigente del consentimiento; fechas y longitudes que el paciente puede poner en sus propias filas; limpiar colas viejas de otra cuenta en el móvil; alta de paciente que falla a medias; comprobar el módulo activo al registrar entrenamiento
+- [x] Versión de prueba en Cloudflare Pages subida a mano: https://vitaltrain-prueba.pages.dev (proyecto `vitaltrain-prueba`, sin GitHub). Cada versión nueva se sube como zip (8 nov 2026)
+- [ ] Tarea 16 (hecha en local): ritmos circadianos. Panel solar por ciudad, sueño, comidas, indicadores del coach (regularidad, jet lag social, ventana de alimentación). Migración 0014 aplicada (8 nov 2026)
+- [ ] Tarea 17 (hecha en local): hábitos por pilar y activación de módulos por paciente en la ficha. Migración 0015 aplicada (8 nov 2026)
+- [ ] Tarea 18 (hecha en local): documentos por pilar. Migración 0016 aplicada (9 nov 2026)
+- [ ] Tarea 19 (hecha en local): resumen mensual con conclusiones, compartir y PDF. Migración 0017 aplicada (9 nov 2026)
+- [ ] Tarea 20 (hecha en local): historia clínica / CRM (fases A y B): consultas, ficha clínica, documentos clínicos, línea de tiempo, registro de accesos, doble factor, alta «solo historia». Migración 0018 aplicada y probada por Rubén con doble factor en vitaltrain-prueba 0.15.1 (9 nov 2026). Falta: `vitaltrain-prod`, importación desde OneDrive, exportación para el paciente
+- [ ] Tarea 21 (hecha en local): avisos push y email, recordatorio de entrenamiento, descarga de datos. Migración 0019 y función `avisos` en dev (9 nov 2026). Verify JWT desactivado y 4 secretos puestos por Rubén; email de respaldo probado (9 nov 2026). Falta probar el push en iPhone instalado
+- [ ] Tarea 22 (hecha en local): cuestionarios. rMEQ con cronotipo y check-in semanal con gráficas en la ficha y medias en el resumen mensual. Migración 0020 aplicada (9 nov 2026)
+- [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

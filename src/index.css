@@ -16,12 +16,28 @@
   --font-sans: "Figtree", system-ui, sans-serif;
 }
 
-html, body, #root { height: 100%; }
+html, body { height: 100%; }
+#root { min-height: 100%; }
+/* Verde petróleo detrás de la hora y la batería del móvil y al estirar la pantalla.
+   Evita la franja gris que aparecía sobre la cabecera en iPhone. El contenido va sobre gris. */
+html { background: var(--color-petroleo); }
 body {
   margin: 0;
-  background: var(--color-fondo);
+  background: transparent;
   color: var(--color-texto);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+#root { background: var(--color-fondo); }
 :focus-visible { outline: 3px solid var(--color-mostaza); outline-offset: 2px; }
+
+/* PDF del resumen mensual: al imprimir solo sale el bloque #imprimir, en blanco y sin menús */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body, #root { background: #fff !important; height: auto; }
+  body * { visibility: hidden; }
+  #imprimir, #imprimir * { visibility: visible; }
+  #imprimir { position: absolute; left: 0; top: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .no-print { display: none !important; }
+  [role="dialog"] { position: static !important; overflow: visible !important; }
+}
