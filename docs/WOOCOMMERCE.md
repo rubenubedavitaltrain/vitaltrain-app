@@ -22,7 +22,11 @@ Se edita en **Ajustes → Planes de WooCommerce**. De partida:
 |---|---|---|
 | 13847 | Comunidad | Ritmos circadianos, Hábitos, Cuestionarios |
 
-Falta añadir el número del producto «Entrenamiento online» (y el del Completo de 79 € cuando exista).
+«Entrenamiento online» es el producto 5726: abre entrenamiento, ritmos circadianos y mensajes. Falta el Completo de 79 € cuando exista.
+
+## Estado (9 nov 2026)
+
+Hecho en producción: migración 0024, secreto, función `woocommerce` y los dos webhooks (ID 2 «creada» e ID 3 «actualizada»). «Entrenamiento online» es el producto 5726. Las suscripciones que ya existían llegan a la app cuando se renuevan o cambian.
 
 ## Puesta en marcha (lo hace Rubén, con su autorización en cada paso)
 
