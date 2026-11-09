@@ -11,6 +11,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false, // se registra en main.tsx para recargar en cuanto hay versión nueva
+      // La versión nueva se activa sola, aunque la página abierta sea antigua y no sepa pedírselo
+      workbox: { skipWaiting: true, clientsClaim: true },
       includeAssets: ['apple-touch-icon.png', 'favicon.png'],
       manifest: {
         name: 'Vitaltrain',

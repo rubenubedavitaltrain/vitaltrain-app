@@ -2,6 +2,11 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · La actualización automática, completa (versión 0.15.1)
+- Con la 0.15.0 subida, el navegador seguía en la 0.13.0: la versión nueva quedaba «esperando» porque la página antigua no sabía activarla.
+- Ahora la versión nueva se activa sola nada más descargarse, venga de la versión que venga. La siguiente vez que se abra la app, ya está al día.
+- En los dispositivos que se queden atascados en una versión antigua basta con cerrar todas las pestañas de la app (o la app instalada) y volver a abrirla una vez.
+
 ## 2026-11-09 · Mi día, descarga de datos y consentimiento 1.2 (versión 0.15.0)
 - **Mi día** (en Mi ritmo): la línea temporal de hoy del paciente. Su hora media de levantarse y acostarse, primera y última comida, amanecer, ventana UVB y atardecer de su ciudad, y los hábitos que le has pautado con un momento («Luz natural al despertar», «Cenar pronto»…) colocados a su hora. Marca «Lo siguiente».
 - Las horas de sueño y comidas son su media de las últimas dos semanas: si aún no ha anotado, esos hábitos esperan y se avisa.
