@@ -25,6 +25,8 @@ Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito pa
 - **Alta «Solo historia clínica»**: para pacientes de consulta que no usan la app. Quedan en pausa y sin módulos; se les activa la app cuando quieras.
 - Un paciente con historia no se puede eliminar de la base de datos (protección de la conservación obligatoria).
 
+- **Descargar mis datos**: en Perfil → Privacidad el paciente descarga un archivo con todo lo que ha registrado (derecho de acceso y portabilidad). En la historia clínica tienes «Exportar datos» para atender una petición de acceso, con la historia incluida; queda en el registro de accesos.
+- **Consentimiento 1.2-borrador**: ahora explica la historia clínica (que la guarda la clínica, que el paciente no la ve en la app, su base legal y que se conserva al menos 5 años), el sueño, las comidas, los hábitos y la descarga de datos. Al entrar, el paciente tendrá que aceptarlo de nuevo. Copia para el asesor en `docs/legal/consentimiento.md`.
 - La app se actualiza sola al abrirla (desde la 0.13.1).
 - Base de datos: migraciones 0016, 0017 y 0018 aplicadas en `vitaltrain-dev`. Doble factor TOTP comprobado como activado en Supabase.
 - Cómo probarlo: sube `vitaltrain-app-0.14.0-para-cloudflare.zip`. En la ficha del paciente de prueba: sube un PDF en Documentos y míralo en su Perfil; abre el resumen del mes; pulsa «Historia clínica», configura el doble factor y crea una consulta. **Solo datos inventados**: los pacientes reales irán a `vitaltrain-prod`.

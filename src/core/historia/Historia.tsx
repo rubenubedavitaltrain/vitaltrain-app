@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { hoyIso, iso, lunes } from '../../lib/fechas';
 import ConDobleFactor from './DobleFactor';
+import { exportarDatos } from '../legal/exportar';
 import {
   BUCKET_HISTORIA, CAMPOS_CONSULTA, CAMPOS_FICHA, CATEGORIAS, MODALIDADES, fechaHora, fechaLarga, registrar,
   type Acceso, type Adenda, type Categoria, type Consulta, type DocClinico, type Ficha, type Modalidad,
@@ -30,6 +31,9 @@ function Historia({ supabase, paciente, onCerrar }: { supabase: SupabaseClient; 
         <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
           <button onClick={onCerrar} className="font-semibold">← Ficha</button>
           <h1 className="font-bold text-lg">Historia clínica · {paciente.full_name}</h1>
+          <div className="flex-1" />
+          <button onClick={() => { if (window.confirm(`Descargar todos los datos de ${paciente.full_name}, incluida la historia clínica, en un archivo. Queda anotado en el registro de accesos. Guárdalo en un sitio seguro.`)) exportarDatos(supabase, paciente.id, true); }}
+            className="bg-white/15 font-semibold px-3 py-1.5 rounded-lg text-sm" title="Para atender una petición de acceso del paciente">Exportar datos</button>
         </div>
       </header>
       <ConDobleFactor supabase={supabase}>

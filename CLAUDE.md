@@ -200,7 +200,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 
 ## 9. Reglas de trabajo para Claude Code
 
-- Comandos: `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad, `npm run test:cola` para la cola sin conexión.
+- Comandos: comprobar tipos con `npx tsc --noEmit` (nunca `tsc -b`: escribe .js junto a los .tsx y Vite los cogería antes). `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad, `npm run test:cola` para la cola sin conexión.
 - Versiones de dependencias fijadas, con al menos dos semanas desde su publicación.
 
 - Tareas pequeñas y comprobables. Cada una termina con algo que Rubén pueda probar en el móvil.

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { exportarDatos } from './exportar';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { CASILLAS, FECHA_CONSENTIMIENTO, RESUMEN, SECCIONES, VERSION_CONSENTIMIENTO } from './textoConsentimiento';
 
@@ -159,7 +160,19 @@ export function Privacidad({ supabase, actual, onRetirado }: { supabase: Supabas
         {verTexto ? 'Ocultar qué datos se guardan' : 'Qué datos se guardan y para qué'}
       </button>
       {verTexto && <div className="border-t border-gris-claro pt-3"><TextoCompleto /></div>}
-      <p className="text-sm text-texto-suave">Para pedir una copia de tus datos, corregirlos o borrarlos, escribe a Rubén. Pronto podrás descargarlos desde aquí.</p>
+      <button
+        onClick={async () => {
+          setError('');
+          const { data } = await supabase.auth.getUser();
+          if (!data.user) return setError('Vuelve a entrar para descargar tus datos.');
+          const fallos = await exportarDatos(supabase, data.user.id, false);
+          if (fallos.length) setError(`Descargado, salvo: ${fallos.join(', ')}. Escribe a Rubén si los necesitas.`);
+        }}
+        className="self-start bg-white border-2 border-petroleo text-petroleo font-bold px-4 py-2 rounded-xl"
+      >
+        Descargar mis datos
+      </button>
+      <p className="text-sm text-texto-suave">Es un archivo con todo lo que has registrado en la app. Para corregir o borrar datos, o pedir tu historia clínica, escribe a Rubén.</p>
       {error && <p role="alert" className="font-semibold text-[#8A2C1D]">{error}</p>}
       <button onClick={retirar} className="self-start text-[#8A2C1D] font-bold py-1">Retirar mi consentimiento</button>
     </section>

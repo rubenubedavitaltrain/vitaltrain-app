@@ -9,3 +9,7 @@ out/
 *.log
 supabase/.temp/
 dist/
+
+# Salida de tsc -b por error: la compilación usa tsc --noEmit
+src/**/*.js
+*.tsbuildinfo

@@ -3,13 +3,14 @@
 // Copia legible para el asesor en docs/legal/consentimiento.md (se genera desde este archivo).
 // BORRADOR pendiente de revisión por el asesor de protección de datos. Falta el plazo de conservación (entre corchetes).
 
-export const VERSION_CONSENTIMIENTO = '1.1-borrador';
-export const FECHA_CONSENTIMIENTO = '8 de noviembre de 2026';
+export const VERSION_CONSENTIMIENTO = '1.2-borrador';
+export const FECHA_CONSENTIMIENTO = '9 de noviembre de 2026';
 
 /** Primera capa: lo esencial, en la pantalla de aceptación. */
 export const RESUMEN: string[] = [
   'Clínica Vitaltrain usa esta app para acompañarte en el plan que te pauta tu profesional.',
-  'Guardamos lo que registras: entrenamientos, series, cargas, esfuerzo, sensaciones, notas y, si las anotas, tus medidas. Algunos de estos datos son datos de salud.',
+  'Guardamos lo que registras: entrenamientos, sensaciones, notas, sueño, horarios de comida, hábitos y, si las anotas, tus medidas. Algunos de estos datos son datos de salud.',
+  'La clínica guarda también tu historia clínica en esta plataforma. Tú no la ves en la app, pero puedes pedir una copia.',
   'Solo los ve tu profesional. No se usan para publicidad, no se venden y no se toman decisiones automáticas sobre ti.',
   'La app no diagnostica ni decide tratamientos. Muestra lo que te pauta tu profesional y registra lo que haces.',
   'Los datos se guardan en servidores de la Unión Europea.',
@@ -33,10 +34,11 @@ export const SECCIONES: Seccion[] = [
     parrafos: [
       'Datos de identificación y contacto: nombre, email y, si lo das, teléfono.',
       'Datos de actividad física y salud que registras tú o pauta tu profesional: plan de entrenamiento, series, repeticiones, cargas, esfuerzo percibido, sensaciones, notas por ejercicio, avisos de «No puedo hacerlo» con su motivo (por ejemplo, dolor o molestia) y, solo si decides anotarlas, medidas corporales (peso, cintura, cadera).',
+      'Si tu profesional te activa esas secciones: horas de sueño y cómo has descansado, horas de las comidas (sin lo que comes) y los hábitos que marcas cada día. La ciudad que elijas sirve para calcular la luz del día; no usamos tu ubicación.',
       'Mensajes que intercambies con tu profesional y documentos que te comparta.',
       'Datos técnicos de uso: fecha y hora de acceso y de cada registro, y el tipo de dispositivo con el que aceptas este texto.',
       'No recogemos tu ubicación, fotos, contactos ni datos de otras apps.',
-      'La app no contiene tu historia clínica ni diagnósticos. Esa información sigue en el sistema de la clínica.',
+      'Historia clínica: la clínica registra en esta plataforma tu ficha clínica, las consultas de seguimiento y los documentos clínicos (por ejemplo, analíticas o informes). Solo la ve tu profesional, con una protección reforzada (doble código de acceso) y un registro de cada acceso. No aparece en tu app.',
     ],
   },
   {
@@ -54,6 +56,7 @@ export const SECCIONES: Seccion[] = [
       'Tus datos de salud se tratan con tu consentimiento explícito (artículos 6.1.a y 9.2.a del Reglamento General de Protección de Datos).',
       'Tus datos de identificación y contacto se tratan para gestionar el servicio que has contratado (artículo 6.1.b).',
       'Dar tu consentimiento es voluntario. Sin él no puedes usar la app, pero tu acompañamiento puede seguir por otras vías que acuerdes con tu profesional.',
+      'La historia clínica se trata para prestarte asistencia sanitaria (artículo 9.2.h del Reglamento) y conforme a la Ley 41/2002 de autonomía del paciente. No depende de este consentimiento: retirarlo no la borra.',
     ],
   },
   {
@@ -74,6 +77,7 @@ export const SECCIONES: Seccion[] = [
     parrafos: [
       'Mientras sigas en el servicio y tengas la cuenta activa.',
       'Si te das de baja o retiras el consentimiento, tus datos se bloquean y se suprimen en un plazo de [plazo a fijar con el asesor], salvo que una ley obligue a conservarlos más tiempo.',
+      'La historia clínica se conserva como mínimo cinco años desde el alta de cada proceso asistencial, como exige la Ley 41/2002, y el tiempo adicional que fije la normativa aplicable.',
     ],
   },
   {
@@ -81,7 +85,7 @@ export const SECCIONES: Seccion[] = [
     parrafos: [
       'Puedes acceder a tus datos, rectificarlos, pedir que se supriman, oponerte o pedir que se limite su uso, y solicitar una copia para llevarla a otro servicio (portabilidad).',
       'Puedes retirar tu consentimiento en cualquier momento desde Perfil → Privacidad. Retirarlo no afecta a lo tratado antes.',
-      'Para ejercer tus derechos, escribe a info@vitaltrain.com indicando qué necesitas.',
+      'Puedes descargar lo que has registrado en la app desde Perfil → Privacidad → «Descargar mis datos». Para pedir tu historia clínica u otros derechos, escribe a info@vitaltrain.com indicando qué necesitas.',
       'Si crees que no hemos tratado bien tus datos, puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).',
     ],
   },
@@ -90,6 +94,7 @@ export const SECCIONES: Seccion[] = [
     parrafos: [
       'Las comunicaciones van cifradas. Entras con un código de un solo uso que llega a tu email, sin contraseñas que se puedan filtrar.',
       'Cada paciente solo puede ver lo suyo; está controlado en la propia base de datos, no solo en la app.',
+      'La historia clínica solo se abre con un segundo código de una app de autenticación, y cada acceso queda registrado.',
       'Se hacen copias de seguridad periódicas.',
       'Para que puedas entrenar sin conexión, la app guarda en tu móvil el plan de la semana. Se borra al cerrar sesión, salvo los registros que aún no se hayan podido enviar.',
     ],
@@ -112,5 +117,5 @@ export const SECCIONES: Seccion[] = [
 /** Casillas que el paciente debe marcar para aceptar. */
 export const CASILLAS = [
   'He leído la información sobre cómo se tratan mis datos.',
-  'Doy mi consentimiento explícito para que Clínica Vitaltrain trate mis datos de salud y de actividad física con el fin de hacer el seguimiento del plan que me pauta mi profesional.',
+  'Doy mi consentimiento explícito para que Clínica Vitaltrain trate los datos de salud y de actividad física que registro en la app con el fin de hacer el seguimiento del plan que me pauta mi profesional.',
 ];
