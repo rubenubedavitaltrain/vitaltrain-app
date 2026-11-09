@@ -271,6 +271,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 21 (hecha en local): avisos push y email, recordatorio de entrenamiento, descarga de datos. Migración 0019 y función `avisos` en dev (9 nov 2026). Verify JWT desactivado y 4 secretos puestos por Rubén; email de respaldo probado (9 nov 2026). Falta probar el push en iPhone instalado
 - [ ] Tarea 22 (hecha en local): cuestionarios. rMEQ con cronotipo y check-in semanal con gráficas en la ficha y medias en el resumen mensual. Migración 0020 aplicada (9 nov 2026)
 - [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
+- [ ] Producción: guía en `docs/PRODUCCION.md` (qué hace Rubén, qué hago yo, requisitos legales, piloto, baja de Harbiz) y `supabase/manual/coach_inicial.sql` (9 nov 2026). Falta que Rubén cree `vitaltrain-prod`
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos
