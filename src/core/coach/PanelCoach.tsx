@@ -7,10 +7,11 @@ import Mensajes from './Mensajes';
 import { contarNoLeidos } from '../mensajes/Conversacion';
 import Programas from '../../modules/entrenamiento/programas/Programas';
 import Plantillas from '../../modules/entrenamiento/plantillas/Plantillas';
+import { AvisosDispositivo, ConfigAvisos } from '../avisos/Avisos';
 
 // Panel del coach: inicio (resumen de la semana), pacientes, programas, plantillas y biblioteca.
 
-type Seccion = 'inicio' | 'pacientes' | 'mensajes' | 'programas' | 'plantillas' | 'biblioteca';
+type Seccion = 'inicio' | 'pacientes' | 'mensajes' | 'programas' | 'plantillas' | 'biblioteca' | 'ajustes';
 
 export default function PanelCoach({ supabase, nombre, userId }: { supabase: SupabaseClient; nombre: string; userId: string }) {
   const [seccion, setSeccion] = useState<Seccion>(() => {
@@ -54,6 +55,7 @@ export default function PanelCoach({ supabase, nombre, userId }: { supabase: Sup
           {pestaña('programas', 'Programas')}
           {pestaña('plantillas', 'Plantillas')}
           {pestaña('biblioteca', 'Biblioteca')}
+          {pestaña('ajustes', 'Ajustes')}
         </nav>
       </header>
 
@@ -64,6 +66,19 @@ export default function PanelCoach({ supabase, nombre, userId }: { supabase: Sup
         {seccion === 'programas' && <Programas supabase={supabase} />}
         {seccion === 'plantillas' && <Plantillas supabase={supabase} />}
         {seccion === 'biblioteca' && <Biblioteca supabase={supabase} />}
+        {seccion === 'ajustes' && (
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold">Ajustes</h2>
+            <section className="bg-white rounded-2xl p-5 flex flex-col gap-3 max-w-3xl">
+              <div>
+                <h3 className="text-lg font-bold">Avisos en este ordenador o móvil</h3>
+                <p className="text-sm text-texto-suave">Te avisa cuando un paciente te escribe. Si no los activas, te llega un email.</p>
+              </div>
+              <AvisosDispositivo supabase={supabase} texto="en este dispositivo" />
+            </section>
+            <ConfigAvisos supabase={supabase} proyecto={(import.meta.env.VITE_SUPABASE_URL ?? '').replace(/^https:\/\/([^.]+)\..*$/, '$1')} />
+          </div>
+        )}
       </main>
 
       <footer className="px-6 pb-4 text-center text-xs text-texto-suave">

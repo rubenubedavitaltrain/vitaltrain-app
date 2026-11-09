@@ -401,6 +401,23 @@ check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settin
   check('Un paciente con historia no se puede eliminar', !!(await db.query(`delete from profiles where id = '${p1}'`).then(() => null, (e) => e)));
 }
 
+// 0019: avisos
+{
+  check('El paciente activa sus avisos', !(await as(p1, `insert into patient_settings (patient_id, reminder_enabled, reminder_time) values ('${p1}', true, '18:30') on conflict (patient_id) do update set reminder_enabled = true, reminder_time = '18:30'`)).error);
+  check('El paciente guarda su dispositivo', !(await as(p1, `select guardar_suscripcion('https://push.example/abc', 'clave', 'auth', 'iPhone')`)).error);
+  check('El mismo dispositivo con otra cuenta pasa a esa cuenta', !(await as(p2, `select guardar_suscripcion('https://push.example/abc', 'clave2', 'auth2')`)).error
+    && (await db.query(`select user_id from push_subscriptions where endpoint = 'https://push.example/abc'`)).rows.map(r => r.user_id).join() === p2);
+  check('Un paciente no ve los dispositivos de otro', (await as(p1, 'select count(*)::int n from push_subscriptions')).rows[0].n === 0);
+  check('Suscripción con dirección rara se rechaza', !!(await as(p1, `select guardar_suscripcion('javascript:x', 'a', 'b')`)).error);
+  check('Sin sesión no se guarda', !!(await as('', `select guardar_suscripcion('https://push.example/zz', 'a', 'b')`, 'anon')).error);
+  check('El coach guarda la clave pública', !(await as(coach, `insert into app_settings (key, value) values ('vapid_public_key', 'BPubl1ca')`)).error);
+  check('El paciente la lee', (await as(p1, `select value from app_settings`)).rows[0]?.value === 'BPubl1ca');
+  check('El paciente no la cambia', (await as(p1, `update app_settings set value = 'x' returning key`)).rows?.length !== 1);
+  check('No se guardan claves secretas en app_settings', !!(await as(coach, `insert into app_settings (key, value) values ('vapid_private_key', 'x')`)).error);
+  check('Nadie escribe el registro de avisos desde la app', !!(await as(coach, `insert into notification_log (kind, user_id, ref) values ('mensaje', '${p1}', 'x')`)).error);
+  check('Un paciente no puede guardar el secreto de avisos', !!(await as(p1, `select guardar_secreto_avisos('${'x'.repeat(40)}')`)).error);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

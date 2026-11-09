@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { avisarMensaje } from '../avisos/avisos';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Conversación coach-paciente (núcleo). La usan la pestaña Mensajes del paciente y la bandeja del coach.
@@ -68,8 +69,9 @@ export default function Conversacion({ supabase, pacienteId, yo, esCoach, alto =
     if (!b) return;
     setError('');
     setEnviando(true);
-    const { error } = await supabase.from('messages').insert({ patient_id: pacienteId, sender_id: yo, body: b.slice(0, 4000) });
+    const { data, error } = await supabase.from('messages').insert({ patient_id: pacienteId, sender_id: yo, body: b.slice(0, 4000) }).select('id').single();
     setEnviando(false);
+    if (!error && data) avisarMensaje(supabase, (data as { id: string }).id);
     if (error) return setError(navigator.onLine ? 'No se ha podido enviar. Inténtalo de nuevo.' : 'Sin conexión. El mensaje no se ha enviado.');
     setTexto('');
     cargar();

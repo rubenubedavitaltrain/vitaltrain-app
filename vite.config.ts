@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false, // se registra en main.tsx para recargar en cuanto hay versión nueva
       // La versión nueva se activa sola, aunque la página abierta sea antigua y no sepa pedírselo
-      workbox: { skipWaiting: true, clientsClaim: true },
+      workbox: { skipWaiting: true, clientsClaim: true, importScripts: ['push-sw.js'] },
       includeAssets: ['apple-touch-icon.png', 'favicon.png'],
       manifest: {
         name: 'Vitaltrain',
