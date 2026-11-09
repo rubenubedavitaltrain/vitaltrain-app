@@ -37,7 +37,7 @@ Al hacer el cambio, tu perfil de prueba deja de entrar en vitaltrain-app.pages.d
 ## 3. Antes del primer paciente real
 
 - [ ] DPA firmados: Supabase (punto 1), Cloudflare (incluido en sus condiciones; descargar copia), Mailgun (Settings → Data Processing Agreement).
-- [ ] Texto del consentimiento revisado por el asesor, con el plazo de conservación. Hoy es la versión 1.2-borrador; al aprobarlo pasa a 1.2 sin «borrador».
+- [ ] Texto del consentimiento revisado por el asesor, con el plazo de conservación. Hoy es la versión 1.3-borrador; al aprobarlo pasa a 1.3 sin «borrador».
 - [ ] Registro de actividades de tratamiento actualizado con la app (lo lleva el asesor).
 - [ ] Evaluación de impacto (EIPD) si el asesor la ve necesaria para el piloto. Es obligatoria antes de abrir el plan gratuito al público.
 

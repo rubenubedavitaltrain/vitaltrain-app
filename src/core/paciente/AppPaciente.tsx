@@ -12,6 +12,7 @@ import { MisResumenes } from '../resumen/Resumen';
 import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
 import { TarjetaCuestionarios } from '../../modules/cuestionarios/Cuestionarios';
+import { TarjetaRespiracion } from '../../modules/respiracion/Respiracion';
 import { buscarAhora, pausarActualizacion } from '../actualizar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
@@ -22,7 +23,7 @@ type Pilar = { slug: string; name: string; description: string | null };
 type Pestaña = 'hoy' | 'semana' | 'progreso' | 'mensajes' | 'perfil';
 
 // Qué pilar ilumina cada módulo
-const PILAR_DE_MODULO: Record<string, string> = { training: 'movimiento-inteligente', circadian: 'ritmos-circadianos' };
+const PILAR_DE_MODULO: Record<string, string> = { training: 'movimiento-inteligente', circadian: 'ritmos-circadianos', breathing: 'regulacion-emocional' };
 
 function leer<T>(k: string): T | null { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } }
 function escribir(k: string, v: unknown) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* nada */ } }
@@ -98,6 +99,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
               {modulos.includes('training') && <TarjetaHoy supabase={supabase} onAbrir={setAbierta} />}
               {modulos.includes('questionnaires') && <TarjetaCuestionarios supabase={supabase} pacienteId={userId} />}
               {modulos.includes('habits') && <TarjetaHabitos supabase={supabase} pacienteId={userId} onPilares={setPilaresHabitos} />}
+              {modulos.includes('breathing') && <TarjetaRespiracion supabase={supabase} pacienteId={userId} />}
               {modulos.includes('circadian') && <TarjetaRitmo supabase={supabase} pacienteId={userId} onAbrir={() => setRitmo(true)} />}
               {pilares.length > 0 && (
                 <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">

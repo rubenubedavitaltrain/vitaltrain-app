@@ -19,6 +19,7 @@ const TABLAS: Tabla[] = [
   { nombre: 'patient_habits', titulo: 'Hábitos pautados', select: 'target, days_of_week, coach_note, start_date, end_date, is_active, habit_definitions(name)' },
   { nombre: 'habit_logs', titulo: 'Registro de hábitos', select: 'log_date, done, value_numeric, value_time, note, patient_habits(habit_definitions(name))' },
   { nombre: 'questionnaire_responses', titulo: 'Cuestionarios respondidos', select: 'period, answers, score, submitted_at, questionnaires(title)' },
+  { nombre: 'breathing_sessions', titulo: 'Sesiones de respiración', select: 'pattern, started_at, seconds, calm_before, calm_after' },
   { nombre: 'messages', titulo: 'Mensajes', select: 'sender_id, body, created_at, read_at' },
   { nombre: 'patient_documents', titulo: 'Documentos compartidos', select: 'title, note, is_shared, created_at, pillars(name)' },
   { nombre: 'monthly_reviews', titulo: 'Resúmenes mensuales', select: 'month, conclusions, next_goals, snapshot, shared_at' },

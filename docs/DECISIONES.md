@@ -75,3 +75,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Corregida la variación anual de la Comunidad (#14002): se cobraba cada mes; ahora cada año | Habría cobrado 150 € al mes. Ningún miembro estaba en ese plan |
 | 2026-11-09 | GitHub restablecido: todo el trabajo local se sube y se propone a main en una sola petición de cambio | Las tareas 3 a 22 estaban encadenadas en ramas locales; main seguía en la tarea 2 |
 | 2026-11-09 | En Cloudflare `vitaltrain-app`, «Production» apunta a `vitaltrain-prod` y «Preview» a `vitaltrain-dev` | Cada cambio se prueba con datos inventados; solo lo unido a main llega a los pacientes |
+| 2026-11-09 | Respiración guiada como módulo propio (`breathing`), separado del hábito «Respiración lenta» | Respetar el contrato de módulo; la unión se hará en el núcleo si hace falta |

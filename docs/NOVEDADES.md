@@ -2,6 +2,20 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Respiración guiada y guía de producción (versión 0.18.0)
+- Módulo nuevo **Respiración guiada** (pilar Regulación emocional). Se activa por paciente en «Qué ve en su app».
+- **Paciente, Hoy**: tarjeta «Respiración» con los minutos de la semana y el botón «Respirar ahora».
+  - Tres pautas: respiración lenta (5,5 s y 5,5 s, unas 5-6 por minuto), suspiro fisiológico (dos inspiraciones y una espiración larga) y 4-7-8 (con aviso de parar si se marea).
+  - Elige duración, y si quiere dice cómo está antes y después (de 1, muy tenso, a 5, muy tranquilo).
+  - Pantalla completa con un círculo que crece y se encoge al ritmo de cada fase. Sonido suave opcional en cada cambio. La pantalla no se apaga durante la sesión.
+  - En iPhone no hay vibración: Safari no la permite. En Android sí.
+- **Coach, ficha → Respiración guiada**: minutos por semana (8 semanas), pautas usadas y el cambio medio de calma antes y después.
+- Va aparte del hábito «Respiración lenta»: si se lo pautas como hábito, lo marca él. Unirlos sería mezclar dos módulos; queda para más adelante, en el núcleo.
+- **Consentimiento 1.3-borrador**: ahora nombra los cuestionarios y las sesiones de respiración. Quien entre tendrá que aceptarlo de nuevo.
+- **Guía de producción** en `docs/PRODUCCION.md`: qué haces tú, qué hago yo, requisitos legales, piloto y baja de Harbiz.
+- Por dentro: migración 0021 (`breathing_sessions`). Aplicada en `vitaltrain-dev`.
+- Cómo probarlo: en la ficha del paciente de prueba activa «Respiración guiada». En el móvil, Hoy → Respirar ahora → 1 minuto de 4-7-8.
+
 ## 2026-11-09 · La app instalada se actualiza sola (versión 0.17.1)
 - Problema: en Safari se veía la versión nueva, pero la app de la pantalla de inicio seguía en la antigua. En iPhone esa app casi nunca se abre de cero: vuelve de segundo plano, y solo buscaba versión nueva al abrirse de cero.
 - Ahora busca versión nueva también cada vez que vuelve a primer plano y cada 30 minutos. Si la hay, se instala y la app se recarga sola.
