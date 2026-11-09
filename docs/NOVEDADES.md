@@ -2,6 +2,21 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Condiciones aprobadas (versión 0.18.2)
+- La asesora de protección de datos ha aprobado las condiciones. Pasan a la **versión 1.4** (sin «borrador»).
+- Quedan aprobados: el bloqueo de cinco años tras la baja, YouTube aceptado con el mismo botón y la pantalla sencilla de aceptación.
+- Los pacientes de prueba verán otra vez la pantalla de aceptar al entrar, porque cambia la versión.
+
+## 2026-11-09 · Aceptación de condiciones más sencilla (versión 0.18.1)
+- **Paciente, al entrar**: ya no hay casillas ni listado. Ve una frase corta, el enlace **Leer las condiciones** (abre el texto completo) y el botón **Acepto**. Debajo, «No acepto».
+- Condiciones **1.4-borrador**:
+  - Plazo propuesto: si se da de baja o retira el consentimiento, sus datos de la app quedan bloqueados cinco años y después se borran. Pendiente del visto bueno de la asesora.
+  - Quitada la frase de mayoría de edad.
+  - YouTube: dice que guarda un identificador en el navegador y que, al aceptar, se aceptan también los vídeos.
+- **Coach, ficha**: si un paciente retira el consentimiento, sus datos de la app se ocultan con el aviso «Datos de la app bloqueados». Siguen visibles la historia clínica y tus notas privadas.
+- Como cambia la versión, quien ya hubiera aceptado lo verá otra vez al entrar.
+- Cómo probarlo: en el enlace de prueba, entra con el paciente de prueba. Toca «Leer las condiciones», vuelve y toca «Acepto».
+
 ## 2026-11-09 · Respiración guiada y guía de producción (versión 0.18.0)
 - Módulo nuevo **Respiración guiada** (pilar Regulación emocional). Se activa por paciente en «Qué ve en su app».
 - **Paciente, Hoy**: tarjeta «Respiración» con los minutos de la semana y el botón «Respirar ahora».

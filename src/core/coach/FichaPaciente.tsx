@@ -26,6 +26,8 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
   const [version, setVersion] = useState(0);
   const modulos = useModulosPaciente(supabase, paciente.id);
   const tiene = (m: string) => modulos.activos?.has(m) ?? false;
+  const consentimiento = useConsentimientoPaciente(supabase, paciente.id);
+  const bloqueado = !!consentimiento?.withdrawn_at;
 
   async function cambiarEstado(status: Paciente['status']) {
     setError('');
@@ -42,7 +44,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-tight">{paciente.full_name}</h2>
           <p className="text-sm text-texto-suave truncate">{paciente.email}{paciente.phone ? ` · ${paciente.phone}` : ''}</p>
-          <EstadoConsentimiento supabase={supabase} pacienteId={paciente.id} />
+          <EstadoConsentimiento c={consentimiento} />
         </div>
         <div className="flex flex-wrap gap-2">
           {paciente.status !== 'active' && <button onClick={() => cambiarEstado('active')} className="bg-petroleo text-white font-bold px-4 py-2 rounded-xl">Activar</button>}
@@ -58,6 +60,13 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         {error && <p role="alert" className="w-full font-semibold text-[#8A2C1D]">{error}</p>}
       </header>
 
+      {bloqueado && (
+        <section className="bg-white rounded-2xl p-5 border-l-4 border-[#8A2C1D] flex flex-col gap-1">
+          <h3 className="text-lg font-bold">Datos de la app bloqueados</h3>
+          <p className="text-sm">Ha retirado su consentimiento. Sus registros de la app quedan guardados y bloqueados cinco años, por si hubiera una reclamación, y no se consultan. La historia clínica no cambia.</p>
+        </section>
+      )}
+      {!bloqueado && <>
       <ProgramaPaciente supabase={supabase} pacienteId={paciente.id} onCambio={() => setVersion((v) => v + 1)} />
       <SemanaCoach key={version} supabase={supabase} pacienteId={paciente.id} nombrePaciente={paciente.full_name.split(' ')[0]} />
       <section className="flex flex-col gap-3" aria-labelledby="progresion">
@@ -72,26 +81,33 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
       {tiene('questionnaires') && <CuestionariosCoach supabase={supabase} pacienteId={paciente.id} />}
       {tiene('breathing') && <RespiracionCoach supabase={supabase} pacienteId={paciente.id} />}
       <ModulosPaciente supabase={supabase} pacienteId={paciente.id} disponibles={modulos.disponibles} activos={modulos.activos} onCambio={modulos.recargar} />
+      </>}
       <div className="grid lg:grid-cols-2 gap-4">
-        <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />
+        {!bloqueado && <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />}
         <NotasPrivadas supabase={supabase} pacienteId={paciente.id} />
       </div>
     </div>
   );
 }
 
-function EstadoConsentimiento({ supabase, pacienteId }: { supabase: SupabaseClient; pacienteId: string }) {
-  const [c, setC] = useState<{ version: string; accepted_at: string; withdrawn_at: string | null; replaced_at: string | null } | null | undefined>(undefined);
+type ConsentimientoPaciente = { version: string; accepted_at: string; withdrawn_at: string | null; replaced_at: string | null } | null | undefined;
+
+function useConsentimientoPaciente(supabase: SupabaseClient, pacienteId: string): ConsentimientoPaciente {
+  const [c, setC] = useState<ConsentimientoPaciente>(undefined);
   useEffect(() => {
     supabase.from('consents').select('version, accepted_at, withdrawn_at, replaced_at').eq('patient_id', pacienteId).order('accepted_at', { ascending: false }).limit(1).maybeSingle()
-      .then(({ data }) => setC((data as typeof c) ?? null));
+      .then(({ data }) => setC((data as ConsentimientoPaciente) ?? null));
   }, [supabase, pacienteId]);
+  return c;
+}
+
+function EstadoConsentimiento({ c }: { c: ConsentimientoPaciente }) {
   if (c === undefined) return null;
   const f = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   const [texto, color] = !c
     ? ['Consentimiento pendiente: lo verá al entrar por primera vez', 'text-[#8A5A00]']
     : c.withdrawn_at
-      ? [`Consentimiento retirado el ${f(c.withdrawn_at)}: no puede usar la app`, 'text-[#8A2C1D]']
+      ? [`Consentimiento retirado el ${f(c.withdrawn_at)}: datos de la app bloqueados`, 'text-[#8A2C1D]']
       : [`Consentimiento aceptado el ${f(c.accepted_at)} (versión ${c.version})`, 'text-petroleo'];
   return <p className={`text-xs font-semibold mt-1 ${color}`}>{texto}</p>;
 }

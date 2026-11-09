@@ -40,9 +40,10 @@ Hecho el 9 nov 2026: todo este apartado, salvo la comprobación final con un pac
 ## 3. Antes del primer paciente real
 
 - [ ] DPA firmados: Supabase (punto 1), Cloudflare (incluido en sus condiciones; descargar copia), Mailgun (Settings → Data Processing Agreement).
-- [ ] Texto del consentimiento revisado por el asesor, con el plazo de conservación. Hoy es la versión 1.3-borrador; al aprobarlo pasa a 1.3 sin «borrador».
+- [x] Texto del consentimiento aprobado por la asesora (9 nov 2026): versión 1.4, con bloqueo de cinco años tras la baja.
+- [ ] Cláusula informativa del cuestionario de admisión: decir que la historia clínica está en la nube (UE) con Supabase como encargado.
 - [ ] Registro de actividades de tratamiento actualizado con la app (lo lleva el asesor).
-- [ ] Evaluación de impacto (EIPD) si el asesor la ve necesaria para el piloto. Es obligatoria antes de abrir el plan gratuito al público.
+- [ ] Evaluación de impacto (EIPD) breve antes del piloto (decidido con la asesora el 9 nov 2026). Ampliarla antes de abrir el plan gratuito al público.
 
 ## 4. Piloto (2-3 pacientes)
 

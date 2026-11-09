@@ -1,7 +1,7 @@
 // Genera docs/legal/consentimiento.md a partir del texto que ve el paciente en la app.
 // Uso: node scripts/consentimiento-md.mts
 import fs from 'node:fs';
-import { CASILLAS, FECHA_CONSENTIMIENTO, RESUMEN, SECCIONES, VERSION_CONSENTIMIENTO } from '../src/core/legal/textoConsentimiento.ts';
+import { FECHA_CONSENTIMIENTO, FRASE_ACEPTACION, SECCIONES, VERSION_CONSENTIMIENTO } from '../src/core/legal/textoConsentimiento.ts';
 
 const md = [
   '# Consentimiento para el uso de la app Vitaltrain',
@@ -10,19 +10,19 @@ const md = [
   '',
   'Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433',
   '',
-  '> Borrador para revisión del asesor de protección de datos. Queda por fijar el plazo de conservación (entre corchetes).',
+  '> Aprobado por la asesora de protección de datos el 9 de noviembre de 2026.',
   '> Este archivo se genera desde `src/core/legal/textoConsentimiento.ts`: los cambios se hacen allí.',
   '',
-  '## Lo esencial (primera pantalla)',
+  '## Lo que ve el paciente al entrar',
   '',
-  ...RESUMEN.map((r) => `- ${r}`),
+  FRASE_ACEPTACION,
   '',
-  '## Información completa',
+  'Debajo, el enlace «Leer las condiciones» (abre el texto completo) y los botones «Acepto» y «No acepto».',
+  '',
+  '## Condiciones completas',
   '',
   ...SECCIONES.flatMap((s) => [`### ${s.titulo}`, '', ...s.parrafos.flatMap((p) => [p.startsWith('· ') ? `- ${p.slice(2)}` : p, '']).filter((l, i, a) => !(l === '' && a[i + 1]?.startsWith('- ') && a[i - 1]?.startsWith('- ')))]),
-  '## Casillas que marca el paciente',
-  '',
-  ...CASILLAS.map((c) => `- [ ] ${c}`),
+  '## Qué se guarda al aceptar',
   '',
   'Se guarda: versión aceptada, fecha y hora, y tipo de dispositivo. El paciente puede retirarlo desde Perfil → Privacidad; desde ese momento la base de datos le impide ver y registrar datos.',
   '',
