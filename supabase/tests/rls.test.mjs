@@ -38,6 +38,8 @@ await db.exec(`
 insert into auth.users values ('${coach}','c@x'),('${p1}','p1@x'),('${p2}','p2@x');
 insert into profiles (id, role, full_name, email) values ('${coach}','coach','Coach','c@x'),('${p1}','patient','P1','p1@x'),('${p2}','patient','P2','p2@x');
 insert into consents (patient_id, version) values ('${p1}','prueba'),('${p2}','prueba');
+-- Como el alta real (función alta-paciente): todo paciente nuevo tiene el módulo de entrenamiento
+insert into patient_modules (patient_id, module_slug) values ('${p1}','training'),('${p2}','training');
 insert into exercises (name) values ('Sentadilla');
 insert into templates (name) values ('Fuerza A');
 insert into template_blocks (template_id, position) select id, 1 from templates;
@@ -194,7 +196,7 @@ check('No se puede editar una sesión hecha', !!(await as(coach, `select save_wo
 
 // 0009: consentimiento
 const p3 = '44444444-4444-4444-4444-444444444444';
-await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${p3}','p3@x'); insert into profiles (id, role, full_name, email) values ('${p3}','patient','P3','p3@x');`);
+await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${p3}','p3@x'); insert into profiles (id, role, full_name, email) values ('${p3}','patient','P3','p3@x'); insert into patient_modules (patient_id, module_slug) values ('${p3}','training');`);
 await as(coach, `select assign_template(${tpl}, '${p3}', current_date)`);
 check('Sin consentimiento, el paciente ve su perfil (para poder aceptarlo)', (await as(p3, 'select count(*)::int n from profiles')).rows[0].n === 1);
 check('Sin consentimiento, el paciente no ve sus entrenamientos', (await as(p3, 'select count(*)::int n from workouts')).rows[0].n === 0);
@@ -547,6 +549,22 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('El coach se lo activa', !(await as(coach, `insert into patient_modules (patient_id, module_slug) values ('${p2}', 'sun') on conflict do nothing`)).error);
   check('Con el módulo, elige su ciudad', !(await as(p2, `insert into patient_settings (patient_id, city, latitude, longitude) values ('${p2}', 'Valencia', 39.47, -0.38) on conflict (patient_id) do update set city = 'Valencia', latitude = 39.47, longitude = -0.38`)).error);
   check('Otro paciente no ve su ciudad', (await as(p1, `select count(*)::int n from patient_settings where patient_id = '${p2}'`)).rows[0].n === 0);
+}
+
+// 0026: ajustes de la revisión de seguridad
+{
+  const it = (await db.query(`select i.id from workout_items i join workout_blocks b on b.id = i.block_id join workouts w on w.id = b.workout_id where w.patient_id = '${p2}' and w.status = 'scheduled' limit 1`)).rows[0]?.id;
+  const w2 = (await db.query(`select w.id from workouts w where w.patient_id = '${p2}' and w.status = 'scheduled' limit 1`)).rows[0]?.id;
+  await db.exec(`reset role; set request.jwt.sub = ''; delete from patient_modules where patient_id = '${p2}' and module_slug = 'training'`);
+  check('Sin el módulo de entrenamiento no registra series', !!(await as(p2, `insert into set_logs (workout_item_id, patient_id, set_number, reps, done) values ('${it}', '${p2}', 1, 10, true)`)).error);
+  check('Sin el módulo no deja notas por ejercicio', !!(await as(p2, `insert into workout_item_feedback (workout_item_id, patient_id, note) values ('${it}', '${p2}', 'x')`)).error);
+  check('Sin el módulo no puede terminar sesiones', (await as(p2, `update workouts set status = 'completed' where id = '${w2}' returning id`)).rows?.length !== 1);
+  check('Sin el módulo sigue viendo su historial', (await as(p2, 'select count(*)::int n from workouts')).rows[0].n > 0);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p2}', 'training')`);
+  check('Con el módulo registra series', !(await as(p2, `insert into set_logs (workout_item_id, patient_id, set_number, reps, done) values ('${it}', '${p2}', 1, 10, true)`)).error);
+  check('No puede poner fecha de fin en el futuro', (await as(p2, `update workouts set completed_at = now() + interval '3 days' where id = '${w2}' returning id`)).rows?.length !== 1);
+  check('Sensaciones demasiado largas: se rechaza', !!(await as(p2, `update workouts set feeling = repeat('a', 600) where id = '${w2}'`)).error);
+  check('Notas de sesión normales: se aceptan', !(await as(p2, `update workouts set patient_notes = 'Bien, algo cansado' where id = '${w2}'`)).error);
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
