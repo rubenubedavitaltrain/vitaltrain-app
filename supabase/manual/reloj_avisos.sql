@@ -1,7 +1,7 @@
 -- Reloj de los recordatorios: cada 15 minutos llama a la función «avisos».
 -- Va aparte de las migraciones porque pg_cron, pg_net y Vault solo existen en Supabase (no en la prueba local).
 -- Se aplica una vez por proyecto, después de 0019. El secreto lo guarda Rubén desde Ajustes → «Generar claves».
--- Cambia la dirección del proyecto al aplicarlo en producción.
+-- Cambia la dirección del proyecto al aplicarlo en producción (la de abajo es vitaltrain-dev). Ver docs/PRODUCCION.md.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;

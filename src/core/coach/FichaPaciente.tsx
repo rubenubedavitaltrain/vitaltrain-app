@@ -13,6 +13,7 @@ import ModulosPaciente, { useModulosPaciente } from './ModulosPaciente';
 import { RitmoCoach } from '../../modules/circadiano/Ritmo';
 import HabitosCoach from '../../modules/habitos/HabitosCoach';
 import CuestionariosCoach from '../../modules/cuestionarios/CuestionariosCoach';
+import RespiracionCoach from '../../modules/respiracion/RespiracionCoach';
 
 // Ficha del paciente (núcleo). Cada módulo activo aporta su sección.
 
@@ -69,6 +70,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
       {tiene('habits') && <HabitosCoach supabase={supabase} pacienteId={paciente.id} nombre={paciente.full_name.split(' ')[0]} />}
       {tiene('circadian') && <RitmoCoach supabase={supabase} pacienteId={paciente.id} />}
       {tiene('questionnaires') && <CuestionariosCoach supabase={supabase} pacienteId={paciente.id} />}
+      {tiene('breathing') && <RespiracionCoach supabase={supabase} pacienteId={paciente.id} />}
       <ModulosPaciente supabase={supabase} pacienteId={paciente.id} disponibles={modulos.disponibles} activos={modulos.activos} onCambio={modulos.recargar} />
       <div className="grid lg:grid-cols-2 gap-4">
         <NotasDelPaciente supabase={supabase} pacienteId={paciente.id} />

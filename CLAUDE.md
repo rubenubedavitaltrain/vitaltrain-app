@@ -69,7 +69,7 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
 | Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta. Hecho (0.17.0): rMEQ y check-in semanal. Falta: editor de cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
-| Respiración y regulación | Ejercicios guiados con temporizador | 4 |
+| Respiración y regulación | Ejercicios guiados con temporizador. Hecho (0.18.0): respiración lenta, suspiro fisiológico y 4-7-8, con calma antes y después. Falta: audios guiados | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
 | Wearables | Datos de sueño y actividad (Apple Health requiere app nativa vía Capacitor) | 5 |
 
@@ -199,6 +199,8 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - Código: `src/core/avisos/` y `public/push-sw.js` (cargado por el service worker).
 - `supabase/migrations/0020_cuestionarios.sql`: `questionnaires` (preguntas en JSON: single, scale, text; `scored`), `questionnaire_assignments` (una vez o `weekly`), `questionnaire_responses` (una por asignación y periodo: `unico` o semana ISO). Un disparador valida las respuestas, fija el periodo, calcula la puntuación y, en el rMEQ, guarda `chronotype` y `chronotype_score` en `patient_settings`. El paciente solo inserta, con el módulo `questionnaires`. Cuestionarios iniciales: `rmeq` y `checkin-semanal`. Aplicada el 9 nov 2026.
 - Código: `src/modules/cuestionarios/` (`datos.ts`, `Cuestionarios.tsx` con la tarjeta de Hoy y el formulario, `CuestionariosCoach.tsx`). El resumen mensual incluye las medias del check-in.
+- `supabase/migrations/0021_respiracion.sql`: `breathing_sessions` (pauta lenta, suspiro o 478; segundos 30-3600; calma antes y después 1-5). El paciente solo inserta (últimos 2 días, nunca futuro) con el módulo `breathing`; no edita ni borra. Aplicada el 9 nov 2026.
+- Código: `src/modules/respiracion/` (`pautas.ts`, `Respiracion.tsx` con la tarjeta de Hoy y la sesión a pantalla completa, `RespiracionCoach.tsx`).
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -271,6 +273,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 21 (hecha en local): avisos push y email, recordatorio de entrenamiento, descarga de datos. Migración 0019 y función `avisos` en dev (9 nov 2026). Verify JWT desactivado y 4 secretos puestos por Rubén; email de respaldo probado (9 nov 2026). Falta probar el push en iPhone instalado
 - [ ] Tarea 22 (hecha en local): cuestionarios. rMEQ con cronotipo y check-in semanal con gráficas en la ficha y medias en el resumen mensual. Migración 0020 aplicada (9 nov 2026)
 - [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
+- [ ] Producción: guía en `docs/PRODUCCION.md` (qué hace Rubén, qué hago yo, requisitos legales, piloto, baja de Harbiz) y `supabase/manual/coach_inicial.sql` (9 nov 2026). Falta que Rubén cree `vitaltrain-prod`
+- [ ] Tarea 24: respiración guiada (0.18.0) y consentimiento 1.3-borrador. Migración 0021 aplicada (9 nov 2026)
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

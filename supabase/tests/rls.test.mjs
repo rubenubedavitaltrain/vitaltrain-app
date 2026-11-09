@@ -443,6 +443,17 @@ check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settin
   check('Otro paciente no ve las respuestas', (await as(p2, 'select count(*)::int n from questionnaire_responses')).rows[0].n === 0);
 }
 
+// 0021: respiración guiada
+check('Sin el módulo, no anota respiración', !!(await as(p1, `insert into breathing_sessions (patient_id, pattern, seconds) values ('${p1}', 'lenta', 300)`)).error);
+await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p1}', 'breathing')`);
+check('Con el módulo, anota una sesión', !(await as(p1, `insert into breathing_sessions (patient_id, pattern, seconds, calm_before, calm_after) values ('${p1}', 'lenta', 300, 2, 4)`)).error);
+check('Pauta desconocida: se rechaza', !!(await as(p1, `insert into breathing_sessions (patient_id, pattern, seconds) values ('${p1}', 'otra', 300)`)).error);
+check('Sesión de hace un mes: se rechaza', !!(await as(p1, `insert into breathing_sessions (patient_id, pattern, seconds, started_at) values ('${p1}', 'lenta', 300, now() - interval '30 days')`)).error);
+check('No cambia lo anotado', (await as(p1, `update breathing_sessions set seconds = 3000 returning id`)).rows?.length !== 1);
+check('No anota en nombre de otro', !!(await as(p2, `insert into breathing_sessions (patient_id, pattern, seconds) values ('${p1}', 'lenta', 300)`)).error);
+check('Otro paciente no ve sus sesiones', (await as(p2, 'select count(*)::int n from breathing_sessions')).rows[0].n === 0);
+check('El coach las ve', (await as(coach, `select count(*)::int n from breathing_sessions where patient_id = '${p1}'`)).rows[0].n === 1);
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

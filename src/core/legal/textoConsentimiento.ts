@@ -3,13 +3,13 @@
 // Copia legible para el asesor en docs/legal/consentimiento.md (se genera desde este archivo).
 // BORRADOR pendiente de revisión por el asesor de protección de datos. Falta el plazo de conservación (entre corchetes).
 
-export const VERSION_CONSENTIMIENTO = '1.2-borrador';
+export const VERSION_CONSENTIMIENTO = '1.3-borrador';
 export const FECHA_CONSENTIMIENTO = '9 de noviembre de 2026';
 
 /** Primera capa: lo esencial, en la pantalla de aceptación. */
 export const RESUMEN: string[] = [
   'Clínica Vitaltrain usa esta app para acompañarte en el plan que te pauta tu profesional.',
-  'Guardamos lo que registras: entrenamientos, sensaciones, notas, sueño, horarios de comida, hábitos y, si las anotas, tus medidas. Algunos de estos datos son datos de salud.',
+  'Guardamos lo que registras: entrenamientos, sensaciones, notas, sueño, horarios de comida, hábitos, respuestas a cuestionarios, sesiones de respiración y, si las anotas, tus medidas. Algunos de estos datos son datos de salud.',
   'La clínica guarda también tu historia clínica en esta plataforma. Tú no la ves en la app, pero puedes pedir una copia.',
   'Solo los ve tu profesional. No se usan para publicidad, no se venden y no se toman decisiones automáticas sobre ti.',
   'La app no diagnostica ni decide tratamientos. Muestra lo que te pauta tu profesional y registra lo que haces.',
@@ -34,7 +34,7 @@ export const SECCIONES: Seccion[] = [
     parrafos: [
       'Datos de identificación y contacto: nombre, email y, si lo das, teléfono.',
       'Datos de actividad física y salud que registras tú o pauta tu profesional: plan de entrenamiento, series, repeticiones, cargas, esfuerzo percibido, sensaciones, notas por ejercicio, avisos de «No puedo hacerlo» con su motivo (por ejemplo, dolor o molestia) y, solo si decides anotarlas, medidas corporales (peso, cintura, cadera).',
-      'Si tu profesional te activa esas secciones: horas de sueño y cómo has descansado, horas de las comidas (sin lo que comes) y los hábitos que marcas cada día. La ciudad que elijas sirve para calcular la luz del día; no usamos tu ubicación.',
+      'Si tu profesional te activa esas secciones: horas de sueño y cómo has descansado, horas de las comidas (sin lo que comes) los hábitos que marcas cada día, tus respuestas a los cuestionarios (por ejemplo, cómo ha ido tu semana o tu cronotipo) y tus sesiones de respiración (duración y cómo te sentías antes y después). La ciudad que elijas sirve para calcular la luz del día; no usamos tu ubicación.',
       'Mensajes que intercambies con tu profesional y documentos que te comparta.',
       'Datos técnicos de uso: fecha y hora de acceso y de cada registro, y el tipo de dispositivo con el que aceptas este texto.',
       'No recogemos tu ubicación, fotos, contactos ni datos de otras apps.',
