@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { hoyIso, iso, lunes } from '../../lib/fechas';
 import ConDobleFactor from './DobleFactor';
 import { exportarDatos } from '../legal/exportar';
+import CopiaPaciente from './CopiaPaciente';
 import {
   BUCKET_HISTORIA, CAMPOS_CONSULTA, CAMPOS_FICHA, CATEGORIAS, MODALIDADES, fechaHora, fechaLarga, registrar,
   type Acceso, type Adenda, type Categoria, type Consulta, type DocClinico, type Ficha, type Modalidad,
@@ -25,6 +26,7 @@ export function BotonHistoria({ supabase, paciente }: { supabase: SupabaseClient
 
 function Historia({ supabase, paciente, onCerrar }: { supabase: SupabaseClient; paciente: { id: string; full_name: string }; onCerrar: () => void }) {
   const [pestaña, setPestaña] = useState<Pestaña>('linea');
+  const [copia, setCopia] = useState(false);
   return (
     <div role="dialog" aria-modal="true" aria-label={`Historia clínica de ${paciente.full_name}`} className="fixed inset-0 z-50 bg-fondo overflow-y-auto">
       <header className="sticky top-0 z-10 bg-petroleo text-white">
@@ -32,12 +34,14 @@ function Historia({ supabase, paciente, onCerrar }: { supabase: SupabaseClient; 
           <button onClick={onCerrar} className="font-semibold">← Ficha</button>
           <h1 className="font-bold text-lg">Historia clínica · {paciente.full_name}</h1>
           <div className="flex-1" />
+          <button onClick={() => setCopia(true)} className="bg-mostaza text-[#1F2424] font-bold px-3 py-1.5 rounded-lg text-sm" title="Si el paciente pide su historia clínica">Copia para el paciente</button>
           <button onClick={() => { if (window.confirm(`Descargar todos los datos de ${paciente.full_name}, incluida la historia clínica, en un archivo. Queda anotado en el registro de accesos. Guárdalo en un sitio seguro.`)) exportarDatos(supabase, paciente.id, true); }}
             className="bg-white/15 font-semibold px-3 py-1.5 rounded-lg text-sm" title="Para atender una petición de acceso del paciente">Exportar datos</button>
         </div>
       </header>
       <ConDobleFactor supabase={supabase}>
         <Registrar supabase={supabase} pacienteId={paciente.id} />
+        {copia && <CopiaPaciente supabase={supabase} paciente={paciente} onCerrar={() => setCopia(false)} />}
         <nav className="max-w-6xl mx-auto px-4 pt-4 flex flex-wrap gap-1.5" aria-label="Apartados de la historia">
           {([['linea', 'Línea de tiempo'], ['consultas', 'Consultas'], ['ficha', 'Ficha clínica'], ['documentos', 'Documentos clínicos'], ['accesos', 'Registro de accesos']] as [Pestaña, string][]).map(([k, t]) => (
             <button key={k} onClick={() => setPestaña(k)} aria-pressed={pestaña === k} className={`px-4 py-2 rounded-full font-semibold text-sm ${pestaña === k ? 'bg-petroleo text-white' : 'bg-white'}`}>{t}</button>

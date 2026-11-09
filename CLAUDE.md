@@ -201,6 +201,9 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - Código: `src/modules/cuestionarios/` (`datos.ts`, `Cuestionarios.tsx` con la tarjeta de Hoy y el formulario, `CuestionariosCoach.tsx`). El resumen mensual incluye las medias del check-in.
 - `supabase/migrations/0021_respiracion.sql`: `breathing_sessions` (pauta lenta, suspiro o 478; segundos 30-3600; calma antes y después 1-5). El paciente solo inserta (últimos 2 días, nunca futuro) con el módulo `breathing`; no edita ni borra. Aplicada el 9 nov 2026.
 - Código: `src/modules/respiracion/` (`pautas.ts`, `Respiracion.tsx` con la tarjeta de Hoy y la sesión a pantalla completa, `RespiracionCoach.tsx`).
+- `supabase/migrations/0022_borrado_bloqueados.sql`: `profiles.archived_at` (lo fija un disparador al archivar), `purge_log` (registro de borrados, solo lectura del coach) y `purgar_datos_bloqueados()`, que borra los datos de la app de pacientes dados de baja o con el consentimiento retirado hace más de 5 años. No toca la historia clínica ni `patient_documents`; sin historia ni documentos borra la cuenta.
+- `supabase/migrations/0023_borrado_autorizado.sql`: quita el reloj y el borrado en bloque de 0022. `pendientes_de_borrar()` (lista, solo coach con doble factor) y `borrar_datos_bloqueados(paciente)` (uno a uno, autorizado por el coach con doble factor; queda en `purge_log.autorizado_por`). Pantalla: `src/core/legal/BorradosPendientes.tsx` en el Inicio del coach (norma, qué comprobar, casilla de validación). La función `avisos` envía al coach un email al mes pidiendo autorización si hay pendientes (`_pendientes_de_borrar()`, solo service_role); nunca borra.
+- Código: `src/core/historia/CopiaPaciente.tsx`: copia legible de la historia clínica para el paciente (PDF por impresión).
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -214,12 +217,14 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
   - Conservación: nada clínico se borra. Datos de la app: bloqueados 5 años tras la baja o la retirada del consentimiento y después borrados (aprobado por la asesora, 9 nov 2026). Ficha con versiones, consultas cerradas con adendas, documentos borrables solo 24 h, perfiles con historia no eliminables.
   - Registro de accesos (`access_log`) escrito por la base de datos, sin edición ni borrado.
   - Pacientes reales solo en `vitaltrain-prod` (Pro, copias de seguridad, DPA firmado). Nunca en `vitaltrain-dev`.
-  - El paciente no ve su historia en la app; el derecho de acceso se atiende con una exportación (pendiente).
+  - El paciente no ve su historia en la app; el derecho de acceso se atiende con «Copia para el paciente» (PDF) y los archivos aparte (0.19.0).
 - DPA firmado con Supabase y el hosting antes de meter pacientes reales. Revisión por el asesor de protección de datos.
 - Producto sanitario: el software que genera de forma autónoma recomendaciones diagnósticas o terapéuticas puede considerarse producto sanitario (Reglamento UE 2017/745). Por eso la app no decide: muestra lo que el profesional pauta y registra lo que hace el paciente. Cualquier función de IA genera borradores para el coach, nunca recomendaciones directas al paciente. Validarlo con asesoría antes de la fase 5.
 - Nunca usar datos reales en desarrollo. Claves solo en variables de entorno.
 
 ## 9. Reglas de trabajo para Claude Code
+
+- **Nada sin autorización de Rubén (9 nov 2026):** ni la app ni Claude borran o cambian datos por su cuenta. Nada automático que borre. Todo cambio en producción lo valida y lo ejecuta Rubén antes.
 
 - Comandos: comprobar tipos con `npx tsc --noEmit` (nunca `tsc -b`: escribe .js junto a los .tsx y Vite los cogería antes). `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad, `npm run test:cola` para la cola sin conexión.
 - Versiones de dependencias fijadas, con al menos dos semanas desde su publicación.
@@ -275,7 +280,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
 - [ ] Producción (9 nov 2026): organización Supabase «Vitaltrain Producción» (Pro) con el proyecto `vitaltrain-prod` (ref `idzbwtlnhlkxcnhfvxcp`, Frankfurt, Micro). Hecho: migraciones 0001-0021, altas libres desactivadas, código de 6 dígitos y 15 min, plantilla del email, SMTP Mailgun (contraseña puesta por Rubén), funciones `alta-paciente` y `avisos` con Verify JWT desactivado, cuenta de coach `ruben.ubeda@vitaltrain.com`. Cloudflare `vitaltrain-app`: «Production» apunta a prod y «Preview» a dev. DPA de Supabase incluido en sus condiciones (no se firma aparte). Doble factor activado en la cuenta de Supabase de Rubén. Avisos en prod: claves VAPID y del reloj generadas desde la app, 5 secretos puestos por Rubén (MAILGUN_API_KEY con una clave de envío propia «App Vitaltrain avisos producción»), reloj cada 15 min activo y probado (respuesta 200). Contraseña SMTP de acceso@vitaltrain.com cambiada en Mailgun el 9 nov y puesta en prod y dev; Rubén entró como coach en prod. Falta: doble factor del coach en prod, prueba con un paciente de prueba, DPA de Cloudflare y Mailgun, revisión del asesor
 - [ ] Tarea 24: respiración guiada (0.18.0) y consentimiento 1.3-borrador. Migración 0021 aplicada (9 nov 2026)
-- [ ] Tarea 27 (0.18.1): aceptación sencilla (frase + «Leer las condiciones» + «Acepto»), condiciones 1.4-borrador con bloqueo de 5 años propuesto, ficha del coach oculta los datos de la app si se retira el consentimiento. Aprobado por la asesora el 9 nov 2026 (versión 1.4, 0.18.2), igual que la EIPD breve del piloto y la entrada en el registro de actividades. Falta: revisar la cláusula del cuestionario de admisión (historia en la nube, Supabase como encargado), borrado automático a los 5 años, aviso de YouTube
+- [ ] Tarea 27 (0.18.1): aceptación sencilla (frase + «Leer las condiciones» + «Acepto»), condiciones 1.4-borrador con bloqueo de 5 años propuesto, ficha del coach oculta los datos de la app si se retira el consentimiento. Aprobado por la asesora el 9 nov 2026 (versión 1.4, 0.18.2), igual que la EIPD breve del piloto y la entrada en el registro de actividades. Falta: revisar la cláusula del cuestionario de admisión (historia en la nube, Supabase como encargado)
+- [ ] Tarea 29 (0.19.0): copia de la historia clínica para el paciente, borrado a los 5 años solo con autorización de Rubén (migraciones 0022 y 0023), protocolo de privacidad en Claude Docs. 0022 y 0023 aplicadas en dev. Falta: que Rubén las ejecute en prod
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

@@ -4,6 +4,7 @@
 //     Avisa al destinatario: al paciente si escribe el coach, al coach si escribe el paciente.
 //  2. { tipo: 'recordatorios' } — la llama el reloj del servidor cada 15 minutos (cabecera x-cron-secret).
 //     Avisa a quien tenga activado el recordatorio a esa hora y una sesión pendiente hoy.
+//     Y una vez al mes, si hay datos bloqueados hace más de cinco años, pide autorización al coach por email (no borra nada).
 // Nunca se envía el texto del mensaje: solo que hay uno nuevo (los avisos pasan por servidores de Apple y Google).
 //
 // Secretos que hay que poner en Supabase (Edge Functions → Secrets): VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
@@ -116,6 +117,36 @@ async function avisarMensaje(token: string, id: string) {
   return { status: 200, cuerpo: { enviado: true, push: resultado, email: emails } };
 }
 
+/** Una vez al mes, si hay pacientes con los datos bloqueados hace más de cinco años, pide autorización al coach por email.
+ *  No borra nada: el borrado solo lo hace el coach desde su Inicio, paciente por paciente. */
+async function avisoBorrados() {
+  const mes = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+  const { data: pendientes, error } = await admin.rpc('_pendientes_de_borrar');
+  if (error || !pendientes?.length) return 0;
+  const { data: coaches } = await admin.from('profiles').select('id, email').eq('role', 'coach').eq('status', 'active');
+  let enviados = 0;
+  for (const c of coaches ?? []) {
+    if (!(await anotar('borrado_pendiente', c.id, mes, 'email'))) continue;
+    const texto = [
+      `Hay ${pendientes.length} paciente(s) con los datos de la app bloqueados hace más de cinco años.`,
+      '',
+      'Qué dice la norma: el artículo 32 de la LOPDGDD y el apartado 6 de las condiciones de la app (versión 1.4) dicen que, tras la baja o la retirada del consentimiento, los datos se guardan bloqueados solo mientras puedan reclamarse responsabilidades (cinco años) y después se suprimen.',
+      '',
+      'Qué deberías hacer:',
+      '1. Comprueba que con ese paciente no hay ninguna reclamación, juicio o petición de un juzgado o de la AEPD abierta. Si la hay, no borres y consúltalo con tu asesora.',
+      '2. Si no hay nada abierto, entra en la app con el doble factor. En Inicio verás «Datos bloqueados hace más de cinco años».',
+      '3. Revisa cada paciente y, si estás de acuerdo, autoriza el borrado. La historia clínica nunca se borra.',
+      '',
+      'La app no borra nada hasta que tú lo autorices.',
+      '',
+      URL_APP,
+    ].join('\n');
+    if (await email(c.email, 'Vitaltrain: necesito tu autorización para borrar datos bloqueados', texto)) enviados++;
+    else await admin.from('notification_log').delete().eq('kind', 'borrado_pendiente').eq('user_id', c.id).eq('ref', mes);
+  }
+  return enviados;
+}
+
 async function recordatorios() {
   const ahora = new Date();
   const partes = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(ahora).map((p) => [p.type, p.value]));
@@ -135,7 +166,8 @@ async function recordatorios() {
     if (!(await anotar('recordatorio_entreno', a.patient_id, hoy, 'push'))) continue;
     enviados += await push(a.patient_id, { title: 'Hoy toca entrenar', body: ses[0].name, url: '/', tag: 'recordatorio' });
   }
-  return { status: 200, cuerpo: { enviados } };
+  const borrados = await avisoBorrados();
+  return { status: 200, cuerpo: { enviados, borrados } };
 }
 
 Deno.serve(async (req) => {

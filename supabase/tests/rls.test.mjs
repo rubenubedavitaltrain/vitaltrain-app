@@ -454,6 +454,55 @@ check('No anota en nombre de otro', !!(await as(p2, `insert into breathing_sessi
 check('Otro paciente no ve sus sesiones', (await as(p2, 'select count(*)::int n from breathing_sessions')).rows[0].n === 0);
 check('El coach las ve', (await as(coach, `select count(*)::int n from breathing_sessions where patient_id = '${p1}'`)).rows[0].n === 1);
 
+// 0022 y 0023: borrado de los datos bloqueados a los cinco años, solo con autorización del coach
+{
+  const [p5, p6, p7, p8] = ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666', '77777777-7777-7777-7777-777777777777', '88888888-8888-8888-8888-888888888888'];
+  await db.exec(`reset role; set request.jwt.sub = '';
+    insert into auth.users values ('${p5}','p5@x'),('${p6}','p6@x'),('${p7}','p7@x'),('${p8}','p8@x');
+    insert into profiles (id, role, full_name, email) values ('${p5}','patient','P5','p5@x'),('${p6}','patient','P6','p6@x'),('${p7}','patient','P7','p7@x'),('${p8}','patient','P8','p8@x');
+    insert into consents (patient_id, version, accepted_at, replaced_at) values ('${p5}','1.3', now() - interval '8 years', now() - interval '7 years');
+    insert into consents (patient_id, version, accepted_at, withdrawn_at) values
+      ('${p5}','1.4', now() - interval '7 years', now() - interval '6 years'),
+      ('${p6}','1.4', now() - interval '7 years', now() - interval '6 years'),
+      ('${p7}','1.4', now() - interval '2 years', now() - interval '1 year'),
+      ('${p8}','1.4', now() - interval '7 years', null);
+    insert into body_measurements (patient_id, measured_on, weight_kg) values ('${p5}', current_date - 2500, 70), ('${p6}', current_date - 2500, 80), ('${p7}', current_date - 500, 60);
+    insert into coach_notes (patient_id, body) values ('${p5}', 'nota'), ('${p7}', 'nota');
+    insert into clinical_records (patient_id, main_reason) values ('${p6}', 'Motivo');`);
+  check('El paciente no puede cambiar su fecha de baja', !(await as(p7, `update profiles set archived_at = now() - interval '10 years' where id = '${p7}'`)).error
+    && (await db.query(`select archived_at from profiles where id = '${p7}'`)).rows[0].archived_at === null);
+  await as(coach, `update profiles set status = 'archived' where id = '${p8}'`);
+  check('Al archivar se apunta la fecha de baja', (await db.query(`select archived_at is not null a from profiles where id = '${p8}'`)).rows[0].a === true);
+  await db.exec(`reset role; set request.jwt.sub = ''; alter table profiles disable trigger profiles_archived_at; update profiles set archived_at = now() - interval '6 years' where id = '${p8}'; alter table profiles enable trigger profiles_archived_at;`);
+  check('Ya no existe el borrado automático', (await db.query(`select count(*)::int n from pg_proc where proname = 'purgar_datos_bloqueados'`)).rows[0].n === 0);
+  check('Sin doble factor, el coach no ve la lista de pendientes', (await as(coach, 'select count(*)::int n from pendientes_de_borrar()')).rows?.[0]?.n === 0);
+  check('La lista interna no se puede leer desde la app', !!(await mfa(coach, 'select * from _pendientes_de_borrar()')).error);
+  check('El aviso mensual de borrados se puede anotar', !(await db.query(`insert into notification_log (kind, user_id, ref, channel) values ('borrado_pendiente', '${coach}', '2031-01', 'email')`).catch(e => ({ error: e.message }))).error);
+  check('Un paciente no ve la lista de pendientes', (await as(p1, 'select count(*)::int n from pendientes_de_borrar()')).rows?.[0]?.n === 0);
+  const pend = (await mfa(coach, 'select patient_id from pendientes_de_borrar()')).rows.map(r => r.patient_id).sort().join();
+  check('Con doble factor, el coach ve los tres bloqueados hace más de cinco años', pend === [p5, p6, p8].sort().join());
+  check('Mirar la lista no borra nada', (await db.query(`select count(*)::int n from body_measurements where patient_id in ('${p5}', '${p6}')`)).rows[0].n === 2);
+  check('Sin doble factor no se puede borrar', !!(await as(coach, `select borrar_datos_bloqueados('${p5}')`)).error);
+  check('Un paciente no puede borrar', !!(await as(p1, `select borrar_datos_bloqueados('${p5}')`)).error);
+  check('No se puede borrar a quien no lleva cinco años bloqueado', !!(await mfa(coach, `select borrar_datos_bloqueados('${p7}')`)).error
+    && (await db.query(`select count(*)::int n from body_measurements where patient_id = '${p7}'`)).rows[0].n === 1);
+  check('No se puede borrar a un paciente activo', !!(await mfa(coach, `select borrar_datos_bloqueados('${p1}')`)).error);
+  check('No se puede borrar al coach', !!(await mfa(coach, `select borrar_datos_bloqueados('${coach}')`)).error
+    && (await db.query(`select count(*)::int n from profiles where id = '${coach}'`)).rows[0].n === 1);
+  check('El coach autoriza el borrado de un paciente sin historia: se borra la cuenta', !(await mfa(coach, `select borrar_datos_bloqueados('${p5}')`)).error
+    && (await db.query(`select count(*)::int n from auth.users where id = '${p5}'`)).rows[0].n === 0);
+  check('Los demás pendientes siguen intactos', (await db.query(`select count(*)::int n from body_measurements where patient_id = '${p6}'`)).rows[0].n === 1
+    && (await db.query(`select count(*)::int n from auth.users where id = '${p8}'`)).rows[0].n === 1);
+  check('Con historia clínica: se borran los datos de la app y se queda la historia', !(await mfa(coach, `select borrar_datos_bloqueados('${p6}')`)).error
+    && (await db.query(`select count(*)::int n from body_measurements where patient_id = '${p6}'`)).rows[0].n === 0
+    && (await db.query(`select count(*)::int n from clinical_records where patient_id = '${p6}'`)).rows[0].n === 1);
+  check('Ya borrado, no vuelve a salir en la lista', !(await mfa(coach, 'select patient_id from pendientes_de_borrar()')).rows.some(r => r.patient_id === p6));
+  check('Queda registro de quién lo autorizó', (await db.query(`select count(*)::int n from purge_log where autorizado_por = '${coach}'`)).rows[0].n === 2);
+  check('El coach ve el registro de borrados', (await as(coach, 'select count(*)::int n from purge_log')).rows[0].n === 2);
+  check('Un paciente no ve el registro de borrados', (await as(p1, 'select count(*)::int n from purge_log')).rows[0].n === 0);
+  check('Nadie escribe el registro de borrados a mano', !!(await as(coach, `insert into purge_log (patient_id, motivo, cuenta_borrada, filas) values ('${p1}', 'baja', false, '{}')`)).error);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
