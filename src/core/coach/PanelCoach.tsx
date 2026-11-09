@@ -9,6 +9,7 @@ import Programas from '../../modules/entrenamiento/programas/Programas';
 import Plantillas from '../../modules/entrenamiento/plantillas/Plantillas';
 import { AvisosDispositivo, ConfigAvisos } from '../avisos/Avisos';
 import ConDobleFactor from '../historia/DobleFactor';
+import { PlanesWoo } from '../suscripciones/Suscripciones';
 
 // Panel del coach: inicio (resumen de la semana), pacientes, programas, plantillas y biblioteca.
 
@@ -85,6 +86,7 @@ export default function PanelCoach({ supabase, nombre, userId }: { supabase: Sup
               </div>
               <AvisosDispositivo supabase={supabase} texto="en este dispositivo" />
             </section>
+            <PlanesWoo supabase={supabase} />
             <ConfigAvisos supabase={supabase} proyecto={(import.meta.env.VITE_SUPABASE_URL ?? '').replace(/^https:\/\/([^.]+)\..*$/, '$1')} />
           </div>
         )}

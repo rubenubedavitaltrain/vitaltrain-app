@@ -2,6 +2,15 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Suscripciones de WooCommerce, con tu aprobación (versión 0.20.0)
+- WooCommerce avisa a la app cuando alguien paga, renueva, pausa o cancela. **La app no cambia nada sola.**
+- **Coach, Inicio → «Suscripciones: cambios por revisar»**: qué propone abrir o cerrar a cada paciente según su plan, con un botón «Aplicar» que pide confirmación. También quién ha pagado y aún no tiene cuenta.
+- **Coach, Ajustes → «Planes de WooCommerce»**: qué módulos abre cada producto. Comunidad (13847) ya está: ritmos circadianos, hábitos y cuestionarios.
+- Cerrar un módulo no borra datos.
+- Solo se guarda el estado de la suscripción, el email, el producto y la fecha del próximo pago. Nada de pagos ni direcciones.
+- Por dentro: migración 0024 y función `woocommerce` (firma verificada con un secreto compartido). Guía: `docs/WOOCOMMERCE.md`.
+- Cómo probarlo: en el enlace de prueba, Ajustes → Planes de WooCommerce: debe salir Comunidad con sus tres módulos marcados.
+
 ## 2026-11-09 · Doble factor desde Ajustes (versión 0.19.1)
 - **Coach, Ajustes**: arriba sale «Historia clínica protegida». Ahí configuras el doble factor sin abrir la historia de ningún paciente. Una vez hecho, pone «Doble factor activo».
 - Por qué: antes solo se configuraba al abrir una historia, y eso deja un registro clínico en ese paciente.
