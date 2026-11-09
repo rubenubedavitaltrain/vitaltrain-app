@@ -73,6 +73,21 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
 | Wearables | Datos de sueño y actividad (Apple Health requiere app nativa vía Capacitor) | 5 |
 
+### Planes de acceso (decidido el 9 nov 2026)
+
+El cobro lo hace WooCommerce Subscriptions con Stripe en vitaltrain.com (ya instalado y en uso). La app no cobra: un webhook de WooCommerce abre o cierra módulos según el estado de la suscripción del mismo email.
+
+| Plan | Precio | Qué abre en la app |
+|---|---|---|
+| Ritmo (gratis) | 0 € | Lo básico del sol: panel solar de su ciudad y ventana de vitamina D. Estilo MyCircadian |
+| Comunidad | 15 €/mes hasta el 1 ene 2027, luego 25 €/mes (anual 150 €, luego 250 €). Producto WooCommerce 13847 | Comunidad de la web + ritmos circadianos completos (registros de sueño y comidas, datos e indicadores, cuestionarios) y hábitos |
+| Entrenamiento personal | Como ahora (producto «Entrenamiento online», 39-59 €/mes) | Entrenamiento pautado por Rubén + ritmos circadianos completos. Sin comunidad |
+| Completo | 79 €/mes (producto nuevo, por crear) | Entrenamiento personal + comunidad + todo lo de la app |
+
+Pacientes de consulta: al aceptar las condiciones del cuestionario de admisión ya están en el CRM interno (historia clínica). En la app tienen el plan gratuito más una comunicación básica con Rubén (mensajes). Nada más por ser paciente: comunidad y entrenamiento se pagan aparte.
+
+Pendiente de construir: módulo «sol» separado del circadiano completo, alta libre del plan gratuito (con consentimiento y EIPD antes), webhook de WooCommerce y producto Completo de 79 €.
+
 Nutrición queda fuera por ahora. Los planes de alimentación se comparten como PDF en Documentos.
 
 ### Alcance de la Fase 1 (decidido el 26 oct 2026)
