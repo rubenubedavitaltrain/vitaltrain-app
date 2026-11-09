@@ -94,22 +94,26 @@ async function avisarMensaje(token: string, id: string) {
     ? { title: `Mensaje de ${nombre}`, body: 'Tienes un mensaje nuevo en Vitaltrain.', url: '/', tag: `mensaje-${paciente.id}` }
     : { title: 'Vitaltrain', body: 'Tienes un mensaje nuevo de Rubén.', url: '/?pestana=mensajes', tag: 'mensaje' };
 
-  let resultado = 0;
+  let resultado = 0, emails = 0;
   for (const d of destinatarios) {
     const llegados = await push(d.id, aviso);
     resultado += llegados;
     // Email de respaldo: si no hay móvil con avisos, como mucho uno cada 30 minutos por conversación
     if (llegados === 0 && d.email) {
       const tramo = Math.floor(Date.now() / (30 * 60 * 1000));
-      if (await anotar('mensaje_email', d.id, `${paciente.id}:${tramo}`, 'email')) {
-        await email(d.email, escribePaciente ? `Mensaje nuevo de ${paciente.full_name}` : 'Tienes un mensaje nuevo de Rubén',
+      const ref = `${paciente.id}:${tramo}`;
+      if (await anotar('mensaje_email', d.id, ref, 'email')) {
+        const ok = await email(d.email, escribePaciente ? `Mensaje nuevo de ${paciente.full_name}` : 'Tienes un mensaje nuevo de Rubén',
           escribePaciente
             ? `${paciente.full_name} te ha escrito en la app de Vitaltrain.\n\nÁbrelo en el panel: ${URL_APP}\n`
             : `Hola, ${nombre}:\n\nRubén te ha escrito en la app de Vitaltrain. Ábrela para leerlo: ${URL_APP}\n\nClínica Vitaltrain`);
+        // Si no salió, se borra la anotación para que el siguiente mensaje lo intente de nuevo
+        if (!ok) await admin.from('notification_log').delete().eq('kind', 'mensaje_email').eq('user_id', d.id).eq('ref', ref);
+        else emails++;
       }
     }
   }
-  return { status: 200, cuerpo: { enviado: true, push: resultado } };
+  return { status: 200, cuerpo: { enviado: true, push: resultado, email: emails } };
 }
 
 async function recordatorios() {
