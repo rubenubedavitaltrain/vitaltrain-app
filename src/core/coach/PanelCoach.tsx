@@ -8,6 +8,7 @@ import { contarNoLeidos } from '../mensajes/Conversacion';
 import Programas from '../../modules/entrenamiento/programas/Programas';
 import Plantillas from '../../modules/entrenamiento/plantillas/Plantillas';
 import { AvisosDispositivo, ConfigAvisos } from '../avisos/Avisos';
+import ConDobleFactor from '../historia/DobleFactor';
 
 // Panel del coach: inicio (resumen de la semana), pacientes, programas, plantillas y biblioteca.
 
@@ -69,6 +70,14 @@ export default function PanelCoach({ supabase, nombre, userId }: { supabase: Sup
         {seccion === 'ajustes' && (
           <div className="flex flex-col gap-4">
             <h2 className="text-2xl font-bold">Ajustes</h2>
+            <section className="max-w-3xl" aria-label="Doble factor">
+              <ConDobleFactor supabase={supabase}>
+                <div className="bg-white rounded-2xl p-5">
+                  <h3 className="text-lg font-bold">Doble factor activo</h3>
+                  <p className="text-sm text-texto-suave">Tu cuenta pide el código de la app de autenticación para abrir historias clínicas y autorizar borrados.</p>
+                </div>
+              </ConDobleFactor>
+            </section>
             <section className="bg-white rounded-2xl p-5 flex flex-col gap-3 max-w-3xl">
               <div>
                 <h3 className="text-lg font-bold">Avisos en este ordenador o móvil</h3>

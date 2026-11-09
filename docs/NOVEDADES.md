@@ -2,6 +2,12 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Doble factor desde Ajustes (versión 0.19.1)
+- **Coach, Ajustes**: arriba sale «Historia clínica protegida». Ahí configuras el doble factor sin abrir la historia de ningún paciente. Una vez hecho, pone «Doble factor activo».
+- Por qué: antes solo se configuraba al abrir una historia, y eso deja un registro clínico en ese paciente.
+- **Migraciones 0022 y 0023 aplicadas en producción** por Rubén. Comprobado: borrado autorizado 1, borrado automático 0, reloj 0.
+- Cómo probarlo: en vitaltrain-app.pages.dev, Ajustes → «Configurar» → escanea el QR con la app de autenticación → escribe el código.
+
 ## 2026-11-09 · Copia de la historia para el paciente y borrado a los cinco años (versión 0.19.0)
 - **Coach, historia clínica → «Copia para el paciente»**: documento legible con la ficha, las consultas cerradas con sus adendas y la lista de documentos clínicos. Botón «PDF» → «Guardar como PDF». Los borradores no salen. Queda anotado en el registro de accesos.
   - Es lo que hay que entregar si un paciente pide su historia (tienes un mes).
