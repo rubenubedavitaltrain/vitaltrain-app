@@ -1,10 +1,10 @@
 // Texto del consentimiento que acepta el paciente al entrar por primera vez.
 // Cada cambio del texto sube la versión: el paciente tendrá que aceptarlo de nuevo.
 // Copia legible para el asesor en docs/legal/consentimiento.md (se genera desde este archivo).
-// BORRADOR pendiente de revisión por el asesor de protección de datos (plazo de bloqueo de 5 años propuesto el 9 nov 2026).
+// Versión 1.4 aprobada por la asesora de protección de datos el 9 nov 2026 (bloqueo de 5 años tras la baja).
 // La pantalla de aceptación es sencilla: una frase, el enlace a las condiciones y el botón «Acepto» (decidido por Rubén el 9 nov 2026).
 
-export const VERSION_CONSENTIMIENTO = '1.4-borrador';
+export const VERSION_CONSENTIMIENTO = '1.4';
 export const FECHA_CONSENTIMIENTO = '9 de noviembre de 2026';
 
 export type Seccion = { titulo: string; parrafos: string[] };

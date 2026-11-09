@@ -2,6 +2,11 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Condiciones aprobadas (versión 0.18.2)
+- La asesora de protección de datos ha aprobado las condiciones. Pasan a la **versión 1.4** (sin «borrador»).
+- Quedan aprobados: el bloqueo de cinco años tras la baja, YouTube aceptado con el mismo botón y la pantalla sencilla de aceptación.
+- Los pacientes de prueba verán otra vez la pantalla de aceptar al entrar, porque cambia la versión.
+
 ## 2026-11-09 · Aceptación de condiciones más sencilla (versión 0.18.1)
 - **Paciente, al entrar**: ya no hay casillas ni listado. Ve una frase corta, el enlace **Leer las condiciones** (abre el texto completo) y el botón **Acepto**. Debajo, «No acepto».
 - Condiciones **1.4-borrador**:

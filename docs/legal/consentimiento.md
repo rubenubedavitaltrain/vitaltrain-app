@@ -1,10 +1,10 @@
 # Consentimiento para el uso de la app Vitaltrain
 
-Versión 1.4-borrador · 9 de noviembre de 2026
+Versión 1.4 · 9 de noviembre de 2026
 
 Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433
 
-> Borrador para revisión del asesor de protección de datos. Plazo de bloqueo propuesto: cinco años.
+> Aprobado por la asesora de protección de datos el 9 de noviembre de 2026.
 > Este archivo se genera desde `src/core/legal/textoConsentimiento.ts`: los cambios se hacen allí.
 
 ## Lo que ve el paciente al entrar
