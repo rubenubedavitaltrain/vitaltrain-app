@@ -1,25 +1,15 @@
 // Texto del consentimiento que acepta el paciente al entrar por primera vez.
 // Cada cambio del texto sube la versión: el paciente tendrá que aceptarlo de nuevo.
 // Copia legible para el asesor en docs/legal/consentimiento.md (se genera desde este archivo).
-// BORRADOR pendiente de revisión por el asesor de protección de datos. Falta el plazo de conservación (entre corchetes).
+// BORRADOR pendiente de revisión por el asesor de protección de datos (plazo de bloqueo de 5 años propuesto el 9 nov 2026).
+// La pantalla de aceptación es sencilla: una frase, el enlace a las condiciones y el botón «Acepto» (decidido por Rubén el 9 nov 2026).
 
-export const VERSION_CONSENTIMIENTO = '1.3-borrador';
+export const VERSION_CONSENTIMIENTO = '1.4-borrador';
 export const FECHA_CONSENTIMIENTO = '9 de noviembre de 2026';
-
-/** Primera capa: lo esencial, en la pantalla de aceptación. */
-export const RESUMEN: string[] = [
-  'Clínica Vitaltrain usa esta app para acompañarte en el plan que te pauta tu profesional.',
-  'Guardamos lo que registras: entrenamientos, sensaciones, notas, sueño, horarios de comida, hábitos, respuestas a cuestionarios, sesiones de respiración y, si las anotas, tus medidas. Algunos de estos datos son datos de salud.',
-  'La clínica guarda también tu historia clínica en esta plataforma. Tú no la ves en la app, pero puedes pedir una copia.',
-  'Solo los ve tu profesional. No se usan para publicidad, no se venden y no se toman decisiones automáticas sobre ti.',
-  'La app no diagnostica ni decide tratamientos. Muestra lo que te pauta tu profesional y registra lo que haces.',
-  'Los datos se guardan en servidores de la Unión Europea.',
-  'Puedes retirar tu consentimiento cuando quieras desde Perfil, y ejercer tus derechos escribiendo a info@vitaltrain.com.',
-];
 
 export type Seccion = { titulo: string; parrafos: string[] };
 
-/** Segunda capa: la información completa. */
+/** Condiciones completas: se abren con el enlace de la pantalla de aceptación y desde Perfil → Privacidad. */
 export const SECCIONES: Seccion[] = [
   {
     titulo: '1. Quién es responsable de tus datos',
@@ -69,7 +59,7 @@ export const SECCIONES: Seccion[] = [
       '· Mailgun (Sinch): envío de emails (código de acceso y avisos). Región UE.',
       'Algunas de estas empresas tienen sede en Estados Unidos. Cuando pueda haber acceso desde fuera de la UE, se aplican las garantías del Reglamento: Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo.',
       'Si activas los avisos en tu móvil, se entregan a través del servicio de notificaciones de Apple o de Google, según tu móvil. El aviso solo dice que tienes un mensaje o un entrenamiento pendiente; nunca lleva el texto del mensaje ni datos de salud.',
-      'Los vídeos de los ejercicios están en YouTube y se muestran en modo de privacidad mejorada. Al reproducir un vídeo, Google recibe datos técnicos de tu dispositivo, como la dirección IP. No recibe tus registros ni tus datos de salud.',
+      'Los vídeos de los ejercicios están en YouTube y se muestran en modo de privacidad mejorada. Al cargar o reproducir un vídeo, YouTube guarda un identificador en tu navegador y recibe datos técnicos de tu dispositivo, como la dirección IP. No recibe tus registros ni tus datos de salud. Al aceptar estas condiciones aceptas también que los vídeos se carguen desde YouTube.',
       'No cedemos tus datos a terceros, salvo obligación legal.',
     ],
   },
@@ -77,7 +67,7 @@ export const SECCIONES: Seccion[] = [
     titulo: '6. Cuánto tiempo los conservamos',
     parrafos: [
       'Mientras sigas en el servicio y tengas la cuenta activa.',
-      'Si te das de baja o retiras el consentimiento, tus datos se bloquean y se suprimen en un plazo de [plazo a fijar con el asesor], salvo que una ley obligue a conservarlos más tiempo.',
+      'Si te das de baja o retiras el consentimiento, tus datos se bloquean: nadie los usa ni los consulta. Se guardan así cinco años, solo por si hubiera que atender una reclamación, y después se borran, salvo que una ley obligue a conservarlos más tiempo.',
       'La historia clínica se conserva como mínimo cinco años desde el alta de cada proceso asistencial, como exige la Ley 41/2002, y el tiempo adicional que fije la normativa aplicable.',
     ],
   },
@@ -104,7 +94,6 @@ export const SECCIONES: Seccion[] = [
     titulo: '9. Uso responsable',
     parrafos: [
       'La app no sustituye la atención sanitaria. Si sientes dolor intenso, mareo o cualquier síntoma que te preocupe, para y contacta con tu profesional. En una urgencia, llama al 112.',
-      'La app es para personas mayores de edad.',
     ],
   },
   {
@@ -115,8 +104,6 @@ export const SECCIONES: Seccion[] = [
   },
 ];
 
-/** Casillas que el paciente debe marcar para aceptar. */
-export const CASILLAS = [
-  'He leído la información sobre cómo se tratan mis datos.',
-  'Doy mi consentimiento explícito para que Clínica Vitaltrain trate los datos de salud y de actividad física que registro en la app con el fin de hacer el seguimiento del plan que me pauta mi profesional.',
-];
+/** Frase que acompaña al botón «Acepto». Tocar el botón es el consentimiento explícito. */
+export const FRASE_ACEPTACION =
+  'Al tocar «Acepto», das tu consentimiento para que Clínica Vitaltrain guarde los datos de salud y actividad que registres en la app, para el seguimiento del plan que te pauta tu profesional.';

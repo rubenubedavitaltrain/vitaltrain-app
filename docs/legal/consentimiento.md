@@ -1,23 +1,19 @@
 # Consentimiento para el uso de la app Vitaltrain
 
-Versión 1.3-borrador · 9 de noviembre de 2026
+Versión 1.4-borrador · 9 de noviembre de 2026
 
 Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433
 
-> Borrador para revisión del asesor de protección de datos. Queda por fijar el plazo de conservación (entre corchetes).
+> Borrador para revisión del asesor de protección de datos. Plazo de bloqueo propuesto: cinco años.
 > Este archivo se genera desde `src/core/legal/textoConsentimiento.ts`: los cambios se hacen allí.
 
-## Lo esencial (primera pantalla)
+## Lo que ve el paciente al entrar
 
-- Clínica Vitaltrain usa esta app para acompañarte en el plan que te pauta tu profesional.
-- Guardamos lo que registras: entrenamientos, sensaciones, notas, sueño, horarios de comida, hábitos, respuestas a cuestionarios, sesiones de respiración y, si las anotas, tus medidas. Algunos de estos datos son datos de salud.
-- La clínica guarda también tu historia clínica en esta plataforma. Tú no la ves en la app, pero puedes pedir una copia.
-- Solo los ve tu profesional. No se usan para publicidad, no se venden y no se toman decisiones automáticas sobre ti.
-- La app no diagnostica ni decide tratamientos. Muestra lo que te pauta tu profesional y registra lo que haces.
-- Los datos se guardan en servidores de la Unión Europea.
-- Puedes retirar tu consentimiento cuando quieras desde Perfil, y ejercer tus derechos escribiendo a info@vitaltrain.com.
+Al tocar «Acepto», das tu consentimiento para que Clínica Vitaltrain guarde los datos de salud y actividad que registres en la app, para el seguimiento del plan que te pauta tu profesional.
 
-## Información completa
+Debajo, el enlace «Leer las condiciones» (abre el texto completo) y los botones «Acepto» y «No acepto».
+
+## Condiciones completas
 
 ### 1. Quién es responsable de tus datos
 
@@ -77,7 +73,7 @@ Algunas de estas empresas tienen sede en Estados Unidos. Cuando pueda haber acce
 
 Si activas los avisos en tu móvil, se entregan a través del servicio de notificaciones de Apple o de Google, según tu móvil. El aviso solo dice que tienes un mensaje o un entrenamiento pendiente; nunca lleva el texto del mensaje ni datos de salud.
 
-Los vídeos de los ejercicios están en YouTube y se muestran en modo de privacidad mejorada. Al reproducir un vídeo, Google recibe datos técnicos de tu dispositivo, como la dirección IP. No recibe tus registros ni tus datos de salud.
+Los vídeos de los ejercicios están en YouTube y se muestran en modo de privacidad mejorada. Al cargar o reproducir un vídeo, YouTube guarda un identificador en tu navegador y recibe datos técnicos de tu dispositivo, como la dirección IP. No recibe tus registros ni tus datos de salud. Al aceptar estas condiciones aceptas también que los vídeos se carguen desde YouTube.
 
 No cedemos tus datos a terceros, salvo obligación legal.
 
@@ -85,7 +81,7 @@ No cedemos tus datos a terceros, salvo obligación legal.
 
 Mientras sigas en el servicio y tengas la cuenta activa.
 
-Si te das de baja o retiras el consentimiento, tus datos se bloquean y se suprimen en un plazo de [plazo a fijar con el asesor], salvo que una ley obligue a conservarlos más tiempo.
+Si te das de baja o retiras el consentimiento, tus datos se bloquean: nadie los usa ni los consulta. Se guardan así cinco años, solo por si hubiera que atender una reclamación, y después se borran, salvo que una ley obligue a conservarlos más tiempo.
 
 La historia clínica se conserva como mínimo cinco años desde el alta de cada proceso asistencial, como exige la Ley 41/2002, y el tiempo adicional que fije la normativa aplicable.
 
@@ -115,15 +111,10 @@ Para que puedas entrenar sin conexión, la app guarda en tu móvil el plan de la
 
 La app no sustituye la atención sanitaria. Si sientes dolor intenso, mareo o cualquier síntoma que te preocupe, para y contacta con tu profesional. En una urgencia, llama al 112.
 
-La app es para personas mayores de edad.
-
 ### 10. Cambios en este texto
 
 Si cambia algo importante, te lo mostraremos al entrar y te pediremos que lo aceptes de nuevo.
 
-## Casillas que marca el paciente
-
-- [ ] He leído la información sobre cómo se tratan mis datos.
-- [ ] Doy mi consentimiento explícito para que Clínica Vitaltrain trate los datos de salud y de actividad física que registro en la app con el fin de hacer el seguimiento del plan que me pauta mi profesional.
+## Qué se guarda al aceptar
 
 Se guarda: versión aceptada, fecha y hora, y tipo de dispositivo. El paciente puede retirarlo desde Perfil → Privacidad; desde ese momento la base de datos le impide ver y registrar datos.

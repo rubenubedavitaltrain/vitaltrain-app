@@ -77,3 +77,6 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | En Cloudflare `vitaltrain-app`, «Production» apunta a `vitaltrain-prod` y «Preview» a `vitaltrain-dev` | Cada cambio se prueba con datos inventados; solo lo unido a main llega a los pacientes |
 | 2026-11-09 | Respiración guiada como módulo propio (`breathing`), separado del hábito «Respiración lenta» | Respetar el contrato de módulo; la unión se hará en el núcleo si hace falta |
 | 2026-11-09 | Producción en una organización de Supabase aparte («Vitaltrain Producción», Pro); desarrollo sigue en la organización gratuita | El plan se paga por organización: así solo se paga Pro por producción |
+| 2026-11-09 | Aceptación del paciente con una frase, el enlace a las condiciones y un botón «Acepto»; sin casillas ni aviso de mayoría de edad | Que sea sencillo y no asuste; tocar «Acepto» tras una frase clara sigue siendo un consentimiento explícito |
+| 2026-11-09 | Plazo propuesto: datos de la app bloqueados 5 años tras la baja o la retirada, luego se borran (pendiente de la asesora) | Art. 32 LOPDGDD; las acciones contractuales prescriben a 5 años (art. 1964 CC); coincide con el mínimo de la historia clínica |
+| 2026-11-09 | Con el consentimiento retirado, el coach no ve los datos de la app del paciente | Bloqueo: los datos se guardan pero no se usan |
