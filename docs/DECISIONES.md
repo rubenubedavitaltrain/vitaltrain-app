@@ -81,3 +81,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Plazo propuesto: datos de la app bloqueados 5 años tras la baja o la retirada, luego se borran (pendiente de la asesora) | Art. 32 LOPDGDD; las acciones contractuales prescriben a 5 años (art. 1964 CC); coincide con el mínimo de la historia clínica |
 | 2026-11-09 | Con el consentimiento retirado, el coach no ve los datos de la app del paciente | Bloqueo: los datos se guardan pero no se usan |
 | 2026-11-09 | La asesora aprueba las condiciones 1.4 y todas las propuestas: bloqueo de 5 años, reparto de bases legales, DPA guardados en PDF, push y YouTube como están, EIPD breve ya, entrada nueva en el registro de actividades, aceptación con un botón | Visto bueno de la asesora de protección de datos |
+| 2026-11-09 | La asesora aprueba la EIPD breve del piloto y la entrada de la app en el registro de actividades | Riesgo residual bajo; no hace falta consulta previa a la AEPD |
