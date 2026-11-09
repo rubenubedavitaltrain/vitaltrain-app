@@ -2,6 +2,33 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Documentos, resumen mensual e historia clínica (versión 0.14.0)
+
+**Documentos (para el paciente)**
+- En la ficha del paciente, sección **Documentos**: arrastras un PDF (plan de alimentación, protocolo…), eliges el pilar, pones una nota si quieres y decides si lo ve ya.
+- El paciente lo encuentra en **Perfil → Mis documentos**, agrupado por pilar y con la etiqueta «Nuevo» la primera semana.
+- Los archivos van a un almacén privado: solo los abren ese paciente y tú, con un enlace que caduca en una hora.
+
+**Resumen mensual**
+- En la ficha, **Resumen mensual → Abrir resumen**. Calcula el mes: sesiones hechas y adherencia, esfuerzo medio, cargas de inicio y final por ejercicio, notas en ejercicios, cómo se sintió, medidas, sueño y horarios, y el % de cada hábito.
+- Escribes tus **conclusiones** y los **objetivos** del mes siguiente. «Guardar y compartir» hace que el paciente lo vea en **Progreso → Mis resúmenes del mes**.
+- **PDF**: pulsa «PDF» y elige «Guardar como PDF». Sale en A4 con la marca y tus datos de colegiado.
+- Las cifras se guardan como foto fija al guardar. Si luego el paciente anota algo de ese mes, «Actualizar cifras» y guardar otra vez.
+
+**Historia clínica (CRM de pacientes)**
+- Botón **Historia clínica** arriba en la ficha de cada paciente. Pide un **segundo código** de una app de autenticación del móvil (Google Authenticator, Microsoft Authenticator o la de contraseñas del iPhone). La primera vez escaneas un QR; después, solo el código.
+- **Línea de tiempo**: todo el recorrido del paciente en orden: consultas, adendas, documentos clínicos, documentos compartidos, resúmenes, hábitos y programas pautados, entrenamiento por semanas, medidas y consentimiento. Filtro «Solo clínica» / «Solo app».
+- **Consultas**: fecha, presencial / online / teléfono, duración, motivo, cómo está y evolución, valoración, pautas, objetivos y próxima revisión. Mientras escribes, a la derecha ves las pautas y objetivos de la consulta anterior. Se guarda como borrador; al **cerrarla** ya no se puede cambiar y las correcciones van como **adenda** fechada.
+- **Ficha clínica**: motivo de consulta, antecedentes personales y familiares, medicación, suplementación, alergias, estilo de vida y observaciones. Cada cambio guarda la versión anterior.
+- **Documentos clínicos**: PDF, fotos o Word, varios a la vez, en las mismas carpetas que usas en OneDrive (Análisis, Cuestionarios, Estudio metabólico, Plan de alimentación, Tratamientos, Test, Informes). El paciente no los ve. Solo se pueden borrar en las 24 horas siguientes a subirlos.
+- **Registro de accesos**: quién abrió o cambió la historia y cuándo. No se puede editar ni borrar.
+- **Alta «Solo historia clínica»**: para pacientes de consulta que no usan la app. Quedan en pausa y sin módulos; se les activa la app cuando quieras.
+- Un paciente con historia no se puede eliminar de la base de datos (protección de la conservación obligatoria).
+
+- La app se actualiza sola al abrirla (desde la 0.13.1).
+- Base de datos: migraciones 0016, 0017 y 0018 aplicadas en `vitaltrain-dev`. Doble factor TOTP comprobado como activado en Supabase.
+- Cómo probarlo: sube `vitaltrain-app-0.14.0-para-cloudflare.zip`. En la ficha del paciente de prueba: sube un PDF en Documentos y míralo en su Perfil; abre el resumen del mes; pulsa «Historia clínica», configura el doble factor y crea una consulta. **Solo datos inventados**: los pacientes reales irán a `vitaltrain-prod`.
+
 ## 2026-11-09 · La app se actualiza sola (versión 0.13.1)
 - Hasta ahora, al abrir la app tras subir una versión nueva, el móvil o el navegador seguían enseñando la anterior, guardada en el dispositivo. A Rubén le salía la 0.7.0 con la 0.13.0 ya publicada.
 - Ahora, al abrir la app, comprueba si hay versión nueva y, si la hay, se recarga sola en uno o dos segundos.

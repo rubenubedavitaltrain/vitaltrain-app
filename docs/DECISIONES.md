@@ -56,3 +56,12 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-08 | Registro de comidas solo con hora y tipo | Para ver la ventana de alimentación y la distancia a la cama. Sin calorías ni fotos, como dice la especificación |
 | 2026-11-08 | Un solo motor de hábitos para los cinco pilares, con catálogo editable | Alimentación, regulación emocional y naturaleza empiezan como hábitos pautados. Si alguno necesita pantallas propias (respiración guiada, por ejemplo), será un módulo aparte |
 | 2026-11-08 | El paciente marca hábitos de hoy y de la última semana, no más atrás | Permite ponerse al día tras un fin de semana sin abrir la app, sin rellenar semanas de golpe |
+| 2026-11-09 | La app se recarga sola al detectar una versión nueva | El navegador seguía mostrando la 0.7.0 con la 0.13.0 publicada. Con pacientes reales eso confunde |
+| 2026-11-09 | Documentos del paciente solo en PDF, en almacén privado con enlaces de una hora | Es el formato que abre cualquier móvil. Privado: ni con el enlace caducado se puede abrir |
+| 2026-11-09 | El resumen mensual guarda una foto fija de las cifras | Lo compartido no debe cambiar solo si luego se anota algo. Se puede recalcular a mano |
+| 2026-11-09 | PDF del resumen con «Imprimir → Guardar como PDF», sin librerías | Funciona en cualquier navegador y no añade peso a la app |
+| 2026-11-09 | La plataforma será también la historia clínica (CRM clínico), con el visto bueno del asesor | Rubén quiere ver en un solo sitio lo pautado en consulta y lo que el paciente hace en la app. Cambia la regla anterior de no guardar historia clínica |
+| 2026-11-09 | La historia clínica exige doble factor (TOTP) y la comprueba la base de datos, no la pantalla | Datos de salud de máxima protección. Si alguien entrara en el email de Rubén, no podría abrir historias |
+| 2026-11-09 | Nada clínico se borra: versiones de la ficha, consultas cerradas con adendas, documentos borrables solo 24 h, paciente con historia no eliminable | Ley 41/2002: conservación mínima de 5 años e integridad de la historia |
+| 2026-11-09 | Registro de accesos inalterable, escrito por la base de datos | Trazabilidad de quién ve y cambia cada historia |
+| 2026-11-09 | Importación desde OneDrive solo a `vitaltrain-prod`, paciente a paciente y validada por Rubén | Nunca datos reales en desarrollo. OneDrive personal no tiene garantías de empresa del RGPD |

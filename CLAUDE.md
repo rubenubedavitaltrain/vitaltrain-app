@@ -175,10 +175,11 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0014_circadiano.sql`: `sleep_logs` (una noche por paciente y fecha, despertar posterior a acostarse y menos de 20 h, sin noches ni horas futuras) y `meal_events` (hora y tipo; últimos 30 días). El paciente escribe solo con el módulo `circadian` activo. La ciudad va en `patient_settings` (latitud y longitud de la ciudad, no GPS). Aplicada en `vitaltrain-dev` el 8 nov 2026.
 - `supabase/migrations/0015_habitos.sql`: motor de hábitos (`habit_definitions`, `patient_habits`, `habit_logs`) y catálogo inicial de 23 hábitos por pilar. El paciente ve y marca sus hábitos solo con el módulo `habits`; marca hoy o la última semana, solo en hábitos suyos y activos; no puede asignarse ni cambiar objetivos. Aplicada en `vitaltrain-dev` el 8 nov 2026.
 - Código: `src/modules/circadiano/` (`sol.ts` cálculo solar NOAA/Meeus, `ciudades.ts`, `PanelSolar`, `Registros`, `Graficas`, `Ritmo` con la tarjeta de Hoy, Mi ritmo y la sección del coach) y `src/modules/habitos/` (`datos.ts`, `Habitos.tsx` con la tarjeta de Hoy y Constancia, `HabitosCoach.tsx`). Activación por paciente en `src/core/coach/ModulosPaciente.tsx`.
-- Pendiente, migraciones `0016` en adelante (Fase 1 ampliada), a diseñar al construir cada pantalla:
-  - `patient_documents` + bucket privado de Storage: PDFs por paciente y pilar.
-  - `monthly_reviews`: mes, conclusiones del coach, compartido o no.
-  - `patient_settings`: añadir hora del recordatorio y avisos activos.
+- `supabase/migrations/0016_documentos.sql`: `patient_documents` y bucket privado `documentos` (solo PDF, 20 MB). El coach sube y borra; el paciente abre solo los suyos compartidos. Aplicada en `vitaltrain-dev` el 9 nov 2026.
+- `supabase/migrations/0017_resumen_mensual.sql`: `monthly_reviews` (mes, conclusiones, objetivos, foto fija `snapshot`, `shared_at`). Aplicada el 9 nov 2026.
+- `supabase/migrations/0018_historia_clinica.sql`: historia clínica. `clinical_records` (+ `clinical_record_versions`), `consultations` (borrador/cerrada) y `consultation_addenda`, `clinical_documents` + bucket privado `historia` (PDF, imagen, Word; 50 MB), `access_log`, `is_coach_mfa()`, `registrar_acceso()`. Aplicada el 9 nov 2026.
+- Código: `src/core/documentos/`, `src/core/resumen/` y `src/core/historia/` (`DobleFactor.tsx`, `Historia.tsx` con línea de tiempo, consultas, ficha, documentos clínicos y registro de accesos).
+- Pendiente: `patient_settings` con hora del recordatorio y avisos activos; exportación de la historia para el derecho de acceso.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -187,7 +188,12 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 ## 8. Marco legal y de datos
 
 - Datos de salud: categoría especial (art. 9 RGPD). Todo alojado en la UE.
-- No guardar diagnósticos ni historia clínica en la plataforma. La historia clínica sigue en su sistema actual.
+- **Historia clínica en la plataforma** (decidido el 9 nov 2026, con el visto bueno del asesor; antes no se guardaba). Requisitos que no se pueden relajar:
+  - Solo el coach con doble factor (sesión `aal2`); lo comprueba la base de datos (`is_coach_mfa()`).
+  - Conservación: nada clínico se borra. Ficha con versiones, consultas cerradas con adendas, documentos borrables solo 24 h, perfiles con historia no eliminables.
+  - Registro de accesos (`access_log`) escrito por la base de datos, sin edición ni borrado.
+  - Pacientes reales solo en `vitaltrain-prod` (Pro, copias de seguridad, DPA firmado). Nunca en `vitaltrain-dev`.
+  - El paciente no ve su historia en la app; el derecho de acceso se atiende con una exportación (pendiente).
 - DPA firmado con Supabase y el hosting antes de meter pacientes reales. Revisión por el asesor de protección de datos.
 - Producto sanitario: el software que genera de forma autónoma recomendaciones diagnósticas o terapéuticas puede considerarse producto sanitario (Reglamento UE 2017/745). Por eso la app no decide: muestra lo que el profesional pauta y registra lo que hace el paciente. Cualquier función de IA genera borradores para el coach, nunca recomendaciones directas al paciente. Validarlo con asesoría antes de la fase 5.
 - Nunca usar datos reales en desarrollo. Claves solo en variables de entorno.
@@ -240,7 +246,10 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Versión de prueba en Cloudflare Pages subida a mano: https://vitaltrain-prueba.pages.dev (proyecto `vitaltrain-prueba`, sin GitHub). Cada versión nueva se sube como zip (8 nov 2026)
 - [ ] Tarea 16 (hecha en local): ritmos circadianos. Panel solar por ciudad, sueño, comidas, indicadores del coach (regularidad, jet lag social, ventana de alimentación). Migración 0014 aplicada (8 nov 2026)
 - [ ] Tarea 17 (hecha en local): hábitos por pilar y activación de módulos por paciente en la ficha. Migración 0015 aplicada (8 nov 2026)
-- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: perfil (recordatorio, avisos push o email de mensajes y descarga de datos), documentos y resumen mensual
+- [ ] Tarea 18 (hecha en local): documentos por pilar. Migración 0016 aplicada (9 nov 2026)
+- [ ] Tarea 19 (hecha en local): resumen mensual con conclusiones, compartir y PDF. Migración 0017 aplicada (9 nov 2026)
+- [ ] Tarea 20 (hecha en local): historia clínica / CRM (fases A y B): consultas, ficha clínica, documentos clínicos, línea de tiempo, registro de accesos, doble factor, alta «solo historia». Migración 0018 aplicada (9 nov 2026). Falta: `vitaltrain-prod`, importación desde OneDrive, exportación para el paciente
+- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: perfil (recordatorio, avisos push o email de mensajes y descarga de datos)
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos
