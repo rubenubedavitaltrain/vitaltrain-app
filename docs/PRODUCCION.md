@@ -26,7 +26,7 @@ Al hacer el cambio, tu perfil de prueba deja de entrar en vitaltrain-app.pages.d
 
 ## 2. Lo que hago yo, contigo mirando
 
-Hecho el 9 nov 2026: todo este apartado, salvo la comprobación final con un paciente de prueba.
+Hecho el 9 nov 2026: todo este apartado, incluida la comprobación final con un paciente de prueba (todo bien) y el doble factor del coach.
 
 
 - Aplicar las migraciones 0001 a 0020 en orden y el reloj de avisos (`supabase/manual/reloj_avisos.sql`, con la dirección del proyecto nuevo).

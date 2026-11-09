@@ -86,7 +86,7 @@ El cobro lo hace WooCommerce Subscriptions con Stripe en vitaltrain.com (ya inst
 
 Pacientes de consulta: al aceptar las condiciones del cuestionario de admisión ya están en el CRM interno (historia clínica). En la app tienen el plan gratuito más una comunicación básica con Rubén (mensajes). Nada más por ser paciente: comunidad y entrenamiento se pagan aparte.
 
-Pendiente de construir: módulo «sol» separado del circadiano completo, alta libre del plan gratuito (con consentimiento y EIPD antes), webhook de WooCommerce y producto Completo de 79 €.
+Pendiente de construir: módulo «sol» separado del circadiano completo, alta libre del plan gratuito (con consentimiento y EIPD antes) y producto Completo de 79 €. Webhook de WooCommerce hecho en 0.20.0 (propone, el coach aplica).
 
 Nutrición queda fuera por ahora. Los planes de alimentación se comparten como PDF en Documentos.
 
@@ -204,6 +204,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0022_borrado_bloqueados.sql`: `profiles.archived_at` (lo fija un disparador al archivar), `purge_log` (registro de borrados, solo lectura del coach) y `purgar_datos_bloqueados()`, que borra los datos de la app de pacientes dados de baja o con el consentimiento retirado hace más de 5 años. No toca la historia clínica ni `patient_documents`; sin historia ni documentos borra la cuenta.
 - `supabase/migrations/0023_borrado_autorizado.sql`: quita el reloj y el borrado en bloque de 0022. `pendientes_de_borrar()` (lista, solo coach con doble factor) y `borrar_datos_bloqueados(paciente)` (uno a uno, autorizado por el coach con doble factor; queda en `purge_log.autorizado_por`). Doble factor configurable también desde Ajustes del coach (0.19.1). Pantalla: `src/core/legal/BorradosPendientes.tsx` en el Inicio del coach (norma, qué comprobar, casilla de validación). La función `avisos` envía al coach un email al mes pidiendo autorización si hay pendientes (`_pendientes_de_borrar()`, solo service_role); nunca borra.
 - Código: `src/core/historia/CopiaPaciente.tsx`: copia legible de la historia clínica para el paciente (PDF por impresión).
+- `supabase/migrations/0024_suscripciones.sql`: `plan_products` (producto WooCommerce → módulos; Comunidad 13847 de partida), `memberships` gana variación y fecha de aviso, `registrar_suscripcion(jsonb)` (solo service_role; enlaza por email, no toca módulos), disparador que enlaza al dar de alta, `cambios_suscripcion()` (propuestas para el coach) y `aplicar_cambio_suscripcion(paciente)` (el coach aplica; solo abre o cierra módulos). Función `supabase/functions/woocommerce` (firma HMAC con `WOO_WEBHOOK_SECRET`, Verify JWT desactivado). Pantallas en `src/core/suscripciones/Suscripciones.tsx`. Guía: `docs/WOOCOMMERCE.md`.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -282,6 +283,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 24: respiración guiada (0.18.0) y consentimiento 1.3-borrador. Migración 0021 aplicada (9 nov 2026)
 - [ ] Tarea 27 (0.18.1): aceptación sencilla (frase + «Leer las condiciones» + «Acepto»), condiciones 1.4-borrador con bloqueo de 5 años propuesto, ficha del coach oculta los datos de la app si se retira el consentimiento. Aprobado por la asesora el 9 nov 2026 (versión 1.4, 0.18.2), igual que la EIPD breve del piloto y la entrada en el registro de actividades. Falta: revisar la cláusula del cuestionario de admisión (historia en la nube, Supabase como encargado)
 - [ ] Tarea 29 (0.19.0): copia de la historia clínica para el paciente, borrado a los 5 años solo con autorización de Rubén (migraciones 0022 y 0023), protocolo de privacidad en Claude Docs. 0022 y 0023 aplicadas en dev y en prod (prod ejecutado por Rubén el 9 nov 2026; comprobado sin borrado automático ni reloj)
+- [x] Doble factor del coach en prod y prueba completa con un paciente de prueba en prod: todo bien (9 nov 2026)
+- [ ] Tarea 31 (0.20.0): suscripciones de WooCommerce con aprobación del coach. 0024 aplicada en dev. Falta: aplicar 0024 en prod, secreto y función en prod, webhooks en WooCommerce, número del producto «Entrenamiento online»
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

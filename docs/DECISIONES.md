@@ -86,3 +86,5 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Los documentos compartidos (PDF) no entran en el borrado automático: se borran a mano | Los archivos solo se pueden borrar desde la app, no desde la base de datos |
 | 2026-11-09 | «Copia para el paciente» legible de la historia clínica, solo con consultas cerradas | La queja más frecuente ante la AEPD en sanidad es no entregar la historia a tiempo |
 | 2026-11-09 | Regla general: la app y Claude no hacen nada que borre o cambie datos sin aviso y autorización previa de Rubén | Decisión de Rubén |
+| 2026-11-09 | WooCommerce avisa a la app, pero los módulos solo se abren o cierran cuando Rubén aplica la propuesta; nunca se crean cuentas solas | Regla de Rubén: nada sin su autorización |
+| 2026-11-09 | Del aviso de WooCommerce solo se guarda id, estado, email, producto y fechas | Minimización: no hacen falta datos de pago ni direcciones |

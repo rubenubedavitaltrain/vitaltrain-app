@@ -503,6 +503,43 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('Nadie escribe el registro de borrados a mano', !!(await as(coach, `insert into purge_log (patient_id, motivo, cuenta_borrada, filas) values ('${p1}', 'baja', false, '{}')`)).error);
 }
 
+// 0024: suscripciones de WooCommerce → propuesta de módulos que aplica el coach
+{
+  const ps = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${ps}','sus@x'); insert into profiles (id, role, full_name, email) values ('${ps}','patient','Sus','sus@x'); insert into consents (patient_id, version) values ('${ps}','1.4'); insert into patient_modules (patient_id, module_slug) values ('${ps}','training');`);
+  const aviso = (id, email, status, product = 13847) => JSON.stringify({ id, status, billing: { email }, line_items: [{ product_id: product, variation_id: 14001 }], next_payment_date_gmt: '2026-12-09 10:00:00' });
+  check('Nadie registra suscripciones desde la app', !!(await as(coach, `select registrar_suscripcion('${aviso(1, 'p1@x', 'active')}'::jsonb)`)).error);
+  await db.query(`select registrar_suscripcion('${aviso(9001, 'SUS@x', 'active')}'::jsonb)`);
+  await db.query(`select registrar_suscripcion('${aviso(9002, 'nuevo@x', 'active')}'::jsonb)`);
+  check('La suscripción se enlaza con el paciente del mismo email', (await db.query(`select patient_id from memberships where woo_subscription_id = 9001`)).rows[0].patient_id === ps);
+  const antes = (await db.query(`select count(*)::int n from patient_modules where patient_id = '${ps}'`)).rows[0].n;
+  check('Registrar el pago no cambia los módulos', (await db.query(`select count(*)::int n from patient_modules where patient_id = '${ps}'`)).rows[0].n === antes);
+  const prop = (await as(coach, 'select * from cambios_suscripcion()')).rows;
+  const de1 = prop.find(r => r.patient_id === ps);
+  check('El coach ve la propuesta de abrir los módulos del plan', !!de1 && de1.activar.includes('circadian') && de1.activar.includes('habits'));
+  check('Y quién ha pagado sin tener cuenta', prop.some(r => r.sin_cuenta && r.email === 'nuevo@x'));
+  check('Un paciente no ve las propuestas', (await as(p1, 'select count(*)::int n from cambios_suscripcion()')).rows[0].n === 0);
+  check('Un paciente no puede aplicar cambios', !!(await as(p1, `select aplicar_cambio_suscripcion('${ps}')`)).error);
+  check('El coach aplica: se abren los módulos', !(await as(coach, `select aplicar_cambio_suscripcion('${ps}')`)).error
+    && (await db.query(`select count(*)::int n from patient_modules where patient_id = '${ps}' and module_slug in ('circadian', 'habits', 'questionnaires')`)).rows[0].n === 3);
+  await db.query(`insert into sleep_logs (patient_id, night_of, bedtime, wake_time, quality) values ('${ps}', current_date - 1, (current_date - 1) + time '23:00', current_date + time '07:00', 4)`).catch(() => {});
+  const suenos = (await db.query(`select count(*)::int n from sleep_logs where patient_id = '${ps}'`)).rows[0].n;
+  await db.query(`select registrar_suscripcion('${aviso(9001, 'sus@x', 'cancelled')}'::jsonb)`);
+  check('Cancelar en WooCommerce no cierra nada solo', (await db.query(`select count(*)::int n from patient_modules where patient_id = '${ps}' and module_slug = 'circadian'`)).rows[0].n === 1);
+  const prop2 = (await as(coach, 'select * from cambios_suscripcion()')).rows.find(r => r.patient_id === ps);
+  check('Propone cerrar los módulos del plan cancelado', !!prop2 && prop2.desactivar.includes('circadian') && !prop2.desactivar.includes('training'));
+  check('El coach aplica: se cierran, sin tocar entrenamiento', !(await as(coach, `select aplicar_cambio_suscripcion('${ps}')`)).error
+    && (await db.query(`select count(*)::int n from patient_modules where patient_id = '${ps}' and module_slug = 'circadian'`)).rows[0].n === 0
+    && (await db.query(`select count(*)::int n from patient_modules where patient_id = '${ps}' and module_slug = 'training'`)).rows[0].n === 1);
+  check('Cerrar un módulo no borra sus datos', (await db.query(`select count(*)::int n from sleep_logs where patient_id = '${ps}'`)).rows[0].n === suenos);
+  check('Sin cambios pendientes no hay nada que aplicar', !!(await as(coach, `select aplicar_cambio_suscripcion('${ps}')`)).error);
+  check('Un plan con un módulo inventado se rechaza', !!(await as(coach, `insert into plan_products (woo_product_id, plan, modules) values (1, 'X', array['inventado'])`)).error);
+  check('Un paciente no ve ni cambia los planes', (await as(p1, 'select count(*)::int n from plan_products')).rows[0].n === 0);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('99999999-9999-9999-9999-999999999999','nuevo@x'); insert into profiles (id, role, full_name, email) values ('99999999-9999-9999-9999-999999999999','patient','Nuevo','nuevo@x');`);
+  check('Al darle de alta, su suscripción se enlaza (sin abrir nada)', (await db.query(`select patient_id from memberships where woo_subscription_id = 9002`)).rows[0].patient_id === '99999999-9999-9999-9999-999999999999'
+    && (await db.query(`select count(*)::int n from patient_modules where patient_id = '99999999-9999-9999-9999-999999999999'`)).rows[0].n === 0);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
