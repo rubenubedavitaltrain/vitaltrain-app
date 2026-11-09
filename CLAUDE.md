@@ -139,7 +139,7 @@ Coach (ordenador):
 | Frontend | React + Vite + TypeScript + Tailwind + shadcn/ui. Web estática (SPA), sin servidor propio |
 | Hosting | Cloudflare Pages (gratis, uso comercial permitido). Enlace de prueba por cada cambio |
 | Backend | Supabase: Postgres, Auth, Realtime, Storage y Edge Functions (webhook WooCommerce, push, IA). Región UE (Frankfurt) |
-| Entornos | `vitaltrain-dev` (Supabase Free, datos inventados) y `vitaltrain-prod` (Supabase Pro). Nunca desarrollar contra producción |
+| Entornos | `vitaltrain-dev` (Supabase Free, datos inventados, ref `jlcrmozctsvgnousstbu`) y `vitaltrain-prod` (Supabase Pro, organización propia, ref `idzbwtlnhlkxcnhfvxcp`). Nunca desarrollar contra producción. vitaltrain-app.pages.dev usa prod; los enlaces de prueba de cada cambio usan dev |
 | Login | Código de 6 dígitos por email (OTP). No enlace mágico: en iOS abre Safari y no la PWA instalada. Solo el coach da de alta pacientes |
 | Email | Mailgun como SMTP propio de Supabase. Dominio vitaltrain.com, ya en la región UE (smtp.eu.mailgun.org). Remitente propio para la app: acceso@vitaltrain.com |
 | Calidad | Pruebas de seguridad de datos (RLS) y de pantallas en GitHub Actions. Un cambio no se publica si fallan |
@@ -273,7 +273,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 21 (hecha en local): avisos push y email, recordatorio de entrenamiento, descarga de datos. Migración 0019 y función `avisos` en dev (9 nov 2026). Verify JWT desactivado y 4 secretos puestos por Rubén; email de respaldo probado (9 nov 2026). Falta probar el push en iPhone instalado
 - [ ] Tarea 22 (hecha en local): cuestionarios. rMEQ con cronotipo y check-in semanal con gráficas en la ficha y medias en el resumen mensual. Migración 0020 aplicada (9 nov 2026)
 - [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
-- [ ] Producción: guía en `docs/PRODUCCION.md` (qué hace Rubén, qué hago yo, requisitos legales, piloto, baja de Harbiz) y `supabase/manual/coach_inicial.sql` (9 nov 2026). Falta que Rubén cree `vitaltrain-prod`
+- [ ] Producción (9 nov 2026): organización Supabase «Vitaltrain Producción» (Pro) con el proyecto `vitaltrain-prod` (ref `idzbwtlnhlkxcnhfvxcp`, Frankfurt, Micro). Hecho: migraciones 0001-0021, altas libres desactivadas, código de 6 dígitos y 15 min, plantilla del email, SMTP Mailgun (contraseña puesta por Rubén), funciones `alta-paciente` y `avisos` con Verify JWT desactivado, cuenta de coach `ruben.ubeda@vitaltrain.com`. Cloudflare `vitaltrain-app`: «Production» apunta a prod y «Preview» a dev. DPA de Supabase incluido en sus condiciones (no se firma aparte). Doble factor activado en la cuenta de Supabase de Rubén. Avisos en prod: claves VAPID y del reloj generadas desde la app, 5 secretos puestos por Rubén (MAILGUN_API_KEY con una clave de envío propia «App Vitaltrain avisos producción»), reloj cada 15 min activo y probado (respuesta 200). Contraseña SMTP de acceso@vitaltrain.com cambiada en Mailgun el 9 nov y puesta en prod y dev; Rubén entró como coach en prod. Falta: doble factor del coach en prod, prueba con un paciente de prueba, DPA de Cloudflare y Mailgun, revisión del asesor
 - [ ] Tarea 24: respiración guiada (0.18.0) y consentimiento 1.3-borrador. Migración 0021 aplicada (9 nov 2026)
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
