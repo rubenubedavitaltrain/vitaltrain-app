@@ -88,3 +88,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Regla general: la app y Claude no hacen nada que borre o cambie datos sin aviso y autorización previa de Rubén | Decisión de Rubén |
 | 2026-11-09 | WooCommerce avisa a la app, pero los módulos solo se abren o cierran cuando Rubén aplica la propuesta; nunca se crean cuentas solas | Regla de Rubén: nada sin su autorización |
 | 2026-11-09 | Del aviso de WooCommerce solo se guarda id, estado, email, producto y fechas | Minimización: no hacen falta datos de pago ni direcciones |
+| 2026-11-09 | Plan «Entrenamiento personal» = producto WooCommerce 5726 (Entrenamiento online): abre entrenamiento, ritmos circadianos y mensajes | Planes de acceso decididos por Rubén |
