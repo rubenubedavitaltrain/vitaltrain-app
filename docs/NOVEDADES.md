@@ -2,6 +2,13 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · La app instalada se actualiza sola (versión 0.17.1)
+- Problema: en Safari se veía la versión nueva, pero la app de la pantalla de inicio seguía en la antigua. En iPhone esa app casi nunca se abre de cero: vuelve de segundo plano, y solo buscaba versión nueva al abrirse de cero.
+- Ahora busca versión nueva también cada vez que vuelve a primer plano y cada 30 minutos. Si la hay, se instala y la app se recarga sola.
+- Nunca se recarga con un entrenamiento abierto: espera a que se cierre.
+- En Perfil, abajo, botón **Buscar actualización**: dice si tienes la última o si hay una nueva.
+- Cómo probarlo: esta vez, cierra la app del todo una vez (desliza hacia arriba desde la barra inferior y quítala de la lista de apps abiertas) y ábrela; abajo en Perfil debe poner 0.17.1. Desde esta versión, las siguientes llegarán solas.
+
 ## 2026-11-09 · Cuestionarios: cronotipo y check-in semanal (versión 0.17.0)
 - Módulo nuevo **Cuestionarios**. Se activa por paciente en su ficha, «Qué ve en su app».
 - **Coach, ficha del paciente → Cuestionarios**: marcas qué tiene que responder.

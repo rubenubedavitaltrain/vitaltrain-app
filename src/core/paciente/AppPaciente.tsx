@@ -12,6 +12,7 @@ import { MisResumenes } from '../resumen/Resumen';
 import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
 import { TarjetaCuestionarios } from '../../modules/cuestionarios/Cuestionarios';
+import { buscarAhora, pausarActualizacion } from '../actualizar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
@@ -30,6 +31,8 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
   usarCuenta(userId);
   const [pestaña, setPestaña] = useState<Pestaña>(() => (new URLSearchParams(location.search).get('pestana') === 'mensajes' ? 'mensajes' : 'hoy'));
   const [abierta, setAbierta] = useState<string | null>(null);
+  // Con un entrenamiento abierto no se recarga la app para actualizarla
+  useEffect(() => { pausarActualizacion(!!abierta); }, [abierta]);
   const [ritmo, setRitmo] = useState(false);
   const [pilaresHabitos, setPilaresHabitos] = useState<string[]>([]);
   const [pilares, setPilares] = useState<Pilar[]>(() => leer('vt.pilares') ?? []);
@@ -188,10 +191,26 @@ function Perfil({ supabase, pacienteId, conEntreno, nombre, email, consentimient
         >
           Cerrar sesión
         </button>
+        <BuscarVersion />
         <p className="text-center text-xs text-texto-suave mt-2">
           Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433 · Versión {__APP_VERSION__}
         </p>
       </div>
+    </div>
+  );
+}
+
+function BuscarVersion() {
+  const [estado, setEstado] = useState('');
+  async function buscar() {
+    setEstado('Buscando…');
+    const r = await buscarAhora();
+    setEstado(r === true ? 'Hay una versión nueva. La app se recargará en unos segundos.' : r === false ? `Tienes la última versión (${__APP_VERSION__}).` : 'No se ha podido comprobar. Mira si tienes conexión.');
+  }
+  return (
+    <div className="text-center">
+      <button onClick={buscar} className="text-sm font-semibold text-petroleo py-2">Buscar actualización</button>
+      {estado && <p role="status" className="text-xs text-texto-suave">{estado}</p>}
     </div>
   );
 }

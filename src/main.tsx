@@ -3,11 +3,10 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import Fallo from './core/Fallo';
-import { registerSW } from 'virtual:pwa-register';
+import { iniciarActualizacion } from './core/actualizar';
 
-// Al abrir la app se comprueba si hay versión nueva. Si la hay, se instala y la página se recarga sola,
-// así nadie se queda con una versión antigua guardada en el móvil.
-registerSW({ immediate: true });
+// Busca versión nueva al abrir, al volver a primer plano y cada 30 minutos (ver core/actualizar.ts).
+iniciarActualizacion();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
