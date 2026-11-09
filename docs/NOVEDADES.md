@@ -2,6 +2,19 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Avisos en el móvil y por email (versión 0.16.0)
+- **Paciente, Perfil → Avisos**: «Activar avisos en este móvil», avisos de mensajes de Rubén (si no tiene avisos en el móvil, le llega un email) y **recordatorio de entrenamiento** a la hora que elija, solo los días que tiene sesión y no la ha hecho.
+- **Coach, Ajustes**: activar avisos en tu ordenador o móvil (te avisa cuando un paciente escribe; si no, te llega un email) y **Claves de los avisos** (se configuran una vez).
+- Los avisos nunca llevan el texto del mensaje: solo «Tienes un mensaje nuevo». Pasan por servidores de Apple y Google.
+- En iPhone los avisos solo funcionan con la app instalada en la pantalla de inicio (iOS 16.4 o posterior). La app lo explica.
+- Tocar un aviso de mensaje abre la app en la pestaña Mensajes.
+- Por dentro: migración 0019 (ajustes de avisos, dispositivos, registro de avisos enviados), función de servidor `avisos` desplegada en `vitaltrain-dev` y un reloj que cada 15 minutos lanza los recordatorios (`supabase/manual/reloj_avisos.sql`, aplicado).
+- **Lo que falta, de Rubén** (10 minutos):
+  1. En Supabase → Edge Functions → avisos → Settings, desactivar «Verify JWT with legacy secret» y guardar (como en alta-paciente).
+  2. En la app, Ajustes → «Generar claves». Copiar los tres secretos y pegarlos en Supabase → Edge Functions → Secrets.
+  3. Añadir allí `MAILGUN_API_KEY` con la clave de envío de Mailgun.
+- Cómo probarlo: en el móvil del paciente de prueba, Perfil → «Activar avisos en este móvil». Desde tu panel, escríbele un mensaje: le debe llegar el aviso.
+
 ## 2026-11-09 · Vitamina D en el panel solar (versión 0.15.2)
 - En Mi ritmo, bajo las ventanas UVA y UVB, un bloque **Vitamina D**: la ventana del día y cuánto dura, el índice UV máximo estimado con cielo despejado, cuántos días quedan con ventana (o cuándo vuelve) y una gráfica del año con las horas de ventana de cada mes en su ciudad. Así se ve de un vistazo en qué meses no se fabrica vitamina D.
 - Para Llíria hoy: 11:20 a 14:14 (2 h 55), UV 3 con cielo despejado, 15 días con ventana; desde el 24 de noviembre no hay ventana hasta finales de enero.

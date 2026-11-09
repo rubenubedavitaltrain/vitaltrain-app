@@ -65,3 +65,7 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Nada clínico se borra: versiones de la ficha, consultas cerradas con adendas, documentos borrables solo 24 h, paciente con historia no eliminable | Ley 41/2002: conservación mínima de 5 años e integridad de la historia |
 | 2026-11-09 | Registro de accesos inalterable, escrito por la base de datos | Trazabilidad de quién ve y cambia cada historia |
 | 2026-11-09 | Importación desde OneDrive solo a `vitaltrain-prod`, paciente a paciente y validada por Rubén | Nunca datos reales en desarrollo. OneDrive personal no tiene garantías de empresa del RGPD |
+| 2026-11-09 | Avisos con web push estándar (VAPID) desde una función de Supabase, sin servicios de terceros | Funciona en Android, ordenador e iPhone con la app instalada. Sin Firebase ni OneSignal: menos encargados del tratamiento |
+| 2026-11-09 | Los avisos no llevan el contenido del mensaje | Pasan por servidores de Apple y Google. Datos de salud fuera de ellos |
+| 2026-11-09 | Email de respaldo de mensajes, como mucho uno cada 30 minutos por conversación | Que nadie se pierda un mensaje sin llenarle el correo |
+| 2026-11-09 | Las claves de los avisos se generan en el navegador de Rubén y él las pega en los secretos de Supabase | La clave privada no pasa por el chat ni se guarda en la app |

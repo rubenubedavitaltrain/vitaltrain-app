@@ -179,7 +179,9 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0017_resumen_mensual.sql`: `monthly_reviews` (mes, conclusiones, objetivos, foto fija `snapshot`, `shared_at`). Aplicada el 9 nov 2026.
 - `supabase/migrations/0018_historia_clinica.sql`: historia clínica. `clinical_records` (+ `clinical_record_versions`), `consultations` (borrador/cerrada) y `consultation_addenda`, `clinical_documents` + bucket privado `historia` (PDF, imagen, Word; 50 MB), `access_log`, `is_coach_mfa()`, `registrar_acceso()`. Aplicada el 9 nov 2026.
 - Código: `src/core/documentos/`, `src/core/resumen/` y `src/core/historia/` (`DobleFactor.tsx`, `Historia.tsx` con línea de tiempo, consultas, ficha, documentos clínicos y registro de accesos).
-- Pendiente: `patient_settings` con hora del recordatorio y avisos activos; exportación de la historia para el derecho de acceso.
+- `supabase/migrations/0019_avisos.sql`: `patient_settings` gana `reminder_enabled`, `reminder_time`, `notify_messages`; `app_settings` (solo la clave pública VAPID), `notification_log` (avisos enviados, sin repetir), `guardar_suscripcion()` y `guardar_secreto_avisos()` (Vault). Aplicada el 9 nov 2026. `supabase/manual/reloj_avisos.sql`: pg_cron cada 15 min → función `avisos` (aplicado en dev).
+- `supabase/functions/avisos`: web push (npm:web-push) y email de respaldo por la API de Mailgun (región UE). Secretos: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, CRON_SECRET, MAILGUN_API_KEY (y APP_URL en producción). Desplegada en dev el 9 nov 2026; «Verify JWT» debe ir desactivado.
+- Código: `src/core/avisos/` y `public/push-sw.js` (cargado por el service worker).
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -249,7 +251,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 18 (hecha en local): documentos por pilar. Migración 0016 aplicada (9 nov 2026)
 - [ ] Tarea 19 (hecha en local): resumen mensual con conclusiones, compartir y PDF. Migración 0017 aplicada (9 nov 2026)
 - [ ] Tarea 20 (hecha en local): historia clínica / CRM (fases A y B): consultas, ficha clínica, documentos clínicos, línea de tiempo, registro de accesos, doble factor, alta «solo historia». Migración 0018 aplicada y probada por Rubén con doble factor en vitaltrain-prueba 0.15.1 (9 nov 2026). Falta: `vitaltrain-prod`, importación desde OneDrive, exportación para el paciente
-- [ ] Fase 1: las 17 funciones de la sección 3. Quedan: perfil (recordatorio, avisos push o email de mensajes y descarga de datos)
+- [ ] Tarea 21 (hecha en local): avisos push y email, recordatorio de entrenamiento, descarga de datos. Migración 0019 y función `avisos` en dev (9 nov 2026). Falta que Rubén desactive Verify JWT y ponga los 4 secretos
+- [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos
