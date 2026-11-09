@@ -2,6 +2,11 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · La app se actualiza sola (versión 0.13.1)
+- Hasta ahora, al abrir la app tras subir una versión nueva, el móvil o el navegador seguían enseñando la anterior, guardada en el dispositivo. A Rubén le salía la 0.7.0 con la 0.13.0 ya publicada.
+- Ahora, al abrir la app, comprueba si hay versión nueva y, si la hay, se recarga sola en uno o dos segundos.
+- Cómo probarlo: sube este zip, abre la app en el móvil y mira abajo del todo: «Versión 0.13.1». La primera vez puede hacer falta cerrarla y abrirla; desde la siguiente versión ya será automático.
+
 ## 2026-11-08 · Tareas 16 y 17: ritmos circadianos y hábitos por pilar (versión 0.13.0)
 Estos dos módulos se activan **por paciente**. En su ficha hay una sección nueva, **«Qué ve en su app»**, con una casilla por módulo: Entrenamiento, Mensajes, Ritmos circadianos y Hábitos. Quitar uno no borra sus datos.
 

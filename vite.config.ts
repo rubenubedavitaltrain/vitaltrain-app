@@ -10,6 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false, // se registra en main.tsx para recargar en cuanto hay versión nueva
       includeAssets: ['apple-touch-icon.png', 'favicon.png'],
       manifest: {
         name: 'Vitaltrain',
