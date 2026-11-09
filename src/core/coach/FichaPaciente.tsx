@@ -7,6 +7,7 @@ import ProgramaPaciente from '../../modules/entrenamiento/ficha/ProgramaPaciente
 import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Medidas from '../medidas/Medidas';
 import { DocumentosCoach } from '../documentos/Documentos';
+import { ResumenCoach } from '../resumen/Resumen';
 import ModulosPaciente, { useModulosPaciente } from './ModulosPaciente';
 import { RitmoCoach } from '../../modules/circadiano/Ritmo';
 import HabitosCoach from '../../modules/habitos/HabitosCoach';
@@ -60,6 +61,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         <Progreso key={`p${version}`} supabase={supabase} pacienteId={paciente.id} ancho />
         <div className="grid lg:grid-cols-2 gap-4"><Medidas supabase={supabase} pacienteId={paciente.id} esCoach /></div>
       </section>
+      <ResumenCoach supabase={supabase} pacienteId={paciente.id} nombre={paciente.full_name} />
       <DocumentosCoach supabase={supabase} pacienteId={paciente.id} nombre={paciente.full_name.split(' ')[0]} />
       {tiene('habits') && <HabitosCoach supabase={supabase} pacienteId={paciente.id} nombre={paciente.full_name.split(' ')[0]} />}
       {tiene('circadian') && <RitmoCoach supabase={supabase} pacienteId={paciente.id} />}

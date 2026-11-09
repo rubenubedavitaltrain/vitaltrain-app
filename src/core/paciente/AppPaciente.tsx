@@ -7,6 +7,7 @@ import Medidas from '../medidas/Medidas';
 import Conversacion, { contarNoLeidos } from '../mensajes/Conversacion';
 import Instalar from '../Instalar';
 import { MisDocumentos } from '../documentos/Documentos';
+import { MisResumenes } from '../resumen/Resumen';
 import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
@@ -130,7 +131,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
               <h1 className="text-2xl font-bold">Mi progreso</h1>
               <p className="text-[#E3E8E8] text-sm mt-1">Lo que has hecho, semana a semana.</p>
             </header>
-            <div className="p-4 flex flex-col gap-4"><Progreso supabase={supabase} pacienteId={userId} />{modulos.includes('habits') && <Constancia supabase={supabase} pacienteId={userId} />}<Medidas supabase={supabase} pacienteId={userId} /></div>
+            <div className="p-4 flex flex-col gap-4"><Progreso supabase={supabase} pacienteId={userId} />{modulos.includes('habits') && <Constancia supabase={supabase} pacienteId={userId} />}<MisResumenes supabase={supabase} pacienteId={userId} /><Medidas supabase={supabase} pacienteId={userId} /></div>
           </div>
         )}
         {pestaña === 'perfil' && <Perfil supabase={supabase} pacienteId={userId} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}

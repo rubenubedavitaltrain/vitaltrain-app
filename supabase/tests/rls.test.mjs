@@ -346,6 +346,19 @@ check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settin
   await db.exec(`reset role; insert into consents (patient_id, version) values ('${p1}', 'prueba')`);
 }
 
+// 0017: resumen mensual
+{
+  check('El coach guarda un resumen', !(await as(coach, `insert into monthly_reviews (patient_id, month, conclusions, snapshot) values ('${p1}', date_trunc('month', current_date)::date, 'Buen mes', '{"a":1}')`)).error);
+  check('El mes debe ser día 1', !!(await as(coach, `insert into monthly_reviews (patient_id, month) values ('${p1}', '2026-10-15')`)).error);
+  check('Un solo resumen por paciente y mes', !!(await as(coach, `insert into monthly_reviews (patient_id, month) values ('${p1}', date_trunc('month', current_date)::date)`)).error);
+  check('Sin compartir, el paciente no lo ve', (await as(p1, 'select count(*)::int n from monthly_reviews')).rows[0].n === 0);
+  await as(coach, `update monthly_reviews set shared_at = now() where patient_id = '${p1}'`);
+  check('Compartido, el paciente lo ve', (await as(p1, 'select count(*)::int n from monthly_reviews')).rows[0].n === 1);
+  check('Otro paciente no lo ve', (await as(p2, 'select count(*)::int n from monthly_reviews')).rows[0].n === 0);
+  check('El paciente no puede cambiar las conclusiones', (await as(p1, `update monthly_reviews set conclusions = 'x' returning id`)).rows?.length !== 1);
+  check('El paciente no puede crear resúmenes', !!(await as(p1, `insert into monthly_reviews (patient_id, month) values ('${p1}', '2026-01-01')`)).error);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

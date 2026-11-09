@@ -30,3 +30,14 @@ body {
 }
 #root { background: var(--color-fondo); }
 :focus-visible { outline: 3px solid var(--color-mostaza); outline-offset: 2px; }
+
+/* PDF del resumen mensual: al imprimir solo sale el bloque #imprimir, en blanco y sin menús */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body, #root { background: #fff !important; height: auto; }
+  body * { visibility: hidden; }
+  #imprimir, #imprimir * { visibility: visible; }
+  #imprimir { position: absolute; left: 0; top: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .no-print { display: none !important; }
+  [role="dialog"] { position: static !important; overflow: visible !important; }
+}
