@@ -2,6 +2,17 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Módulo «Sol y vitamina D» y ubicación actual (versión 0.21.0)
+- **Módulo nuevo «Sol y vitamina D»** (pilar Contacto con la naturaleza), para el plan gratuito y los pacientes de consulta. Se activa por paciente en «Qué ve en su app».
+  - **Paciente, Hoy**: tarjeta con amanecer, ventana de vitamina D y atardecer. «Ver más» abre el panel solar completo: altura del sol, ventanas UVA y UVB, vitamina D y su año.
+  - No registra nada: todo se calcula en el móvil. Si el paciente tiene también ritmos circadianos, no sale repetido.
+- **Usar mi ubicación actual** (en el sol y en ritmos circadianos): calcula el sol con la posición real del móvil.
+  - La ubicación se queda **solo en ese móvil**, redondeada a unos 1 km. No se envía ni se guarda en el servidor y se borra al cerrar sesión.
+  - Si elige una ciudad, deja de usarse la ubicación.
+  - Cambio de seguridad: la app ya puede pedir la ubicación, pero solo para sí misma. Ninguna web externa puede.
+- Por dentro: lo común (cálculo solar, ciudades, panel y selector) pasa al núcleo (`src/core/sol/`). Migración 0025, aplicada en `vitaltrain-dev`.
+- Cómo probarlo: en el enlace de prueba, activa «Sol y vitamina D» a un paciente de prueba. En el móvil: Hoy → Ver más → Elegir dónde estoy → «Usar mi ubicación actual» y acepta el permiso.
+
 ## 2026-11-09 · Suscripciones de WooCommerce, con tu aprobación (versión 0.20.0)
 - WooCommerce avisa a la app cuando alguien paga, renueva, pausa o cancela. **La app no cambia nada sola.**
 - **Coach, Inicio → «Suscripciones: cambios por revisar»**: qué propone abrir o cerrar a cada paciente según su plan, con un botón «Aplicar» que pide confirmación. También quién ha pagado y aún no tiene cuenta.

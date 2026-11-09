@@ -14,6 +14,7 @@ import { RitmoCoach } from '../../modules/circadiano/Ritmo';
 import HabitosCoach from '../../modules/habitos/HabitosCoach';
 import CuestionariosCoach from '../../modules/cuestionarios/CuestionariosCoach';
 import RespiracionCoach from '../../modules/respiracion/RespiracionCoach';
+import { SolCoach } from '../../modules/sol/Sol';
 
 // Ficha del paciente (núcleo). Cada módulo activo aporta su sección.
 
@@ -80,6 +81,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
       {tiene('circadian') && <RitmoCoach supabase={supabase} pacienteId={paciente.id} />}
       {tiene('questionnaires') && <CuestionariosCoach supabase={supabase} pacienteId={paciente.id} />}
       {tiene('breathing') && <RespiracionCoach supabase={supabase} pacienteId={paciente.id} />}
+      {tiene('sun') && !tiene('circadian') && <SolCoach supabase={supabase} pacienteId={paciente.id} />}
       <ModulosPaciente supabase={supabase} pacienteId={paciente.id} disponibles={modulos.disponibles} activos={modulos.activos} onCambio={modulos.recargar} />
       </>}
       <div className="grid lg:grid-cols-2 gap-4">

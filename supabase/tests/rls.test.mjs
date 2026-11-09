@@ -540,6 +540,15 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
     && (await db.query(`select count(*)::int n from patient_modules where patient_id = '99999999-9999-9999-9999-999999999999'`)).rows[0].n === 0);
 }
 
+// 0025: módulo «sol»
+{
+  check('El módulo sol existe y está disponible', (await db.query(`select is_available from modules where slug = 'sun'`)).rows[0]?.is_available === true);
+  check('Un paciente no puede activarse el módulo sol', !!(await as(p2, `insert into patient_modules (patient_id, module_slug) values ('${p2}', 'sun')`)).error);
+  check('El coach se lo activa', !(await as(coach, `insert into patient_modules (patient_id, module_slug) values ('${p2}', 'sun') on conflict do nothing`)).error);
+  check('Con el módulo, elige su ciudad', !(await as(p2, `insert into patient_settings (patient_id, city, latitude, longitude) values ('${p2}', 'Valencia', 39.47, -0.38) on conflict (patient_id) do update set city = 'Valencia', latitude = 39.47, longitude = -0.38`)).error);
+  check('Otro paciente no ve su ciudad', (await as(p1, `select count(*)::int n from patient_settings where patient_id = '${p2}'`)).rows[0].n === 0);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
