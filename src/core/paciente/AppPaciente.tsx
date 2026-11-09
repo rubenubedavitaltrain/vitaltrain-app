@@ -11,6 +11,7 @@ import { AvisosPaciente } from '../avisos/Avisos';
 import { MisResumenes } from '../resumen/Resumen';
 import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
+import { TarjetaCuestionarios } from '../../modules/cuestionarios/Cuestionarios';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
 
@@ -92,6 +93,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
                 </div>
               )}
               {modulos.includes('training') && <TarjetaHoy supabase={supabase} onAbrir={setAbierta} />}
+              {modulos.includes('questionnaires') && <TarjetaCuestionarios supabase={supabase} pacienteId={userId} />}
               {modulos.includes('habits') && <TarjetaHabitos supabase={supabase} pacienteId={userId} onPilares={setPilaresHabitos} />}
               {modulos.includes('circadian') && <TarjetaRitmo supabase={supabase} pacienteId={userId} onAbrir={() => setRitmo(true)} />}
               {pilares.length > 0 && (

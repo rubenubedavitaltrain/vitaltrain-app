@@ -69,3 +69,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Los avisos no llevan el contenido del mensaje | Pasan por servidores de Apple y Google. Datos de salud fuera de ellos |
 | 2026-11-09 | Email de respaldo de mensajes, como mucho uno cada 30 minutos por conversación | Que nadie se pierda un mensaje sin llenarle el correo |
 | 2026-11-09 | Las claves de los avisos se generan en el navegador de Rubén y él las pega en los secretos de Supabase | La clave privada no pasa por el chat ni se guarda en la app |
+| 2026-11-09 | Cuestionarios: rMEQ (una vez) y check-in semanal de 5 escalas 1-5, puntuación calculada en la base de datos | La puntuación no se puede alterar desde el móvil; el cronotipo queda en los ajustes del paciente para usarlo en el módulo circadiano; la app solo muestra la puntuación publicada, sin interpretar |

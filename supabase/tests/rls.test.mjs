@@ -418,6 +418,31 @@ check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settin
   check('Un paciente no puede guardar el secreto de avisos', !!(await as(p1, `select guardar_secreto_avisos('${'x'.repeat(40)}')`)).error);
 }
 
+// 0020: cuestionarios
+{
+  const rmeq = (await db.query(`select id from questionnaires where slug = 'rmeq'`)).rows[0].id;
+  const chk = (await db.query(`select id from questionnaires where slug = 'checkin-semanal'`)).rows[0].id;
+  check('El paciente no puede asignarse cuestionarios', !!(await as(p1, `insert into questionnaire_assignments (questionnaire_id, patient_id) values ('${rmeq}', '${p1}')`)).error);
+  const a1 = (await as(coach, `insert into questionnaire_assignments (questionnaire_id, patient_id) values ('${rmeq}', '${p1}') returning id`)).rows[0].id;
+  const a2 = (await as(coach, `insert into questionnaire_assignments (questionnaire_id, patient_id, recurrence) values ('${chk}', '${p1}', 'weekly') returning id`)).rows[0].id;
+  check('Sin el módulo no ve sus cuestionarios', (await as(p1, 'select count(*)::int n from questionnaire_assignments')).rows[0].n === 0);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p1}', 'questionnaires')`);
+  check('Con el módulo ve sus cuestionarios y sus preguntas', (await as(p1, 'select count(*)::int n from questionnaire_assignments')).rows[0].n === 2 && (await as(p1, 'select count(*)::int n from questionnaires')).rows[0].n === 2);
+  check('Otro paciente no ve las preguntas', (await as(p2, 'select count(*)::int n from questionnaires')).rows[0].n === 0);
+  check('Faltan respuestas: se rechaza', !!(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a1}', '${rmeq}', 1, '${p1}', 'x', '{"q1": 5}')`)).error);
+  check('Opción inexistente: se rechaza', !!(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a1}', '${rmeq}', 1, '${p1}', 'x', '{"q1": 9, "q2": 4, "q3": 5, "q4": 5, "q5": 6}')`)).error);
+  check('Responde el rMEQ', !(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers, score) values ('${a1}', '${rmeq}', 1, '${p1}', 'x', '{"q1": 5, "q2": 4, "q3": 4, "q4": 5, "q5": 4}', 99)`)).error);
+  check('La puntuación la calcula la base de datos', (await as(coach, `select score from questionnaire_responses where assignment_id = '${a1}'`)).rows[0].score == 22);
+  check('Y guarda el cronotipo', (await as(coach, `select chronotype from patient_settings where patient_id = '${p1}'`)).rows[0].chronotype === 'definitely_morning');
+  check('No se responde dos veces el mismo cuestionario único', !!(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a1}', '${rmeq}', 1, '${p1}', 'x', '{"q1": 1, "q2": 1, "q3": 1, "q4": 1, "q5": 0}')`)).error);
+  check('No puede cambiar lo enviado', (await as(p1, `update questionnaire_responses set score = 1 returning id`)).rows?.length !== 1);
+  check('Check-in semanal con escala fuera de rango: se rechaza', !!(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a2}', '${chk}', 1, '${p1}', 'x', '{"sueno": 7, "energia": 3, "digestion": 3, "estres": 2, "dolor": 1}')`)).error);
+  check('Responde el check-in de esta semana', !(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a2}', '${chk}', 1, '${p1}', 'x', '{"sueno": 4, "energia": 3, "digestion": 3, "estres": 2, "dolor": 1, "nota": "Bien"}')`)).error);
+  check('Solo un check-in por semana', !!(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a2}', '${chk}', 1, '${p1}', 'x', '{"sueno": 4, "energia": 3, "digestion": 3, "estres": 2, "dolor": 1}')`)).error);
+  check('No responde en nombre de otro paciente', !!(await as(p2, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${a2}', '${chk}', 1, '${p1}', 'x', '{"sueno": 4, "energia": 3, "digestion": 3, "estres": 2, "dolor": 1}')`)).error);
+  check('Otro paciente no ve las respuestas', (await as(p2, 'select count(*)::int n from questionnaire_responses')).rows[0].n === 0);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

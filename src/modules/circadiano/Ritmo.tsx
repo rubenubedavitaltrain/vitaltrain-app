@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import PanelSolar from './PanelSolar';
 import { CIUDADES } from './ciudades';
-import { aHoras, cargarAjustes, cargarComidas, cargarNoches, guardarCiudad, resumenComidas, resumenSueno, type Ajustes, type Comida, type Noche } from './datos';
+import { aHoras, cargarAjustes, cargarComidas, cargarNoches, guardarCiudad, NOMBRE_CRONOTIPO, resumenComidas, resumenSueno, type Ajustes, type Comida, type Noche } from './datos';
 import { ComidasDelDia, Hoja, RegistroComida, RegistroSueno, nochePorDefecto } from './Registros';
 import { GraficaComidas, GraficaNoches } from './Graficas';
 import { diaSolar, horaMin } from './sol';
@@ -86,6 +86,7 @@ export function MiRitmo({ supabase, pacienteId, onSalir }: { supabase: SupabaseC
           <>
             <PanelSolar ciudad={ajustes.city ?? ''} lat={ajustes.latitude!} lon={ajustes.longitude!} />
             <button onClick={() => setHoja('ciudad')} className="self-start text-sm font-semibold text-petroleo -mt-2 px-1">Cambiar ciudad ({ajustes.city})</button>
+            {ajustes.chronotype && <p className="text-sm text-texto-suave px-1 -mt-2">Tu cronotipo: <b className="text-texto">{NOMBRE_CRONOTIPO[ajustes.chronotype]}</b>.</p>}
           </>
         )}
 
@@ -173,6 +174,7 @@ export function RitmoCoach({ supabase, pacienteId }: { supabase: SupabaseClient;
         <h3 id="ritmo-coach" className="text-lg font-bold">Ritmos circadianos</h3>
         <p className="text-sm text-texto-suave">
           {ajustes?.city ? `Ciudad: ${ajustes.city}` : 'Sin ciudad'} · <button onClick={() => setHoja('ciudad')} className="font-semibold text-petroleo">{ajustes?.city ? 'cambiar' : 'elegir'}</button>
+          {' · '}{ajustes?.chronotype ? `Cronotipo ${NOMBRE_CRONOTIPO[ajustes.chronotype]} (${ajustes.chronotype_score})` : 'Cronotipo sin medir'}
           {' · '}<button onClick={() => setHoja('sueno')} className="font-semibold text-petroleo">anotar una noche</button>
         </p>
       </div>

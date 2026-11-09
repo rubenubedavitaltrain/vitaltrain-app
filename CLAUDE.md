@@ -67,7 +67,7 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
 | Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0); «Mi día» con anclas y hábitos en su hora (0.15.0). Falta: recordatorios | 2 |
 | Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
-| Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta | 3 |
+| Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta. Hecho (0.17.0): rMEQ y check-in semanal. Falta: editor de cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
 | Respiración y regulación | Ejercicios guiados con temporizador | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
@@ -158,7 +158,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
   - `workouts` → `workout_blocks` → `workout_items` (copia al asignar), `set_logs`.
   - `checkins`, `messages`, `memberships`, `push_subscriptions`.
 - `supabase/migrations/0002_plataforma_modular.sql`: núcleo modular: `pillars`, `modules`, `patient_modules`, `patient_settings`.
-- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: diseño **no aplicado** de `questionnaires`, `questionnaire_assignments`, `questionnaire_responses` (hábitos y circadiano ya pasaron a 0014 y 0015). Cada parte se pasa a una migración nueva cuando se construya su módulo. La prueba de seguridad comprueba que el diseño sigue siendo válido.
+- `supabase/diseno/fase2_habitos_circadiano_cuestionarios.sql`: lo que queda del diseño de fase 2 (hábitos, circadiano y cuestionarios ya pasaron a 0014, 0015 y 0020). La prueba de seguridad comprueba que sigue siendo válido.
 
 - `supabase/migrations/0003_frases_pilares.sql`: frase de cada pilar.
 - `supabase/migrations/0004_biblioteca_ejercicios.sql`: duración del vídeo en `exercises`, un vídeo no puede repetirse, y carga de los 156 Shorts del canal (lista en `supabase/datos/ejercicios_youtube.json`). Los vídeos están como "Oculto" en YouTube: nunca ponerlos en "Privado" o dejarán de verse en la app.
@@ -182,6 +182,8 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0019_avisos.sql`: `patient_settings` gana `reminder_enabled`, `reminder_time`, `notify_messages`; `app_settings` (solo la clave pública VAPID), `notification_log` (avisos enviados, sin repetir), `guardar_suscripcion()` y `guardar_secreto_avisos()` (Vault). Aplicada el 9 nov 2026. `supabase/manual/reloj_avisos.sql`: pg_cron cada 15 min → función `avisos` (aplicado en dev).
 - `supabase/functions/avisos`: web push (npm:web-push) y email de respaldo por la API de Mailgun (región UE). Secretos: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, CRON_SECRET, MAILGUN_API_KEY (y APP_URL en producción). Desplegada en dev el 9 nov 2026; «Verify JWT» debe ir desactivado.
 - Código: `src/core/avisos/` y `public/push-sw.js` (cargado por el service worker).
+- `supabase/migrations/0020_cuestionarios.sql`: `questionnaires` (preguntas en JSON: single, scale, text; `scored`), `questionnaire_assignments` (una vez o `weekly`), `questionnaire_responses` (una por asignación y periodo: `unico` o semana ISO). Un disparador valida las respuestas, fija el periodo, calcula la puntuación y, en el rMEQ, guarda `chronotype` y `chronotype_score` en `patient_settings`. El paciente solo inserta, con el módulo `questionnaires`. Cuestionarios iniciales: `rmeq` y `checkin-semanal`. Aplicada el 9 nov 2026.
+- Código: `src/modules/cuestionarios/` (`datos.ts`, `Cuestionarios.tsx` con la tarjeta de Hoy y el formulario, `CuestionariosCoach.tsx`). El resumen mensual incluye las medias del check-in.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
 
@@ -252,6 +254,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 19 (hecha en local): resumen mensual con conclusiones, compartir y PDF. Migración 0017 aplicada (9 nov 2026)
 - [ ] Tarea 20 (hecha en local): historia clínica / CRM (fases A y B): consultas, ficha clínica, documentos clínicos, línea de tiempo, registro de accesos, doble factor, alta «solo historia». Migración 0018 aplicada y probada por Rubén con doble factor en vitaltrain-prueba 0.15.1 (9 nov 2026). Falta: `vitaltrain-prod`, importación desde OneDrive, exportación para el paciente
 - [ ] Tarea 21 (hecha en local): avisos push y email, recordatorio de entrenamiento, descarga de datos. Migración 0019 y función `avisos` en dev (9 nov 2026). Verify JWT desactivado y 4 secretos puestos por Rubén; email de respaldo probado (9 nov 2026). Falta probar el push en iPhone instalado
+- [ ] Tarea 22 (hecha en local): cuestionarios. rMEQ con cronotipo y check-in semanal con gráficas en la ficha y medias en el resumen mensual. Migración 0020 aplicada (9 nov 2026)
 - [ ] Fase 1: las 17 funciones de la sección 3 hechas en local. Falta probar los avisos con las claves puestas
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz

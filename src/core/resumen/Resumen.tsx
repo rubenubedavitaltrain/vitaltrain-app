@@ -209,7 +209,21 @@ export function VistaResumen({ foto, conclusiones, objetivos, editor }: {
         </Bloque>
       )}
 
-      {!e && !foto.medidas && !foto.sueno && !foto.habitos && <p className="text-texto-suave">No hay datos registrados en este mes.</p>}
+      {foto.checkin && (
+        <Bloque titulo="Cómo ha ido cada semana">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+            {([['Sueño', foto.checkin.sueno], ['Energía', foto.checkin.energia], ['Digestión', foto.checkin.digestion], ['Estrés', foto.checkin.estres], ['Dolor', foto.checkin.dolor]] as const).map(([t, v]) => (
+              <Cifra key={t} titulo={t} valor={v != null ? `${n1(v)} / 5` : '—'} />
+            ))}
+          </div>
+          <p className="text-xs text-texto-suave mt-2">Media de {foto.checkin.semanas} {foto.checkin.semanas === 1 ? 'respuesta' : 'respuestas'}. En estrés y dolor, más alto es peor.</p>
+          {foto.checkin.notas.length > 0 && (
+            <ul className="text-sm mt-2 flex flex-col gap-1">{foto.checkin.notas.map((x) => <li key={x.fecha}><span className="text-texto-suave">{fechaCorta(x.fecha)}:</span> {x.texto}</li>)}</ul>
+          )}
+        </Bloque>
+      )}
+
+      {!e && !foto.medidas && !foto.sueno && !foto.habitos && !foto.checkin && <p className="text-texto-suave">No hay datos registrados en este mes.</p>}
 
       <Bloque titulo="Conclusiones de Rubén">
         {editor

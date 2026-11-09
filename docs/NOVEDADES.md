@@ -2,6 +2,19 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Cuestionarios: cronotipo y check-in semanal (versión 0.17.0)
+- Módulo nuevo **Cuestionarios**. Se activa por paciente en su ficha, «Qué ve en su app».
+- **Coach, ficha del paciente → Cuestionarios**: marcas qué tiene que responder.
+  - **Tu cronotipo** (rMEQ, 5 preguntas, Adan y Almirall 1991): una vez. Al responder, la app calcula la puntuación (4-25) y guarda el cronotipo. Lo ves en la ficha y en Ritmos circadianos.
+  - **Tu semana** (check-in semanal): sueño, energía, digestión, estrés y dolor del 1 al 5, y una nota opcional. Le aparece cada semana en Hoy hasta que lo responde. Ves la evolución de cada escala en gráficas y sus notas.
+- **Paciente, Hoy**: tarjeta «Cuestionarios» con lo pendiente. Responde tocando opciones; no se envía si falta alguna. Tras el rMEQ ve su cronotipo con una frase de qué significa. En Mi ritmo aparece su cronotipo.
+- **Resumen mensual**: nuevo bloque «Cómo ha ido cada semana» con la media del mes de cada escala y las notas. Los resúmenes ya guardados no cambian.
+- **Descargar mis datos** incluye ahora los cuestionarios respondidos.
+- La app no interpreta ni recomienda nada a partir del cuestionario: solo calcula la puntuación publicada y te la muestra.
+- Por dentro: migración 0020 (cuestionarios, asignaciones y respuestas; la base de datos comprueba cada respuesta y calcula la puntuación; el paciente no puede cambiar lo enviado). Aplicada en `vitaltrain-dev`.
+- Cómo probarlo: sube el zip. En la ficha del paciente de prueba activa «Cuestionarios» en «Qué ve en su app» y marca los dos. En su móvil, Hoy → responde los dos. Vuelve a la ficha: verás el cronotipo y el primer punto de las gráficas.
+- Qué podría fallar: el check-in cuenta la semana de lunes a domingo; si lo responde el domingo por la noche, el lunes ya le pedirá el siguiente.
+
 ## 2026-11-09 · Avisos probados e instrucciones de instalación para iPhone nuevos (versión 0.16.1)
 - Rubén ha recibido el email de respaldo de un mensaje: los avisos por email funcionan.
 - Corregido en la función `avisos`: si un email no salía (por ejemplo, sin la clave de Mailgun), bloqueaba los siguientes durante 30 minutos. Ahora se reintenta con el siguiente mensaje.

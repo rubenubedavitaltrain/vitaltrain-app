@@ -2,7 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Datos del módulo de ritmos circadianos: ciudad del paciente, noches y comidas.
 
-export type Ajustes = { city: string | null; latitude: number | null; longitude: number | null; workdays: number[] };
+export type Ajustes = { city: string | null; latitude: number | null; longitude: number | null; workdays: number[]; chronotype: string | null; chronotype_score: number | null };
+
+/** Nombre del cronotipo guardado en patient_settings (lo rellena el cuestionario rMEQ). */
+export const NOMBRE_CRONOTIPO: Record<string, string> = {
+  definitely_morning: 'claramente matutino', moderately_morning: 'moderadamente matutino', intermediate: 'intermedio',
+  moderately_evening: 'moderadamente vespertino', definitely_evening: 'claramente vespertino',
+};
 export type Noche = {
   id: string; night_of: string; bedtime: string | null; wake_time: string | null;
   sleep_latency_minutes: number | null; awakenings: number | null; quality: number | null; rested: number | null;
@@ -14,9 +20,9 @@ export type TipoComida = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'other';
 export const TIPOS_COMIDA: Record<TipoComida, string> = { breakfast: 'Desayuno', lunch: 'Comida', dinner: 'Cena', snack: 'Algo entre horas', other: 'Otra' };
 
 export async function cargarAjustes(supabase: SupabaseClient, paciente: string): Promise<Ajustes> {
-  const { data } = await supabase.from('patient_settings').select('city, latitude, longitude, workdays').eq('patient_id', paciente).maybeSingle();
-  const d = data as { city: string | null; latitude: number | null; longitude: number | null; workdays: number[] | null } | null;
-  return { city: d?.city ?? null, latitude: d?.latitude == null ? null : Number(d.latitude), longitude: d?.longitude == null ? null : Number(d.longitude), workdays: d?.workdays ?? [1, 2, 3, 4, 5] };
+  const { data } = await supabase.from('patient_settings').select('city, latitude, longitude, workdays, chronotype, chronotype_score').eq('patient_id', paciente).maybeSingle();
+  const d = data as { city: string | null; latitude: number | null; longitude: number | null; workdays: number[] | null; chronotype: string | null; chronotype_score: number | null } | null;
+  return { city: d?.city ?? null, latitude: d?.latitude == null ? null : Number(d.latitude), longitude: d?.longitude == null ? null : Number(d.longitude), workdays: d?.workdays ?? [1, 2, 3, 4, 5], chronotype: d?.chronotype ?? null, chronotype_score: d?.chronotype_score ?? null };
 }
 
 export async function guardarCiudad(supabase: SupabaseClient, paciente: string, c: { nombre: string; lat: number; lon: number }) {

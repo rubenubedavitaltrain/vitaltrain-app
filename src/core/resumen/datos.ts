@@ -16,6 +16,8 @@ export type Foto = {
   medidas: { clave: 'peso' | 'cintura' | 'cadera'; unidad: string; inicio: number; fin: number; previo: number | null }[] | null;
   sueno: { noches: number; duracion: number | null; acostarse: string | null; levantarse: string | null; regularidad: number | null; jetLag: number | null; calidad: number | null; descanso: number | null; ventana: number | null; ultimaACama: number | null } | null;
   habitos: { nombre: string; pilar: string; pct: number; tocaban: number; hechos: number }[] | null;
+  /** Medias del check-in semanal del mes (1-5). Falta en resúmenes guardados antes de la 0.17. */
+  checkin?: { semanas: number; sueno: number | null; energia: number | null; digestion: number | null; estres: number | null; dolor: number | null; notas: { fecha: string; texto: string }[] } | null;
 };
 
 const MOTIVOS: Record<string, string> = { pain: 'Dolor o molestia', no_equipment: 'Sin material', dont_know: 'No sabe hacerlo', other: 'Otro motivo' };
@@ -31,7 +33,7 @@ export async function calcularFoto(supabase: SupabaseClient, pacienteId: string,
   const fin = finMes < hoyIso() ? finMes : hoyIso();
   const previoIni = iso(new Date(d.getFullYear(), d.getMonth() - 1, 1));
 
-  const [ws, series, fb, med, noches, comidas, logs] = await Promise.all([
+  const [ws, series, fb, med, noches, comidas, logs, chk] = await Promise.all([
     supabase.from('workouts').select('scheduled_date, name, status, rpe, feeling, patient_notes').eq('patient_id', pacienteId).gte('scheduled_date', ini).lte('scheduled_date', fin).order('scheduled_date'),
     supabase.from('set_logs').select('reps, load_kg, workout_items!inner(exercise_id, exercises(name), workout_blocks!inner(workouts!inner(scheduled_date)))')
       .eq('patient_id', pacienteId).eq('done', true).gt('load_kg', 0)
@@ -42,6 +44,8 @@ export async function calcularFoto(supabase: SupabaseClient, pacienteId: string,
     supabase.from('sleep_logs').select('id, night_of, bedtime, wake_time, sleep_latency_minutes, awakenings, quality, rested, is_free_day, note').eq('patient_id', pacienteId).gte('night_of', ini).lte('night_of', fin),
     supabase.from('meal_events').select('id, eaten_at, kind, note').eq('patient_id', pacienteId).gte('eaten_at', desdeIso(ini).toISOString()).lt('eaten_at', sumarDias(desdeIso(fin), 1).toISOString()).order('eaten_at'),
     supabase.from('habit_logs').select('id, patient_habit_id, log_date, done, value_numeric, value_time').eq('patient_id', pacienteId).gte('log_date', ini).lte('log_date', fin),
+    supabase.from('questionnaire_responses').select('answers, submitted_at, questionnaires!inner(slug)').eq('patient_id', pacienteId).eq('questionnaires.slug', 'checkin-semanal')
+      .gte('submitted_at', desdeIso(ini).toISOString()).lt('submitted_at', sumarDias(desdeIso(fin), 1).toISOString()).order('submitted_at'),
   ]);
 
   // Entrenamiento
@@ -110,5 +114,13 @@ export async function calcularFoto(supabase: SupabaseClient, pacienteId: string,
     habitos = lista.length ? lista : null;
   }
 
-  return { mes, generado: new Date().toISOString(), nombre, entrenamiento, medidas: medidas.length ? medidas : null, sueno, habitos };
+  // Check-in semanal
+  const resp = (chk.data as { answers: Record<string, number | string>; submitted_at: string }[] | null) ?? [];
+  const m5 = (k: string) => media(resp.map((r) => Number(r.answers[k])).filter((x) => x >= 1 && x <= 5));
+  const checkin: Foto['checkin'] = resp.length ? {
+    semanas: resp.length, sueno: m5('sueno'), energia: m5('energia'), digestion: m5('digestion'), estres: m5('estres'), dolor: m5('dolor'),
+    notas: resp.filter((r) => typeof r.answers.nota === 'string' && r.answers.nota).map((r) => ({ fecha: r.submitted_at.slice(0, 10), texto: String(r.answers.nota) })),
+  } : null;
+
+  return { mes, generado: new Date().toISOString(), nombre, entrenamiento, medidas: medidas.length ? medidas : null, sueno, habitos, checkin };
 }
