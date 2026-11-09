@@ -284,7 +284,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 27 (0.18.1): aceptación sencilla (frase + «Leer las condiciones» + «Acepto»), condiciones 1.4-borrador con bloqueo de 5 años propuesto, ficha del coach oculta los datos de la app si se retira el consentimiento. Aprobado por la asesora el 9 nov 2026 (versión 1.4, 0.18.2), igual que la EIPD breve del piloto y la entrada en el registro de actividades. Falta: revisar la cláusula del cuestionario de admisión (historia en la nube, Supabase como encargado)
 - [ ] Tarea 29 (0.19.0): copia de la historia clínica para el paciente, borrado a los 5 años solo con autorización de Rubén (migraciones 0022 y 0023), protocolo de privacidad en Claude Docs. 0022 y 0023 aplicadas en dev y en prod (prod ejecutado por Rubén el 9 nov 2026; comprobado sin borrado automático ni reloj)
 - [x] Doble factor del coach en prod y prueba completa con un paciente de prueba en prod: todo bien (9 nov 2026)
-- [ ] Tarea 31 (0.20.0): suscripciones de WooCommerce con aprobación del coach. Falta: aplicar 0024 en prod, secreto y función en prod, webhooks en WooCommerce, número del producto «Entrenamiento online»
+- [ ] Tarea 31 (0.20.0): suscripciones de WooCommerce con aprobación del coach. 0024 aplicada en dev. Falta: aplicar 0024 en prod, secreto y función en prod, webhooks en WooCommerce, número del producto «Entrenamiento online»
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

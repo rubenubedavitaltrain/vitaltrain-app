@@ -8,7 +8,7 @@ Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito pa
 - **Coach, Ajustes → «Planes de WooCommerce»**: qué módulos abre cada producto. Comunidad (13847) ya está: ritmos circadianos, hábitos y cuestionarios.
 - Cerrar un módulo no borra datos.
 - Solo se guarda el estado de la suscripción, el email, el producto y la fecha del próximo pago. Nada de pagos ni direcciones.
-- Por dentro: migración 0024 y función `woocommerce` (firma verificada con un secreto compartido). Guía: `docs/WOOCOMMERCE.md`.
+- Por dentro: migración 0024 (aplicada en `vitaltrain-dev`) y función `woocommerce` (firma verificada con un secreto compartido). Guía: `docs/WOOCOMMERCE.md`.
 - Cómo probarlo: en el enlace de prueba, Ajustes → Planes de WooCommerce: debe salir Comunidad con sus tres módulos marcados.
 
 ## 2026-11-09 · Doble factor desde Ajustes (versión 0.19.1)
