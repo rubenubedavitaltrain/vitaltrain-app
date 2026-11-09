@@ -19,9 +19,10 @@ export default function Instalar() {
       <h2 id="instalar" className="text-lg font-bold">Añádela a tu pantalla de inicio</h2>
       {esApple() ? (
         <ol className="list-decimal pl-5 text-base leading-relaxed">
-          <li>Abre esta página en Safari.</li>
-          <li>Pulsa el botón Compartir, abajo.</li>
-          <li>Elige «Añadir a pantalla de inicio».</li>
+          <li>Abre esta página en Safari (no desde el correo ni WhatsApp).</li>
+          <li>Toca la barra de la dirección, abajo, y luego los tres puntos (···). En iPhone más antiguos, el botón Compartir.</li>
+          <li>Toca «Compartir», baja y elige «Añadir a pantalla de inicio». Deja activado «Abrir como app web».</li>
+          <li>Abre la app desde el icono nuevo.</li>
         </ol>
       ) : (
         <ol className="list-decimal pl-5 text-base leading-relaxed">

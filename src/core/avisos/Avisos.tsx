@@ -23,7 +23,7 @@ export function AvisosDispositivo({ supabase, texto }: { supabase: SupabaseClien
         <button disabled={ocupado} onClick={async () => { setOcupado(true); setError(''); const e = await activarAvisos(supabase); setOcupado(false); if (e) setError(e); setEstado(await estadoAvisos()); }}
           className="bg-mostaza text-[#1F2424] font-bold py-3 rounded-xl disabled:opacity-60">{ocupado ? 'Activando…' : `Activar avisos ${texto}`}</button>
       )}
-      {estado === 'instalar-primero' && <p className="text-sm bg-fondo rounded-xl p-3">En iPhone, los avisos solo funcionan con la app instalada. Pulsa Compartir → «Añadir a pantalla de inicio», abre la app desde el icono y vuelve aquí.</p>}
+      {estado === 'instalar-primero' && <p className="text-sm bg-fondo rounded-xl p-3">En iPhone, los avisos solo funcionan con la app instalada. En Safari: tres puntos (···) → Compartir → «Añadir a pantalla de inicio». Abre la app desde el icono y vuelve aquí.</p>}
       {estado === 'bloqueado' && <p className="text-sm bg-fondo rounded-xl p-3">Los avisos están bloqueados para esta app. Actívalos en los ajustes del navegador o del móvil (Notificaciones) y vuelve aquí.</p>}
       {estado === 'no-soportado' && <p className="text-sm text-texto-suave">Este navegador no admite avisos. Te llegará un email cuando tengas un mensaje nuevo.</p>}
       {error && <p role="alert" className="text-sm font-semibold text-[#8A2C1D]">{error}</p>}

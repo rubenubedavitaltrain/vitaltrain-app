@@ -2,6 +2,11 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Avisos probados e instrucciones de instalación para iPhone nuevos (versión 0.16.1)
+- Rubén ha recibido el email de respaldo de un mensaje: los avisos por email funcionan.
+- Corregido en la función `avisos`: si un email no salía (por ejemplo, sin la clave de Mailgun), bloqueaba los siguientes durante 30 minutos. Ahora se reintenta con el siguiente mensaje.
+- Las instrucciones para instalar la app en iPhone explican el menú de tres puntos (···) de Safari en las versiones nuevas de iOS.
+
 ## 2026-11-09 · Avisos en el móvil y por email (versión 0.16.0)
 - **Paciente, Perfil → Avisos**: «Activar avisos en este móvil», avisos de mensajes de Rubén (si no tiene avisos en el móvil, le llega un email) y **recordatorio de entrenamiento** a la hora que elija, solo los días que tiene sesión y no la ha hecho.
 - **Coach, Ajustes**: activar avisos en tu ordenador o móvil (te avisa cuando un paciente escribe; si no, te llega un email) y **Claves de los avisos** (se configuran una vez).
