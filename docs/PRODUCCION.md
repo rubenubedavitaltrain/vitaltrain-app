@@ -26,6 +26,9 @@ Al hacer el cambio, tu perfil de prueba deja de entrar en vitaltrain-app.pages.d
 
 ## 2. Lo que hago yo, contigo mirando
 
+Hecho el 9 nov 2026: todo este apartado, salvo la comprobación final con un paciente de prueba.
+
+
 - Aplicar las migraciones 0001 a 0020 en orden y el reloj de avisos (`supabase/manual/reloj_avisos.sql`, con la dirección del proyecto nuevo).
 - Ajustes de acceso: altas libres desactivadas, código de 6 dígitos que caduca en 15 minutos, plantilla del email en español, Mailgun como servidor de correo (la contraseña SMTP la pegas tú), doble factor TOTP activado.
 - Desplegar las funciones `alta-paciente` y `avisos`, con «Verify JWT» desactivado (lo desactivas tú).
