@@ -2,6 +2,19 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Copia de la historia para el paciente y borrado a los cinco años (versión 0.19.0)
+- **Coach, historia clínica → «Copia para el paciente»**: documento legible con la ficha, las consultas cerradas con sus adendas y la lista de documentos clínicos. Botón «PDF» → «Guardar como PDF». Los borradores no salen. Queda anotado en el registro de accesos.
+  - Es lo que hay que entregar si un paciente pide su historia (tienes un mes).
+  - «Exportar datos» sigue ahí: es el archivo completo, más técnico.
+- **Borrado automático**: el día 1 de cada mes, la base de datos borra los datos de la app de quien se dio de baja o retiró el consentimiento hace más de cinco años.
+  - Nunca toca la historia clínica.
+  - Si el paciente no tiene historia ni documentos, borra también su cuenta.
+  - Cada borrado queda registrado, sin datos de salud.
+- **Fecha de baja**: al archivar un paciente se apunta la fecha sola. Si lo reactivas, se quita.
+- Por dentro: migración 0022 y reloj mensual (`supabase/manual/reloj_borrado.sql`). Hay que aplicarlos en `vitaltrain-dev` y en `vitaltrain-prod`.
+- **Protocolo de privacidad** (documento aparte): qué hacer si un paciente pide sus datos, si hay una brecha o si escribe la AEPD.
+- Cómo probarlo: en el enlace de prueba, abre la historia de un paciente de prueba → «Copia para el paciente» → «PDF».
+
 ## 2026-11-09 · Condiciones aprobadas (versión 0.18.2)
 - La asesora de protección de datos ha aprobado las condiciones. Pasan a la **versión 1.4** (sin «borrador»).
 - Quedan aprobados: el bloqueo de cinco años tras la baja, YouTube aceptado con el mismo botón y la pantalla sencilla de aceptación.
