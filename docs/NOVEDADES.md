@@ -6,12 +6,15 @@ Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito pa
 - **Coach, historia clínica → «Copia para el paciente»**: documento legible con la ficha, las consultas cerradas con sus adendas y la lista de documentos clínicos. Botón «PDF» → «Guardar como PDF». Los borradores no salen. Queda anotado en el registro de accesos.
   - Es lo que hay que entregar si un paciente pide su historia (tienes un mes).
   - «Exportar datos» sigue ahí: es el archivo completo, más técnico.
-- **Borrado automático**: el día 1 de cada mes, la base de datos borra los datos de la app de quien se dio de baja o retiró el consentimiento hace más de cinco años.
-  - Nunca toca la historia clínica.
-  - Si el paciente no tiene historia ni documentos, borra también su cuenta.
-  - Cada borrado queda registrado, sin datos de salud.
+- **Borrado solo con tu autorización**: la app nunca borra sola. Cuando alguien lleve más de cinco años de baja o con el consentimiento retirado, aparece en tu Inicio, en «Datos bloqueados hace más de cinco años». Solo se borra si pulsas «Revisar y borrar» y lo confirmas, paciente por paciente.
+  - Antes te llega un **email pidiéndote autorización**, una vez al mes mientras haya alguno pendiente. Te dice qué norma se aplica (art. 32 LOPDGDD y apartado 6 de las condiciones) y qué deberías comprobar.
+  - Para autorizar tienes que marcar «He comprobado que con este paciente no hay ninguna reclamación ni proceso abierto» y confirmar.
+  - Solo sale con la sesión de doble factor.
+  - Nunca toca la historia clínica ni tu cuenta de coach.
+  - Si el paciente no tiene historia ni documentos, se borra también su cuenta.
+  - Cada borrado queda registrado con tu autorización, sin datos de salud.
 - **Fecha de baja**: al archivar un paciente se apunta la fecha sola. Si lo reactivas, se quita.
-- Por dentro: migración 0022 y reloj mensual (`supabase/manual/reloj_borrado.sql`). Hay que aplicarlos en `vitaltrain-dev` y en `vitaltrain-prod`.
+- Por dentro: migraciones 0022 y 0023 y la función `avisos` actualizada. En `vitaltrain-prod` las ejecuta Rubén cuando lo autorice.
 - **Protocolo de privacidad** (documento aparte): qué hacer si un paciente pide sus datos, si hay una brecha o si escribe la AEPD.
 - Cómo probarlo: en el enlace de prueba, abre la historia de un paciente de prueba → «Copia para el paciente» → «PDF».
 

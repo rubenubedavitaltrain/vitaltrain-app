@@ -82,6 +82,7 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-09 | Con el consentimiento retirado, el coach no ve los datos de la app del paciente | Bloqueo: los datos se guardan pero no se usan |
 | 2026-11-09 | La asesora aprueba las condiciones 1.4 y todas las propuestas: bloqueo de 5 años, reparto de bases legales, DPA guardados en PDF, push y YouTube como están, EIPD breve ya, entrada nueva en el registro de actividades, aceptación con un botón | Visto bueno de la asesora de protección de datos |
 | 2026-11-09 | La asesora aprueba la EIPD breve del piloto y la entrada de la app en el registro de actividades | Riesgo residual bajo; no hace falta consulta previa a la AEPD |
-| 2026-11-09 | Borrado automático mensual de los datos de la app bloqueados hace más de 5 años; la historia clínica nunca se toca; sin historia ni documentos se borra también la cuenta | Cumplir lo prometido en las condiciones 1.4 sin depender de acordarse |
+| 2026-11-09 | Borrado de los datos de la app bloqueados hace más de 5 años, solo con autorización de Rubén paciente por paciente (0023 sustituye el reloj automático de 0022); la historia clínica nunca se toca | Nada debe borrarse ni cambiar sin que Rubén lo valide antes |
 | 2026-11-09 | Los documentos compartidos (PDF) no entran en el borrado automático: se borran a mano | Los archivos solo se pueden borrar desde la app, no desde la base de datos |
 | 2026-11-09 | «Copia para el paciente» legible de la historia clínica, solo con consultas cerradas | La queja más frecuente ante la AEPD en sanidad es no entregar la historia a tiempo |
+| 2026-11-09 | Regla general: la app y Claude no hacen nada que borre o cambie datos sin aviso y autorización previa de Rubén | Decisión de Rubén |
