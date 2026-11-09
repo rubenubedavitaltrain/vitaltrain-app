@@ -9,6 +9,7 @@ await db.exec(`
 create schema auth;
 create table auth.users (id uuid primary key, email text);
 create or replace function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.sub', true),'')::uuid $$;
+create or replace function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb) $$;
 create role authenticated;
 create role anon;
 grant usage on schema public to authenticated;
@@ -43,14 +44,15 @@ insert into template_blocks (template_id, position) select id, 1 from templates;
 insert into template_items (block_id, position, exercise_id, sets, rest_seconds) select b.id,1,e.id,3,90 from template_blocks b, exercises e where e.name = 'Sentadilla';
 `);
 
-const as = async (uid, sql, role = 'authenticated') => {
-  await db.exec(`reset role; set request.jwt.sub = '${uid}'; set role ${role};`);
+const as = async (uid, sql, role = 'authenticated', claims = '') => {
+  await db.exec(`reset role; set request.jwt.sub = '${uid}'; set request.jwt.claims = '${claims}'; set role ${role};`);
   try { return { rows: (await db.query(sql)).rows }; }
   catch (e) { return { error: e.message }; }
   finally { await db.exec('reset role'); }
 };
 
 let fails = 0;
+const mfa = (uid, sql) => as(uid, sql, 'authenticated', '{"aal":"aal2"}');
 const check = (name, ok) => { console.log(`${ok ? 'OK   ' : 'FALLO'} ${name}`); if (!ok) fails++; };
 
 const tpl = `(select id from templates limit 1)`;
@@ -357,6 +359,46 @@ check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settin
   check('Otro paciente no lo ve', (await as(p2, 'select count(*)::int n from monthly_reviews')).rows[0].n === 0);
   check('El paciente no puede cambiar las conclusiones', (await as(p1, `update monthly_reviews set conclusions = 'x' returning id`)).rows?.length !== 1);
   check('El paciente no puede crear resúmenes', !!(await as(p1, `insert into monthly_reviews (patient_id, month) values ('${p1}', '2026-01-01')`)).error);
+}
+
+// 0018: historia clínica
+{
+  check('Sin doble factor, el coach no ve la historia', (await as(coach, 'select count(*)::int n from consultations')).rows[0].n === 0);
+  check('Sin doble factor, el coach no escribe en la historia', !!(await as(coach, `insert into clinical_records (patient_id, main_reason) values ('${p1}', 'x')`)).error);
+  check('Con doble factor, crea la ficha clínica', !(await mfa(coach, `insert into clinical_records (patient_id, main_reason, allergies) values ('${p1}', 'Distensión abdominal', 'Ninguna conocida')`)).error);
+  check('Al editar la ficha se guarda la versión anterior', !(await mfa(coach, `update clinical_records set allergies = 'Penicilina' where patient_id = '${p1}'`)).error
+    && (await mfa(coach, `select old_row->>'allergies' a from clinical_record_versions where patient_id = '${p1}'`)).rows[0]?.a === 'Ninguna conocida');
+  check('La ficha no se puede borrar', !!(await mfa(coach, `delete from clinical_records where patient_id = '${p1}'`)).error);
+  check('El paciente no ve su historia en la app', (await as(p1, 'select (select count(*) from clinical_records) + (select count(*) from consultations) n')).rows[0].n == 0);
+  check('Ni con un token que diga doble factor', (await mfa(p1, 'select count(*)::int n from clinical_records')).rows[0].n === 0);
+
+  const c1 = (await mfa(coach, `insert into consultations (patient_id, modality, reason, plan) values ('${p1}', 'online', 'Revisión', 'Luz por la mañana') returning id`)).rows[0].id;
+  check('Se puede editar una consulta en borrador', !(await mfa(coach, `update consultations set findings = 'Mejor' where id = '${c1}'`)).error);
+  check('Se cierra la consulta', !(await mfa(coach, `update consultations set status = 'closed' where id = '${c1}'`)).error);
+  check('Cerrada, no se puede editar', !!(await mfa(coach, `update consultations set plan = 'otro' where id = '${c1}'`)).error);
+  check('Cerrada, no se puede borrar', !!(await mfa(coach, `delete from consultations where id = '${c1}'`)).error);
+  check('Se añade una adenda', !(await mfa(coach, `insert into consultation_addenda (consultation_id, patient_id, text) values ('${c1}', '${p1}', 'Corrijo: online')`)).error);
+  check('La adenda no se puede cambiar', (await mfa(coach, `update consultation_addenda set text = 'x' returning id`)).rows?.length !== 1);
+  check('La adenda debe ser del mismo paciente', !!(await mfa(coach, `insert into consultation_addenda (consultation_id, patient_id, text) values ('${c1}', '${p2}', 'x')`)).error);
+  const c2 = (await mfa(coach, `insert into consultations (patient_id) values ('${p1}') returning id`)).rows[0].id;
+  check('Un borrador se puede borrar', !(await mfa(coach, `delete from consultations where id = '${c2}'`)).error);
+
+  check('Se registra un documento clínico', !(await mfa(coach, `insert into clinical_documents (patient_id, category, title, storage_path, mime) values ('${p1}', 'analitica', 'Analítica oct', '${p1}/a.pdf', 'application/pdf')`)).error);
+  check('Documento clínico: la ruta debe ser del paciente', !!(await mfa(coach, `insert into clinical_documents (patient_id, title, storage_path, mime) values ('${p1}', 'x', '${p2}/a.pdf', 'application/pdf')`)).error);
+  await db.exec(`reset role; set request.jwt.sub = ''; update clinical_documents set created_at = now() - interval '2 days' where title = 'Analítica oct'`);
+  check('Pasadas 24 h, el documento no se borra', !!(await mfa(coach, `delete from clinical_documents where title = 'Analítica oct'`)).error);
+  check('El coach con doble factor sube al almacén de la historia', !(await mfa(coach, `insert into storage.objects (bucket_id, name) values ('historia', '${p1}/a.pdf')`)).error);
+  check('Sin doble factor no abre archivos de la historia', (await as(coach, `select count(*)::int n from storage.objects where bucket_id = 'historia'`)).rows[0].n === 0);
+  check('El paciente no abre archivos de la historia', (await mfa(p1, `select count(*)::int n from storage.objects where bucket_id = 'historia'`)).rows[0].n === 0);
+  check('Un archivo con documento no se puede borrar', (await mfa(coach, `delete from storage.objects where name = '${p1}/a.pdf' returning id`)).rows?.length !== 1);
+
+  check('Se registra quién abre la historia', !(await mfa(coach, `select registrar_acceso('${p1}', 'ver_historia', 'ficha')`)).error);
+  check('Sin doble factor no se registra ni se lee el registro', !!(await as(coach, `select registrar_acceso('${p1}', 'ver_historia', 'ficha')`)).error && (await as(coach, 'select count(*)::int n from access_log')).rows[0].n === 0);
+  const nLog = (await mfa(coach, `select count(*)::int n from access_log where patient_id = '${p1}'`)).rows[0].n;
+  check('Los cambios quedan en el registro de accesos', nLog >= 9);
+  check('El registro no se puede borrar ni cambiar', !!(await mfa(coach, 'delete from access_log')).error && !!(await mfa(coach, `update access_log set action = 'crear'`)).error);
+  check('Nadie escribe en el registro directamente', !!(await mfa(coach, `insert into access_log (action, entity) values ('crear', 'x')`)).error);
+  check('Un paciente con historia no se puede eliminar', !!(await db.query(`delete from profiles where id = '${p1}'`).then(() => null, (e) => e)));
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones

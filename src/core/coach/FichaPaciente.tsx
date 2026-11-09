@@ -8,6 +8,7 @@ import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Medidas from '../medidas/Medidas';
 import { DocumentosCoach } from '../documentos/Documentos';
 import { ResumenCoach } from '../resumen/Resumen';
+import { BotonHistoria } from '../historia/Historia';
 import ModulosPaciente, { useModulosPaciente } from './ModulosPaciente';
 import { RitmoCoach } from '../../modules/circadiano/Ritmo';
 import HabitosCoach from '../../modules/habitos/HabitosCoach';
@@ -43,6 +44,7 @@ export default function FichaPaciente({ supabase, paciente, onVolver, onCambio }
         </div>
         <div className="flex flex-wrap gap-2">
           {paciente.status !== 'active' && <button onClick={() => cambiarEstado('active')} className="bg-petroleo text-white font-bold px-4 py-2 rounded-xl">Activar</button>}
+          <BotonHistoria supabase={supabase} paciente={paciente} />
           {paciente.status === 'active' && <button onClick={() => cambiarEstado('paused')} className="bg-white border-2 border-petroleo text-petroleo font-bold px-4 py-2 rounded-xl">Pausar acceso</button>}
           {paciente.status !== 'archived' && <button onClick={() => cambiarEstado('archived')} className="text-texto-suave font-semibold px-3 py-2">Archivar</button>}
         </div>

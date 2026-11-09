@@ -76,6 +76,7 @@ function Alta({ supabase, onCerrar, onCreado }: { supabase: SupabaseClient; onCe
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [soloHistoria, setSoloHistoria] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
 
@@ -90,7 +91,14 @@ function Alta({ supabase, onCerrar, onCreado }: { supabase: SupabaseClient; onCe
       try { const j = await (error as { context?: Response }).context?.json(); if (j?.error) msg = j.error; } catch { /* sin detalle */ }
       return setError(msg);
     }
-    if (data?.id) onCreado();
+    if (data?.id) {
+      // Solo historia clínica: sin acceso a la app (en pausa y sin módulos). Se puede activar después.
+      if (soloHistoria) {
+        await supabase.from('patient_modules').delete().eq('patient_id', data.id);
+        await supabase.from('profiles').update({ status: 'paused' }).eq('id', data.id);
+      }
+      onCreado();
+    }
   }
 
   return (
@@ -106,7 +114,11 @@ function Alta({ supabase, onCerrar, onCreado }: { supabase: SupabaseClient; onCe
         <label className="flex flex-col gap-1 text-sm font-semibold">Teléfono (opcional)
           <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="font-normal text-base px-3 py-2.5 border border-borde rounded-xl bg-white" />
         </label>
-        <p className="text-xs text-texto-suave">El paciente entrará escribiendo este email: le llegará un código de 6 dígitos. No necesita contraseña.</p>
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" checked={soloHistoria} onChange={(e) => setSoloHistoria(e.target.checked)} className="mt-0.5 w-5 h-5 accent-[#374949]" />
+          <span><b>Solo historia clínica</b><br /><span className="text-texto-suave">Para pacientes de consulta que no usan la app. Queda en pausa; puedes activarle la app cuando quieras.</span></span>
+        </label>
+        <p className="text-xs text-texto-suave">{soloHistoria ? 'No recibirá nada ni podrá entrar en la app.' : 'El paciente entrará escribiendo este email: le llegará un código de 6 dígitos. No necesita contraseña.'}</p>
         {error && <p role="alert" className="font-semibold text-[#8A2C1D]">{error}</p>}
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCerrar} className="px-4 py-3 font-bold text-petroleo">Cancelar</button>
