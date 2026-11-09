@@ -248,7 +248,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 17 (hecha en local): hábitos por pilar y activación de módulos por paciente en la ficha. Migración 0015 aplicada (8 nov 2026)
 - [ ] Tarea 18 (hecha en local): documentos por pilar. Migración 0016 aplicada (9 nov 2026)
 - [ ] Tarea 19 (hecha en local): resumen mensual con conclusiones, compartir y PDF. Migración 0017 aplicada (9 nov 2026)
-- [ ] Tarea 20 (hecha en local): historia clínica / CRM (fases A y B): consultas, ficha clínica, documentos clínicos, línea de tiempo, registro de accesos, doble factor, alta «solo historia». Migración 0018 aplicada (9 nov 2026). Falta: `vitaltrain-prod`, importación desde OneDrive, exportación para el paciente
+- [ ] Tarea 20 (hecha en local): historia clínica / CRM (fases A y B): consultas, ficha clínica, documentos clínicos, línea de tiempo, registro de accesos, doble factor, alta «solo historia». Migración 0018 aplicada y probada por Rubén con doble factor en vitaltrain-prueba 0.15.1 (9 nov 2026). Falta: `vitaltrain-prod`, importación desde OneDrive, exportación para el paciente
 - [ ] Fase 1: las 17 funciones de la sección 3. Quedan: perfil (recordatorio, avisos push o email de mensajes y descarga de datos)
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
