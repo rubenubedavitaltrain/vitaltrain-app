@@ -15,6 +15,14 @@ grant usage on schema public to authenticated;
 -- Como en Supabase: lo que se crea en public queda permitido a anon y authenticated salvo que una migración lo revoque
 alter default privileges in schema public grant select, insert, update, delete on tables to authenticated, anon;
 alter default privileges in schema public grant execute on functions to authenticated, anon;
+-- Como en Supabase Storage: buckets y objetos con seguridad por filas activada
+create schema storage;
+create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text, owner uuid);
+alter table storage.objects enable row level security;
+grant usage on schema storage to authenticated, anon;
+grant select, insert, update, delete on storage.objects to authenticated;
+grant select on storage.buckets to authenticated;
 `);
 const dir = new URL('../migrations/', import.meta.url);
 for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort()) {
@@ -315,6 +323,27 @@ check('El paciente guarda su ciudad', !(await as(p1, `insert into patient_settin
   check('Un hábito retirado ya no se puede marcar', !!(await as(p1, `insert into habit_logs (patient_habit_id, patient_id, log_date, done) values ('${ph}', '${p1}', current_date - 1, true)`)).error);
   check('El coach ve el registro', (await as(coach, `select count(*)::int n from habit_logs where patient_id = '${p1}'`)).rows[0].n === 1);
   check('El coach crea un hábito nuevo', !(await as(coach, `insert into habit_definitions (name, kind, rationale) values ('Ducha de contraste', 'check', 'Prueba')`)).error);
+}
+
+// 0016: documentos
+{
+  check('Existe el almacén privado de documentos', (await db.query(`select public from storage.buckets where id = 'documentos'`)).rows[0]?.public === false);
+  const pil = `(select id from pillars where slug = 'alimentacion-consciente')`;
+  check('El coach registra un documento', !(await as(coach, `insert into patient_documents (patient_id, pillar_id, title, storage_path, size_bytes) values ('${p1}', ${pil}, 'Plan de alimentación', '${p1}/plan.pdf', 1000)`)).error);
+  await as(coach, `insert into patient_documents (patient_id, title, storage_path, is_shared) values ('${p1}', 'Borrador', '${p1}/borrador.pdf', false)`);
+  await as(coach, `insert into patient_documents (patient_id, title, storage_path) values ('${p2}', 'De P2', '${p2}/p2.pdf')`);
+  check('La ruta del archivo debe estar en la carpeta del paciente', !!(await as(coach, `insert into patient_documents (patient_id, title, storage_path) values ('${p1}', 'Mal', '${p2}/x.pdf')`)).error);
+  check('Solo PDF', !!(await as(coach, `insert into patient_documents (patient_id, title, storage_path, mime) values ('${p1}', 'Foto', '${p1}/f.jpg', 'image/jpeg')`)).error);
+  check('El coach sube el archivo', !(await as(coach, `insert into storage.objects (bucket_id, name) values ('documentos', '${p1}/plan.pdf'), ('documentos', '${p1}/borrador.pdf'), ('documentos', '${p2}/p2.pdf')`)).error);
+  check('El paciente ve solo sus documentos compartidos', (await as(p1, 'select title from patient_documents')).rows.map(r => r.title).join() === 'Plan de alimentación');
+  check('El paciente abre su archivo compartido y no el borrador ni el ajeno', (await as(p1, `select name from storage.objects`)).rows.map(r => r.name).join() === `${p1}/plan.pdf`);
+  check('El paciente no puede subir archivos', !!(await as(p1, `insert into storage.objects (bucket_id, name) values ('documentos', '${p1}/mio.pdf')`)).error);
+  check('El paciente no puede borrar archivos', (await as(p1, `delete from storage.objects where name = '${p1}/plan.pdf' returning id`)).rows?.length !== 1);
+  check('El paciente no puede registrar documentos', !!(await as(p1, `insert into patient_documents (patient_id, title, storage_path) values ('${p1}', 'X', '${p1}/x.pdf')`)).error);
+  check('El paciente no puede compartirse un borrador', (await as(p1, `update patient_documents set is_shared = true where title = 'Borrador' returning id`)).rows?.length !== 1);
+  await db.exec(`reset role; set request.jwt.sub = ''; update consents set withdrawn_at = now() where patient_id = '${p1}' and withdrawn_at is null`);
+  check('Sin consentimiento no ve ni abre documentos', (await as(p1, 'select (select count(*) from patient_documents) + (select count(*) from storage.objects) n')).rows[0].n == 0);
+  await db.exec(`reset role; insert into consents (patient_id, version) values ('${p1}', 'prueba')`);
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones

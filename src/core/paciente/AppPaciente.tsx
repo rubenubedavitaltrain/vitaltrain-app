@@ -6,6 +6,7 @@ import Progreso from '../../modules/entrenamiento/progreso/Progreso';
 import Medidas from '../medidas/Medidas';
 import Conversacion, { contarNoLeidos } from '../mensajes/Conversacion';
 import Instalar from '../Instalar';
+import { MisDocumentos } from '../documentos/Documentos';
 import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
@@ -132,7 +133,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
             <div className="p-4 flex flex-col gap-4"><Progreso supabase={supabase} pacienteId={userId} />{modulos.includes('habits') && <Constancia supabase={supabase} pacienteId={userId} />}<Medidas supabase={supabase} pacienteId={userId} /></div>
           </div>
         )}
-        {pestaña === 'perfil' && <Perfil supabase={supabase} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
+        {pestaña === 'perfil' && <Perfil supabase={supabase} pacienteId={userId} nombre={nombre} email={email} consentimiento={consentimiento.actual} onRetirado={() => { setPestaña('hoy'); consentimiento.recargar(); }} />}
       </div>
 
       <nav aria-label="Navegación principal" className="fixed bottom-0 inset-x-0 bg-white border-t border-gris-claro grid grid-cols-5 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] z-20">
@@ -158,7 +159,7 @@ function Boton({ activo, onClick, texto, icono, aviso = 0 }: { activo: boolean; 
   );
 }
 
-function Perfil({ supabase, nombre, email, consentimiento, onRetirado }: { supabase: SupabaseClient; nombre: string; email: string; consentimiento: Consentimiento; onRetirado: () => void }) {
+function Perfil({ supabase, pacienteId, nombre, email, consentimiento, onRetirado }: { supabase: SupabaseClient; pacienteId: string; nombre: string; email: string; consentimiento: Consentimiento; onRetirado: () => void }) {
   return (
     <div className="flex flex-col">
       <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),2rem)] pb-6">
@@ -169,6 +170,7 @@ function Perfil({ supabase, nombre, email, consentimiento, onRetirado }: { supab
           <div className="text-lg font-bold">{nombre}</div>
           <div className="text-sm text-texto-suave">{email}</div>
         </div>
+        <MisDocumentos supabase={supabase} pacienteId={pacienteId} />
         <Instalar />
         <Privacidad supabase={supabase} actual={consentimiento} onRetirado={onRetirado} />
         <div className="bg-white rounded-2xl p-5 text-sm text-texto-suave">
