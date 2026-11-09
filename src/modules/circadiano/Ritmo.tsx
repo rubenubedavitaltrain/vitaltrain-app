@@ -6,6 +6,7 @@ import { aHoras, cargarAjustes, cargarComidas, cargarNoches, guardarCiudad, resu
 import { ComidasDelDia, Hoja, RegistroComida, RegistroSueno, nochePorDefecto } from './Registros';
 import { GraficaComidas, GraficaNoches } from './Graficas';
 import { diaSolar, horaMin } from './sol';
+import MiDia from './MiDia';
 
 // Módulo de ritmos circadianos.
 // - TarjetaRitmo: lo que aporta a "Hoy" (luz del día y registro rápido de sueño y comidas).
@@ -90,6 +91,7 @@ export function MiRitmo({ supabase, pacienteId, onSalir }: { supabase: SupabaseC
 
         {ajustes && (
           <>
+            <MiDia supabase={supabase} pacienteId={pacienteId} ajustes={ajustes} noches={noches} comidas={comidas} />
             <section className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3" aria-labelledby="sueno">
               <div className="flex items-start justify-between gap-3">
                 <div>

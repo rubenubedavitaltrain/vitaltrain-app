@@ -65,7 +65,7 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Seguimiento | Mi progreso (gráficas), medidas opcionales, resumen mensual para la revisión | 1 |
 | Documentos | PDFs que el coach comparte con el paciente, por pilar | 1 |
 | Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
-| Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0). Falta: línea temporal «Mi día» con anclas y recordatorios | 2 |
+| Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0); «Mi día» con anclas y hábitos en su hora (0.15.0). Falta: recordatorios | 2 |
 | Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
 | Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |

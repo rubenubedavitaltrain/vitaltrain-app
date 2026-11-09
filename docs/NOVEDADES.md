@@ -2,6 +2,13 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Mi día, descarga de datos y consentimiento 1.2 (versión 0.15.0)
+- **Mi día** (en Mi ritmo): la línea temporal de hoy del paciente. Su hora media de levantarse y acostarse, primera y última comida, amanecer, ventana UVB y atardecer de su ciudad, y los hábitos que le has pautado con un momento («Luz natural al despertar», «Cenar pronto»…) colocados a su hora. Marca «Lo siguiente».
+- Las horas de sueño y comidas son su media de las últimas dos semanas: si aún no ha anotado, esos hábitos esperan y se avisa.
+- **Descargar mis datos** y **consentimiento 1.2-borrador**: ver la entrada de la 0.14.0 (se publican en esta versión).
+- Corregido por dentro: la comprobación de tipos dejaba archivos .js junto al código. Se han borrado y ya no se generan.
+- Cómo probarlo: sube `vitaltrain-app-0.15.0-para-cloudflare.zip`. Al entrar como paciente pedirá aceptar el consentimiento nuevo. En Hoy → «Ver más» aparece «Mi día».
+
 ## 2026-11-09 · Documentos, resumen mensual e historia clínica (versión 0.14.0)
 
 **Documentos (para el paciente)**
