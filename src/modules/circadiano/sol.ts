@@ -119,3 +119,18 @@ export function cambioVentanaUVB(fecha: Date, lat: number, lon: number): { hayHo
 }
 
 export const horaMin = (d: Date | null) => (d ? d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '—');
+
+/**
+ * Índice UV estimado con cielo despejado, solo por la altura del sol (aproximación de Madronich, 2007:
+ * UVI ≈ 12,5 · cos(ángulo cenital)^2,42, con ozono medio). Las nubes, la calima o la contaminación lo bajan.
+ */
+export function uvDespejado(altura: number): number {
+  if (altura <= 0) return 0;
+  return 12.5 * Math.pow(Math.sin(altura * rad), 2.42);
+}
+
+/** Minutos de ventana UVB (sol por encima de 30°) en un día. */
+export function minutosUVB(fecha: Date, lat: number, lon: number): number {
+  const c = cruces(fecha, lat, lon, UMBRAL_UVB);
+  return c ? Math.round((c.baja.valueOf() - c.sube.valueOf()) / 60000) : 0;
+}

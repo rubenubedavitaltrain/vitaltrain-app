@@ -2,6 +2,12 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Vitamina D en el panel solar (versión 0.15.2)
+- En Mi ritmo, bajo las ventanas UVA y UVB, un bloque **Vitamina D**: la ventana del día y cuánto dura, el índice UV máximo estimado con cielo despejado, cuántos días quedan con ventana (o cuándo vuelve) y una gráfica del año con las horas de ventana de cada mes en su ciudad. Así se ve de un vistazo en qué meses no se fabrica vitamina D.
+- Para Llíria hoy: 11:20 a 14:14 (2 h 55), UV 3 con cielo despejado, 15 días con ventana; desde el 24 de noviembre no hay ventana hasta finales de enero.
+- El UV es una estimación por la altura del sol (fórmula de Madronich); con nubes será menor. La app no dice cuánto tiempo tomar el sol ni si suplementar: eso lo pautas tú.
+- Cómo probarlo: sube el zip, abre Mi ritmo y pasa días con las flechas para ver cómo cambia.
+
 ## 2026-11-09 · La actualización automática, completa (versión 0.15.1)
 - Con la 0.15.0 subida, el navegador seguía en la 0.13.0: la versión nueva quedaba «esperando» porque la página antigua no sabía activarla.
 - Ahora la versión nueva se activa sola nada más descargarse, venga de la versión que venga. La siguiente vez que se abra la app, ya está al día.

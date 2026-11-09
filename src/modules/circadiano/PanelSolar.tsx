@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { alturaSol, cambioVentanaUVB, diaSolar, horaMin, UMBRAL_UVA, UMBRAL_UVB } from './sol';
+import { alturaSol, cambioVentanaUVB, diaSolar, horaMin, minutosUVB, uvDespejado, UMBRAL_UVA, UMBRAL_UVB } from './sol';
 import { diaMes, sumarDias } from '../../lib/fechas';
 
 // Panel de la luz del día para la ciudad del paciente: amanecer, mediodía solar, atardecer,
@@ -58,12 +58,8 @@ export default function PanelSolar({ ciudad, lat, lon, compacto = false }: { ciu
       {!compacto && (
         <div className="flex flex-col gap-2">
           <Ventana color="#F1E2A6" titulo="Ventana UVA" texto="Sol por encima de 10°. Luz con más intensidad, útil por la mañana para el reloj interno." rango={d.uva ? `${horaMin(d.uva.desde)} – ${horaMin(d.uva.hasta)}` : 'No hay'} />
-          <Ventana color={MOSTAZA} titulo="Ventana UVB" texto="Sol por encima de 30°. Solo entonces llega UVB a la piel, que es lo que permite fabricar vitamina D." rango={d.uvb ? `${horaMin(d.uvb.desde)} – ${horaMin(d.uvb.hasta)}` : 'No hay'} />
-          <p className="text-sm">
-            {cambio.hayHoy && cambio.dias != null && <>Quedan <b>{cambio.dias} días</b> con ventana UVB en {ciudad}. A partir del {diaMes(finCambio!)} el sol no subirá lo bastante.</>}
-            {cambio.hayHoy && cambio.dias == null && <>En {ciudad} hay ventana UVB todo el año.</>}
-            {!cambio.hayHoy && cambio.dias != null && <>Hoy el sol no sube lo bastante para el UVB. Vuelve en <b>{cambio.dias} días</b>, el {diaMes(finCambio!)}.</>}
-          </p>
+          <Ventana color={MOSTAZA} titulo="Ventana UVB" texto="Sol por encima de 30°. Solo entonces llega UVB a la piel." rango={d.uvb ? `${horaMin(d.uvb.desde)} – ${horaMin(d.uvb.hasta)}` : 'No hay'} />
+          <VitaminaD ciudad={ciudad} lat={lat} lon={lon} fecha={fecha} uvb={d.uvb} alturaMaxima={d.alturaMaxima} cambio={cambio} finCambio={finCambio} />
           <p className="text-xs text-texto-suave">
             Cálculo astronómico para el centro de {ciudad}. Es una estimación: las nubes, la contaminación, la ropa o el cristal reducen el UV que llega.
             Altura máxima del sol este día: {Math.round(d.alturaMaxima)}°.
@@ -71,6 +67,66 @@ export default function PanelSolar({ ciudad, lat, lon, compacto = false }: { ciu
         </div>
       )}
     </section>
+  );
+}
+
+/** Vitamina D: ventana del día, cuánto dura, UV estimado, cuántos días quedan y el año en la ciudad. */
+function VitaminaD({ ciudad, lat, lon, fecha, uvb, alturaMaxima, cambio, finCambio }: {
+  ciudad: string; lat: number; lon: number; fecha: Date; uvb: { desde: Date; hasta: Date } | null; alturaMaxima: number;
+  cambio: { hayHoy: boolean; dias: number | null }; finCambio: Date | null;
+}) {
+  const minutos = uvb ? Math.round((uvb.hasta.valueOf() - uvb.desde.valueOf()) / 60000) : 0;
+  const uvMax = uvDespejado(alturaMaxima);
+  // Si la ventana va a desaparecer, cuándo vuelve
+  const vuelta = cambio.hayHoy && finCambio ? cambioVentanaUVB(finCambio, lat, lon) : null;
+  const fechaVuelta = vuelta?.dias != null && finCambio ? sumarDias(finCambio, vuelta.dias) : null;
+  return (
+    <div className="rounded-xl border-2 border-mostaza p-3 flex flex-col gap-2 mt-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="font-bold">Vitamina D</h3>
+        <span className="font-bold tabular-nums">{uvb ? `${horaMin(uvb.desde)} – ${horaMin(uvb.hasta)}` : 'Hoy no hay ventana'}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg bg-fondo p-1.5"><div className="text-[10px] font-bold uppercase tracking-wide text-texto-suave">Ventana</div><div className="font-bold tabular-nums">{minutos ? (minutos >= 60 ? `${Math.floor(minutos / 60)} h ${String(minutos % 60).padStart(2, '0')}` : `${minutos} min`) : '—'}</div></div>
+        <div className="rounded-lg bg-fondo p-1.5"><div className="text-[10px] font-bold uppercase tracking-wide text-texto-suave">UV máximo</div><div className="font-bold tabular-nums">{uvMax.toLocaleString('es-ES', { maximumFractionDigits: 0 })}<span className="text-[10px] font-normal text-texto-suave"> despejado</span></div></div>
+        <div className="rounded-lg bg-fondo p-1.5"><div className="text-[10px] font-bold uppercase tracking-wide text-texto-suave">{cambio.hayHoy ? 'Quedan' : 'Vuelve en'}</div><div className="font-bold tabular-nums">{cambio.dias != null ? `${cambio.dias} días` : 'Todo el año'}</div></div>
+      </div>
+      <p className="text-sm leading-snug">
+        {cambio.hayHoy && cambio.dias != null && <>Desde el {diaMes(finCambio!)} el sol de {ciudad} no sube lo bastante y la piel casi no fabrica vitamina D{fechaVuelta ? `, hasta el ${diaMes(fechaVuelta)}` : ''}. </>}
+        {!cambio.hayHoy && cambio.dias != null && <>Ahora el sol de {ciudad} no sube lo bastante para fabricar vitamina D. La ventana vuelve el {diaMes(finCambio!)}. </>}
+        {cambio.dias == null && cambio.hayHoy && <>En {ciudad} hay ventana todo el año. </>}
+        Lo que cuenta es la piel al sol dentro de la ventana, <b>sin llegar a enrojecer</b>. Tras un cristal no sirve: el vidrio frena el UVB.
+      </p>
+      <AñoUVB lat={lat} lon={lon} fecha={fecha} />
+      <p className="text-xs text-texto-suave">Cuánto tiempo necesitas depende de tu piel, de la ropa y de tus niveles. Si tienes dudas o hace falta suplementar, lo valora tu profesional.</p>
+    </div>
+  );
+}
+
+/** Minutos de ventana UVB a mediados de cada mes en la ciudad: se ve en qué meses desaparece. */
+function AñoUVB({ lat, lon, fecha }: { lat: number; lon: number; fecha: Date }) {
+  const año = fecha.getFullYear();
+  const meses = Array.from({ length: 12 }, (_, m) => minutosUVB(new Date(año, m, 15), lat, lon));
+  const max = Math.max(...meses, 60);
+  const W = 300, H = 74, b = 14, ancho = W / 12;
+  const letras = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Horas de ventana UVB a lo largo del año">
+        {meses.map((m, i) => {
+          const h = ((H - b - 4) * m) / max;
+          return (
+            <g key={i}>
+              {m > 0
+                ? <rect x={i * ancho + 3} y={H - b - h} width={ancho - 6} height={h} rx="2" fill={i === fecha.getMonth() ? '#374949' : '#DCB733'}><title>{`${letras[i]}: ${Math.floor(m / 60)} h ${m % 60} min`}</title></rect>
+                : <line x1={i * ancho + 6} x2={(i + 1) * ancho - 6} y1={H - b - 1} y2={H - b - 1} stroke="#A8A8A8" strokeWidth="2" />}
+              <text x={i * ancho + ancho / 2} y={H - 2} fontSize="10" textAnchor="middle" fill={i === fecha.getMonth() ? '#374949' : '#5A6464'} fontWeight={i === fecha.getMonth() ? 700 : 400}>{letras[i]}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <p className="text-[11px] text-texto-suave">Horas de ventana cada mes. Sin barra: meses sin ventana.</p>
+    </div>
   );
 }
 
