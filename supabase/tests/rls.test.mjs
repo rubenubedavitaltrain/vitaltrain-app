@@ -590,6 +590,41 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
     && !!(await db.query(`insert into notification_log (kind, user_id, ref, channel) values ('recordatorio_habito', '${p2}', 'x', 'push') returning id`)).rows.length);
 }
 
+// 0028: editor de cuestionarios
+{
+  const bueno = JSON.stringify({ questions: [
+    { id: 'q1', type: 'single', scored: true, text: '¿Cuántas veces vas al baño al día?', options: [{ label: 'Una', value: 1 }, { label: 'Dos o más', value: 2 }] },
+    { id: 'q2', type: 'scale', min: 0, max: 10, text: '¿Cuánta hinchazón notas?', minLabel: 'Nada', maxLabel: 'Mucha' },
+    { id: 'q3', type: 'text', required: false, text: 'Cuéntame algo más' },
+  ] });
+  const crear = (slug, schema) => as(coach, `insert into questionnaires (slug, title, schema) values ('${slug}', 'Prueba', '${schema}') returning id, version`);
+  const r = await crear('digestivo', bueno);
+  check('El coach crea un cuestionario', !r.error && r.rows[0].version === 1);
+  const qid = r.rows[0].id;
+  const malo = (q) => JSON.stringify({ questions: [q] });
+  check('Sin preguntas: se rechaza', !!(await crear('vacio', JSON.stringify({ questions: [] }))).error);
+  check('Opciones con un solo valor: se rechaza', !!(await crear('malo1', malo({ id: 'a', type: 'single', text: 'Pregunta', options: [{ label: 'Sí', value: 1 }] }))).error);
+  check('Escala al revés: se rechaza', !!(await crear('malo2', malo({ id: 'a', type: 'scale', min: 5, max: 1, text: 'Pregunta' }))).error);
+  check('Texto que puntúa: se rechaza', !!(await crear('malo3', malo({ id: 'a', type: 'text', scored: true, text: 'Pregunta' }))).error);
+  check('Identificadores repetidos: se rechaza', !!(await crear('malo4', JSON.stringify({ questions: [{ id: 'a', type: 'text', text: 'Uno' }, { id: 'a', type: 'text', text: 'Dos' }] }))).error);
+  check('El paciente no crea cuestionarios', !!(await as(p1, `insert into questionnaires (slug, title, schema) values ('pac', 'X', '${bueno}')`)).error);
+  const rmeq = (await db.query(`select id from questionnaires where slug = 'rmeq'`)).rows[0].id;
+  check('El cronotipo no se puede cambiar', !!(await as(coach, `update questionnaires set schema = '${bueno}' where id = '${rmeq}'`)).error);
+  check('Al cronotipo sí se le cambia el título', !(await as(coach, `update questionnaires set title = 'Tu cronotipo' where id = '${rmeq}'`)).error);
+  check('El check-in sigue siendo semanal', (await db.query(`select default_recurrence from questionnaires where slug = 'checkin-semanal'`)).rows[0].default_recurrence === 'weekly');
+  check('Sin respuestas, se pueden cambiar las preguntas y sube la versión', !(await as(coach, `update questionnaires set schema = '${bueno}'::jsonb || '{}'::jsonb, title = 'Digestivo' where id = '${qid}'`)).error);
+  await as(coach, `update questionnaires set schema = jsonb_set(schema, '{questions,2,text}', '"Cuéntame más"') where id = '${qid}'`);
+  check('La versión sube al cambiar las preguntas', (await db.query(`select version from questionnaires where id = '${qid}'`)).rows[0].version === 2);
+  const asig = (await as(coach, `insert into questionnaire_assignments (questionnaire_id, patient_id) values ('${qid}', '${p1}') returning id`)).rows[0].id;
+  check('El paciente responde el cuestionario nuevo', !(await as(p1, `insert into questionnaire_responses (assignment_id, questionnaire_id, questionnaire_version, patient_id, period, answers) values ('${asig}', '${qid}', 1, '${p1}', 'x', '{"q1": 2, "q2": 7}')`)).error
+    && (await db.query(`select score, questionnaire_version from questionnaire_responses where assignment_id = '${asig}'`)).rows[0].score == 2);
+  check('Con respuestas ya no se cambian las preguntas', !!(await as(coach, `update questionnaires set schema = '${bueno}' where id = '${qid}'`)).error);
+  check('Pero sí se puede archivar', !(await as(coach, `update questionnaires set is_archived = true where id = '${qid}'`)).error);
+  check('Un cuestionario en uso no se borra', !!(await as(coach, `delete from questionnaires where id = '${qid}'`)).error);
+  const libre = (await crear('sin-uso', bueno)).rows[0].id;
+  check('Uno sin usar sí se borra', !(await as(coach, `delete from questionnaires where id = '${libre}'`)).error);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

@@ -7,13 +7,14 @@ import Mensajes from './Mensajes';
 import { contarNoLeidos } from '../mensajes/Conversacion';
 import Programas from '../../modules/entrenamiento/programas/Programas';
 import Plantillas from '../../modules/entrenamiento/plantillas/Plantillas';
+import EditorCuestionarios from '../../modules/cuestionarios/EditorCuestionarios';
 import { AvisosDispositivo, ConfigAvisos } from '../avisos/Avisos';
 import ConDobleFactor from '../historia/DobleFactor';
 import { PlanesWoo } from '../suscripciones/Suscripciones';
 
 // Panel del coach: inicio (resumen de la semana), pacientes, programas, plantillas y biblioteca.
 
-type Seccion = 'inicio' | 'pacientes' | 'mensajes' | 'programas' | 'plantillas' | 'biblioteca' | 'ajustes';
+type Seccion = 'inicio' | 'pacientes' | 'mensajes' | 'programas' | 'plantillas' | 'biblioteca' | 'cuestionarios' | 'ajustes';
 
 export default function PanelCoach({ supabase, nombre, userId }: { supabase: SupabaseClient; nombre: string; userId: string }) {
   const [seccion, setSeccion] = useState<Seccion>(() => {
@@ -57,6 +58,7 @@ export default function PanelCoach({ supabase, nombre, userId }: { supabase: Sup
           {pestaña('programas', 'Programas')}
           {pestaña('plantillas', 'Plantillas')}
           {pestaña('biblioteca', 'Biblioteca')}
+          {pestaña('cuestionarios', 'Cuestionarios')}
           {pestaña('ajustes', 'Ajustes')}
         </nav>
       </header>
@@ -68,6 +70,7 @@ export default function PanelCoach({ supabase, nombre, userId }: { supabase: Sup
         {seccion === 'programas' && <Programas supabase={supabase} />}
         {seccion === 'plantillas' && <Plantillas supabase={supabase} />}
         {seccion === 'biblioteca' && <Biblioteca supabase={supabase} />}
+        {seccion === 'cuestionarios' && <EditorCuestionarios supabase={supabase} />}
         {seccion === 'ajustes' && (
           <div className="flex flex-col gap-4">
             <h2 className="text-2xl font-bold">Ajustes</h2>

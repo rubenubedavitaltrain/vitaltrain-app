@@ -2,6 +2,19 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Editor de cuestionarios de seguimiento (versión 0.23.0)
+- **Coach, pestaña «Cuestionarios»**: crea cuestionarios cortos de seguimiento sin programar.
+  - Tipos de pregunta: elegir una opción, escala (por ejemplo de 0 a 10) y texto libre.
+  - Cada opción o escala puede sumar puntos, y la app da el total.
+  - Se responden una vez o cada semana.
+  - Copiar, archivar y recuperar.
+- Los dos del sistema (cronotipo y check-in semanal) se ven, pero sus preguntas no se cambian.
+- Si un cuestionario ya tiene respuestas, sus preguntas no se cambian, para que las respuestas antiguas no pierdan sentido. Se hace una copia.
+- **Ficha del paciente → Cuestionarios**: ahora se leen las respuestas de los demás cuestionarios, pregunta a pregunta.
+- Los cuestionarios de inicio de paciente siguen en Fluent Forms y FluentCRM (decidido hoy). Este editor es para el seguimiento dentro de la app.
+- Por dentro: migración 0028, aplicada en `vitaltrain-dev`. La base de datos comprueba que cada cuestionario está bien formado.
+- Cómo probarlo: en el enlace de prueba, Cuestionarios → «Nuevo cuestionario». Crea uno con una escala y una pregunta de opciones, asígnalo a un paciente de prueba en su ficha y respóndelo desde el móvil.
+
 ## 2026-11-10 · Todo en producción (0.21.0 a 0.22.0)
 - Publicadas en vitaltrain-app.pages.dev las versiones 0.21.0 (Sol y vitamina D, ubicación actual), 0.21.1 (ajustes de seguridad) y 0.22.0 (recordatorios de «Mi día»).
 - Migraciones 0025, 0026 y 0027 ejecutadas por Rubén en producción. Antes de la 0026 se comprobó que ningún paciente tenía sesiones sin el módulo de entrenamiento.

@@ -7,7 +7,7 @@ export type Pregunta = {
   options?: { label: string; value: number }[]; min?: number; max?: number; minLabel?: string; maxLabel?: string;
   scored?: boolean; required?: boolean;
 };
-export type Cuestionario = { id: string; slug: string; title: string; description: string | null; schema: { questions: Pregunta[] }; version: number };
+export type Cuestionario = { id: string; slug: string; title: string; description: string | null; schema: { questions: Pregunta[] }; version: number; default_recurrence?: 'weekly' | null };
 export type Asignacion = { id: string; questionnaire_id: string; recurrence: 'weekly' | null; is_active: boolean; coach_note: string | null; created_at: string; questionnaires: Cuestionario };
 export type Respuesta = { id: string; assignment_id: string; questionnaire_id: string; period: string; answers: Record<string, number | string>; score: number | null; submitted_at: string };
 

@@ -15,7 +15,7 @@ export default function CuestionariosCoach({ supabase, pacienteId }: { supabase:
   const [version, setVersion] = useState(0);
   const [error, setError] = useState('');
   useEffect(() => {
-    supabase.from('questionnaires').select('id, slug, title, description, schema, version').eq('is_archived', false).order('title').then(({ data }) => setCatalogo((data as Cuestionario[]) ?? []));
+    supabase.from('questionnaires').select('id, slug, title, description, schema, version, default_recurrence').eq('is_archived', false).order('title').then(({ data }) => setCatalogo((data as Cuestionario[]) ?? []));
     cargarAsignaciones(supabase, pacienteId, false).then(setAsig);
     cargarRespuestas(supabase, pacienteId).then(setResp);
     supabase.from('patient_settings').select('chronotype, chronotype_score').eq('patient_id', pacienteId).maybeSingle().then(({ data }) => setCrono(data as typeof crono));
@@ -25,7 +25,7 @@ export default function CuestionariosCoach({ supabase, pacienteId }: { supabase:
     setError('');
     const r = activa
       ? await supabase.from('questionnaire_assignments').update({ is_active: false }).eq('id', activa.id)
-      : await supabase.from('questionnaire_assignments').insert({ questionnaire_id: c.id, patient_id: pacienteId, recurrence: c.slug === 'checkin-semanal' ? 'weekly' : null });
+      : await supabase.from('questionnaire_assignments').insert({ questionnaire_id: c.id, patient_id: pacienteId, recurrence: c.default_recurrence ?? null });
     if (r.error) setError('No se ha podido cambiar.');
     setVersion((v) => v + 1);
   }
@@ -51,7 +51,7 @@ export default function CuestionariosCoach({ supabase, pacienteId }: { supabase:
                     <input type="checkbox" checked={!!activa} onChange={() => cambiar(c, activa)} className="mt-0.5 w-5 h-5 accent-[#374949]" />
                     <span>
                       <span className="block font-semibold">{c.title}</span>
-                      <span className="block text-xs text-texto-suave">{c.slug === 'checkin-semanal' ? 'Cada semana, en su pantalla de Hoy' : 'Una vez'}{respondido ? ' · ya ha respondido' : ''}</span>
+                      <span className="block text-xs text-texto-suave">{c.default_recurrence === 'weekly' ? 'Cada semana, en su pantalla de Hoy' : 'Una vez'}{respondido ? ' · ya ha respondido' : ''}</span>
                     </span>
                   </label>
                 </li>
@@ -84,11 +84,29 @@ export default function CuestionariosCoach({ supabase, pacienteId }: { supabase:
               </ul>
             </>
           )}
-          {otros.filter((r) => asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug !== 'rmeq').length > 0 && (
-            <p className="text-xs text-texto-suave">Hay respuestas de otros cuestionarios.</p>
-          )}
         </div>
       </div>
+      {otros.filter((r) => asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug !== 'rmeq').length > 0 && (
+        <div className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+          <h4 className="font-bold">Otras respuestas</h4>
+          {otros.filter((r) => asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug !== 'rmeq').slice(0, 20).map((r) => {
+            const q = asig.find((a) => a.id === r.assignment_id)!.questionnaires;
+            return (
+              <details key={r.id} className="border-t border-gris-claro pt-2">
+                <summary className="cursor-pointer font-semibold">{q.title} <span className="font-normal text-texto-suave">· {new Date(r.submitted_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}{r.score != null ? ` · ${r.score} puntos` : ''}</span></summary>
+                <dl className="mt-2 flex flex-col gap-1.5 text-sm">
+                  {q.schema.questions.map((p) => {
+                    const v = r.answers[p.id];
+                    const texto = v == null || v === '' ? '—' : p.type === 'single' ? (p.options?.find((o) => o.value === v)?.label ?? String(v)) : p.type === 'scale' ? `${v} (de ${p.min} a ${p.max})` : String(v);
+                    return <div key={p.id}><dt className="text-texto-suave">{p.text}</dt><dd className="font-semibold">{texto}</dd></div>;
+                  })}
+                </dl>
+              </details>
+            );
+          })}
+          <p className="text-xs text-texto-suave">Se muestran con las preguntas actuales del cuestionario.</p>
+        </div>
+      )}
     </section>
   );
 }
