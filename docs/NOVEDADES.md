@@ -2,6 +2,12 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Mensajes sin el aviso del 112 (versión 0.24.1)
+- En la pestaña Mensajes del paciente, la cabecera dice solo «Con Rubén.». Se quita «Para urgencias, llama al 112.»: generaba miedo y desconfianza.
+- Las condiciones (versión 1.4, aprobada por la asesora) siguen igual. Cambiarlas exige una versión nueva.
+- Cómo probarlo: abre la pestaña Mensajes en el móvil.
+- Qué podría fallar: nada. Solo cambia un texto.
+
 ## 2026-11-10 · Versión vigente de las condiciones y altas sin fallos a medias (versión 0.24.0)
 - **Condiciones:** la base de datos solo da acceso a quien haya aceptado una versión vigente. Hoy solo es vigente la 1.4.
   - Cuando cambies las condiciones, se añade la versión nueva sin bloquear a nadie. La app pide aceptarla.

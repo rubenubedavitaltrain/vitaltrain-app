@@ -132,7 +132,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
           <div className="flex flex-col h-[calc(100dvh-5.5rem)]">
             <header className="bg-petroleo text-white px-6 pt-[max(env(safe-area-inset-top),1.5rem)] pb-4 shrink-0">
               <h1 className="text-2xl font-bold">Mensajes</h1>
-              <p className="text-[#E3E8E8] text-sm">Con Rubén. Para urgencias, llama al 112.</p>
+              <p className="text-[#E3E8E8] text-sm">Con Rubén.</p>
             </header>
             <Conversacion supabase={supabase} pacienteId={userId} yo={userId} esCoach={false} alto="flex-1" onLeidos={() => setNoLeidos(0)} />
           </div>
