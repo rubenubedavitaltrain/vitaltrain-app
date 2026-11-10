@@ -2,6 +2,15 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-09 · Ajustes de seguridad pendientes (versión 0.21.1)
+- Tres arreglos de prioridad baja que quedaron anotados en la revisión de seguridad del 8 de noviembre. **No borra ni cambia ningún dato existente.**
+  - Para registrar entrenamiento (series, notas por ejercicio, terminar una sesión) el paciente necesita tener activo el módulo de entrenamiento. Su historial lo sigue viendo igual.
+  - El paciente no puede poner fechas de inicio o fin de sesión en el futuro.
+  - Límites de longitud: sensaciones 500 caracteres, notas de sesión 2000, notas privadas del coach 4000. Solo para lo que se escriba a partir de ahora.
+- Por dentro: migración 0026, aplicada en `vitaltrain-dev`. En producción la ejecutas tú cuando lo revises.
+- Cómo probarlo: con un paciente de prueba que tenga entrenamiento, haz una sesión entera en el móvil. Debe funcionar igual que antes.
+- Qué podría fallar: un paciente sin el módulo de entrenamiento que tenga sesiones asignadas ya no podrá registrarlas. Las altas normales lo activan siempre.
+
 ## 2026-11-09 · Módulo «Sol y vitamina D» y ubicación actual (versión 0.21.0)
 - **Módulo nuevo «Sol y vitamina D»** (pilar Contacto con la naturaleza), para el plan gratuito y los pacientes de consulta. Se activa por paciente en «Qué ve en su app».
   - **Paciente, Hoy**: tarjeta con amanecer, ventana de vitamina D y atardecer. «Ver más» abre el panel solar completo: altura del sol, ventanas UVA y UVB, vitamina D y su año.
