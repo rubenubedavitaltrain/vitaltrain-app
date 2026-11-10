@@ -653,6 +653,42 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('Un paciente no puede usar esas funciones', !!(await as(p1, `select _usuario_por_email('c@x')`)).error && !!(await as(coach, `select _completar_alta('${huerfano}', 'X', 'x@x')`)).error);
 }
 
+// 0030: propuestas del asistente
+{
+  const ex = (await db.query("select id from exercises where name = 'Sentadilla'")).rows[0].id;
+  const bl = JSON.stringify([{ name: 'A', items: [{ exercise_id: ex, sets: 3, target: '8', rest_seconds: 60 }] }]);
+  const pay = (dates) => JSON.stringify({ sesiones: [{ name: 'Asistente S1', dates, blocks: JSON.parse(bl) }] });
+  const crear = (uid, paciente, kind, payload) => as(uid, `insert into assistant_drafts (patient_id, kind, title, payload) values ('${paciente}','${kind}','Prueba','${payload}'::jsonb) returning id`);
+  check('Un paciente no puede crear propuestas', !!(await crear(p1, p1, 'sesiones', pay(['2099-01-05']))).error);
+  check('Un paciente no ve propuestas', ((await as(p1, `select * from assistant_drafts`)).rows ?? []).length === 0);
+  check('No se crea una propuesta para el coach', !!(await crear(coach, coach, 'sesiones', pay(['2099-01-05']))).error);
+  check('No se crea una propuesta ya aplicada', !!(await as(coach, `insert into assistant_drafts (patient_id, kind, title, payload, status) values ('${p1}','sesiones','x','{}','aplicada')`)).error);
+  const d1 = (await crear(coach, p1, 'sesiones', pay(['2099-01-05', '2099-01-07']))).rows?.[0]?.id;
+  check('El coach crea una propuesta', !!d1);
+  const antes = (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n;
+  check('Crear la propuesta no toca el calendario', (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n === antes);
+  check('El coach no puede cambiar una propuesta a mano', !!(await as(coach, `update assistant_drafts set status = 'aplicada' where id = '${d1}'`)).error || (await db.query(`select status from assistant_drafts where id = '${d1}'`)).rows[0].status === 'pendiente');
+  check('Un paciente no puede aplicar una propuesta', !!(await as(p1, `select aplicar_propuesta('${d1}')`)).error);
+  const ap = await as(coach, `select aplicar_propuesta('${d1}') as r`);
+  check('El coach aplica la propuesta y se crean las sesiones', ap.rows?.[0]?.r?.sesiones_creadas === 2 && (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n === antes + 2);
+  check('La propuesta queda aplicada y firmada', (await db.query(`select status, decided_by from assistant_drafts where id = '${d1}'`)).rows[0].decided_by === coach);
+  check('Una propuesta no se aplica dos veces', !!(await as(coach, `select aplicar_propuesta('${d1}')`)).error);
+  const mal = (await crear(coach, p1, 'sesiones', JSON.stringify({ sesiones: [{ name: 'Mala', dates: ['2099-01-05'], blocks: [] }] }))).rows?.[0]?.id;
+  const n2 = (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n;
+  check('Una propuesta inválida no se aplica y no deja nada a medias', !!(await as(coach, `select aplicar_propuesta('${mal}')`)).error && (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n === n2 && (await db.query(`select status from assistant_drafts where id = '${mal}'`)).rows[0].status === 'pendiente');
+  await as(coach, `select descartar_propuesta('${mal}')`);
+  check('El coach descarta una propuesta', (await db.query(`select status from assistant_drafts where id = '${mal}'`)).rows[0].status === 'descartada');
+  check('Una propuesta descartada no se aplica', !!(await as(coach, `select aplicar_propuesta('${mal}')`)).error);
+  const dm = (await crear(coach, p1, 'mensaje', JSON.stringify({ body: 'Hola desde el asistente' }))).rows?.[0]?.id;
+  await as(coach, `select aplicar_propuesta('${dm}')`);
+  check('Un mensaje aprobado sale firmado por el coach', (await db.query(`select sender_id from messages where body = 'Hola desde el asistente'`)).rows[0]?.sender_id === coach);
+  const hab = (await db.query(`select id from habit_definitions limit 1`)).rows[0].id;
+  const dh = (await crear(coach, p1, 'habito', JSON.stringify({ habit_id: hab, days_of_week: [1, 3, 5], coach_note: 'Por la mañana' }))).rows?.[0]?.id;
+  await as(coach, `select aplicar_propuesta('${dh}')`);
+  check('Un hábito aprobado queda asignado', (await db.query(`select days_of_week from patient_habits where patient_id = '${p1}' and coach_note = 'Por la mañana'`)).rows[0]?.days_of_week?.join(',') === '1,3,5');
+  check('Nadie borra propuestas', !!(await as(coach, `delete from assistant_drafts where id = '${d1}'`)).error || (await db.query(`select count(*)::int n from assistant_drafts where id = '${d1}'`)).rows[0].n === 1);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');

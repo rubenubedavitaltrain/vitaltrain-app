@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Revisiones from '../historia/Revisiones';
 import BorradosPendientes from '../legal/BorradosPendientes';
+import Propuestas from '../asistente/Propuestas';
 import { CambiosSuscripcion } from '../suscripciones/Suscripciones';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DIAS_CORTOS, desdeIso, hoyIso, iso, lunes, rangoSemana, sumarDias } from '../../lib/fechas';
@@ -109,6 +110,7 @@ export default function Inicio({ supabase, nombre, onAbrir }: { supabase: Supaba
         <Dato titulo="Notas y mensajes sin leer" valor={String(datos.notas.length + datos.mensajes.length)} nota={`${datos.notas.length} notas · ${datos.mensajes.length} mensajes`} destacado={datos.notas.length + datos.mensajes.length > 0} />
       </div>
 
+      <Propuestas supabase={supabase} />
       <Revisiones supabase={supabase} onAbrir={onAbrir} />
       <CambiosSuscripcion supabase={supabase} />
       <BorradosPendientes supabase={supabase} />
