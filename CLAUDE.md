@@ -295,7 +295,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Tarea 33 (0.21.1): ajustes de seguridad pendientes de la revisión del 8 nov (migración 0026). Fusionada (PR #16); 0026 en dev y prod tras comprobar que ningún paciente tenía sesiones sin el módulo de entrenamiento (10 nov 2026)
 - [x] Tarea 34 (0.22.0): recordatorios de «Mi día» (migración 0027). Fusionada (PR #17); 0027 en dev y prod; función `avisos` desplegada en dev y prod con Verify JWT desactivado (10 nov 2026). Incluye el email mensual de borrados pendientes. Falta: probar el aviso en un iPhone instalado
 - [x] Tarea 36 (0.23.0): editor de cuestionarios de seguimiento (migración 0028). Fusionada (PR #19) y 0028 en dev y prod (10 nov 2026)
-- [ ] Tarea 37 (0.24.0): versión vigente de las condiciones y altas completas (migración 0029, función `alta-paciente`). Aplicada en dev. Falta: fusionar, 0029 y `alta-paciente` en prod
+- [x] Tarea 37 (0.24.0): versión vigente de las condiciones y altas completas (migración 0029, función `alta-paciente`). En dev y prod (10 nov 2026; antes se comprobó que nadie tenía otra versión aceptada). Al desplegar `alta-paciente` en prod se activó solo «Verify JWT»: Rubén lo desactivó. Revisarlo siempre tras cada despliegue
 - [ ] FluentCRM: etiquetas por plan con automatizaciones de WooCommerce en la web. Lo configura Rubén
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
