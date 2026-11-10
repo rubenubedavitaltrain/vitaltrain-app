@@ -162,7 +162,7 @@ Decidido el 26 oct 2026 (opción A): **nombre y símbolo de Vitaltrain, paleta y
 - Logos en `public/marca/`: símbolo de Vitaltrain en mostaza y logotipo en blanco y en petróleo, sacados de los originales de Rubén
 - No usar el azul marino ni el coral del manual antiguo de Vitaltrain. No usar la R de Rubén Úbeda en la app
 
-Textos de la app: claros, directos, frases cortas, sin emojis ni lenguaje de marketing. Cada hábito explica su porqué en una o dos frases.
+Textos de la app: claros, directos, frases cortas, sin emojis ni lenguaje de marketing. Sin avisos de urgencias en pantalla (10 nov 2026). Cada hábito explica su porqué en una o dos frases.
 Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 
 ## 7. Modelo de datos
