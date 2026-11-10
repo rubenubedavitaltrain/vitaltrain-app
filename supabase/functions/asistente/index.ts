@@ -338,7 +338,7 @@ const HERRAMIENTAS: Herramienta[] = [
                         properties: {
                           ejercicio_id: { type: 'string' }, series: { type: 'integer', minimum: 1, maximum: 20 },
                           objetivo: { type: 'string', description: 'Repeticiones o tiempo, p. ej. «8-10» o «30 s»' },
-                          carga_kg: { type: 'number', minimum: 0 }, descanso_s: { type: 'integer', minimum: 0, maximum: 900 },
+                          carga_kg: { type: 'number', minimum: 0 }, descanso_s: { type: 'integer', enum: [0, 30, 45, 60, 90, 120, 180, 240, 300], description: 'Segundos: solo 0, 30, 45, 60, 90, 120, 180, 240 o 300' },
                           indicaciones: { type: 'string' }
                         },
                         required: ['ejercicio_id', 'series', 'objetivo']
@@ -374,6 +374,11 @@ const HERRAMIENTAS: Herramienta[] = [
           }))
         };
       });
+      const DESCANSOS = [0, 30, 45, 60, 90, 120, 180, 240, 300];
+      for (const s of sesiones) for (const b of s.blocks) for (const i of b.items) {
+        exigir(i.rest_seconds == null || DESCANSOS.includes(i.rest_seconds), `Descanso no válido (${i.rest_seconds} s) en «${s.name}»: usa 0, 30, 45, 60, 90, 120, 180, 240 o 300 s`);
+        exigir(Number.isInteger(i.sets) && i.sets >= 1 && i.sets <= 20, `Series no válidas en «${s.name}» (1 a 20)`);
+      }
       exigir(total <= 200, 'Demasiadas sesiones en una sola propuesta (máximo 200 fechas)');
       const d = await q<any>(db.from('assistant_drafts').insert({ patient_id: p, kind: 'sesiones', title: String(a.titulo).slice(0, 200), rationale: a.porque ? String(a.porque).slice(0, 4000) : null, payload: { sesiones } }).select('id').single());
       return {
