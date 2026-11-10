@@ -2,6 +2,17 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Asistente del coach conectado a Claude (versión 0.25.0, solo en pruebas)
+- **Qué hace:** Claude se conecta a la app con tu cuenta de coach.
+  - Lee lo de cada paciente: entrenos, notas, «no puedo», check-ins, sueño, medidas, hábitos, mensajes y, con doble factor, la historia clínica.
+  - Te prepara propuestas: sesiones y planificaciones de varias semanas, cambios de ejercicio, mensajes y hábitos.
+- **Nada llega al paciente sin tu aprobación.** Apruebas en la conversación con Claude o en el Inicio del panel («Propuestas del asistente»). Queda registrado quién lo aprobó y cuándo.
+- **Registro:** cada lectura de la historia clínica queda en el registro de accesos.
+- **Por dentro:** migración 0030, función `asistente` y pantalla de autorización. Hecho en `vitaltrain-dev`.
+- **Cómo probarlo:** conecta «Vitaltrain pruebas» en Claude (Ajustes → Conectores) siguiendo `docs/ASISTENTE.md`. Después pídele «lista mis pacientes» y «prepara 2 semanas para…».
+- **Qué podría fallar:** si la conexión no lleva el doble factor, la historia clínica no se abre. El resto funciona igual.
+- **Producción:** no se activa hasta tener el visto bueno de la asesora (contrato con Anthropic, EIPD y condiciones nuevas).
+
 ## 2026-11-10 · Mensajes sin el aviso del 112 (versión 0.24.1)
 - En la pestaña Mensajes del paciente, la cabecera dice solo «Con Rubén.». Se quita «Para urgencias, llama al 112.»: generaba miedo y desconfianza.
 - Las condiciones (versión 1.4, aprobada por la asesora) siguen igual. Cambiarlas exige una versión nueva.
