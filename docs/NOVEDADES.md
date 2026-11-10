@@ -2,6 +2,10 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Corrección: la ficha del coach se rompía al abrir los cuestionarios
+- Al abrir la ficha, a veces llegaban las respuestas antes que las asignaciones y la pantalla daba «Algo ha fallado». Ahora espera a tener los dos datos y no se rompe.
+- Cómo probarlo: abre la ficha de un paciente con cuestionarios respondidos y recarga varias veces.
+
 ## 2026-11-10 · Asistente del coach conectado a Claude (versión 0.25.0, solo en pruebas)
 - **Qué hace:** Claude se conecta a la app con tu cuenta de coach.
   - Lee lo de cada paciente: entrenos, notas, «no puedo», check-ins, sueño, medidas, hábitos, mensajes y, con doble factor, la historia clínica.
