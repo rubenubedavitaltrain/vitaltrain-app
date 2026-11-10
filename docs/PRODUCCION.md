@@ -56,3 +56,6 @@ Hecho el 9 nov 2026: todo este apartado, incluida la comprobación final con un 
 ## 5. Dejar Harbiz
 
 Cuando el piloto funcione: alta de los 7 pacientes, su plan en la app, y aviso a cada uno con fecha de cambio. Mantener Harbiz un mes en paralelo por si acaso y darlo de baja después.
+
+## Después de desplegar una función
+Al pulsar «Deploy updates», Supabase puede volver a activar «Verify JWT with legacy secret» (pasó con `alta-paciente` el 10 nov 2026). Después de cada despliegue: abre la función → Settings y comprueba que está desactivado. Si está activado, apágalo y pulsa «Save changes». Con él activado, la app no puede usar la función.

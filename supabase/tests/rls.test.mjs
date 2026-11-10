@@ -37,6 +37,8 @@ const p2 = '33333333-3333-3333-3333-333333333333';
 await db.exec(`
 insert into auth.users values ('${coach}','c@x'),('${p1}','p1@x'),('${p2}','p2@x');
 insert into profiles (id, role, full_name, email) values ('${coach}','coach','Coach','c@x'),('${p1}','patient','P1','p1@x'),('${p2}','patient','P2','p2@x');
+-- Versiones de las condiciones que usan las pruebas (en la app real solo existe la vigente)
+insert into consent_versions (version) values ('prueba'),('x'),('1.0'),('1.1'),('1.3');
 insert into consents (patient_id, version) values ('${p1}','prueba'),('${p2}','prueba');
 -- Como el alta real (función alta-paciente): todo paciente nuevo tiene el módulo de entrenamiento
 insert into patient_modules (patient_id, module_slug) values ('${p1}','training'),('${p2}','training');
@@ -623,6 +625,32 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('Un cuestionario en uso no se borra', !!(await as(coach, `delete from questionnaires where id = '${qid}'`)).error);
   const libre = (await crear('sin-uso', bueno)).rows[0].id;
   check('Uno sin usar sí se borra', !(await as(coach, `delete from questionnaires where id = '${libre}'`)).error);
+}
+
+// 0029: versión vigente del consentimiento y altas completas
+{
+  const pv = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${pv}','pv@x'); insert into profiles (id, role, full_name, email) values ('${pv}','patient','PV','pv@x'); insert into patient_modules (patient_id, module_slug) values ('${pv}','training');`);
+  check('No se acepta una versión que no existe', !!(await as(pv, `select accept_consent('9.9')`)).error);
+  check('Acepta la versión vigente (1.4)', !(await as(pv, `select accept_consent('1.4')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into consent_versions (version) values ('1.5')`);
+  check('Al publicar una versión nueva, la anterior sigue valiendo', (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
+  await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = now() where version = '1.4'`);
+  check('Al retirar la anterior, tiene que aceptar de nuevo', (await as(pv, 'select is_active_patient() a')).rows[0].a === false);
+  check('Ya no puede aceptar la retirada', !!(await as(pv, `select accept_consent('1.4')`)).error);
+  check('Acepta la nueva y vuelve a entrar', !(await as(pv, `select accept_consent('1.5')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
+  check('Un paciente no cambia las versiones', !!(await as(pv, `insert into consent_versions (version) values ('9.9')`)).error);
+  await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = null where version = '1.4'; delete from consent_versions where version = '1.5'`);
+
+  const huerfano = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${huerfano}','suelto@x');`);
+  check('Encuentra una cuenta suelta por su email', (await db.query(`select _usuario_por_email('SUELTO@x') id`)).rows[0].id === huerfano);
+  await db.exec(`select _completar_alta('${huerfano}', 'Suelto', 'suelto@x', null)`);
+  check('Completa el alta: perfil y entrenamiento a la vez', (await db.query(`select count(*)::int n from profiles where id = '${huerfano}'`)).rows[0].n === 1
+    && (await db.query(`select count(*)::int n from patient_modules where patient_id = '${huerfano}' and module_slug = 'training'`)).rows[0].n === 1);
+  let repetido = false; try { await db.exec(`select _completar_alta('${huerfano}', 'Suelto', 'suelto@x', null)`); } catch { repetido = true; }
+  check('No da de alta dos veces', repetido);
+  check('Un paciente no puede usar esas funciones', !!(await as(p1, `select _usuario_por_email('c@x')`)).error && !!(await as(coach, `select _completar_alta('${huerfano}', 'X', 'x@x')`)).error);
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
