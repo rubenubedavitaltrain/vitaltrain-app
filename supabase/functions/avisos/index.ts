@@ -4,6 +4,7 @@
 //     Avisa al destinatario: al paciente si escribe el coach, al coach si escribe el paciente.
 //  2. { tipo: 'recordatorios' } — la llama el reloj del servidor cada 15 minutos (cabecera x-cron-secret).
 //     Avisa a quien tenga activado el recordatorio a esa hora y una sesión pendiente hoy.
+//     Y de los hábitos de «Mi día» con aviso (0027): a la hora que guardó su móvil, si hoy toca y aún no lo ha marcado.
 //     Y una vez al mes, si hay datos bloqueados hace más de cinco años, pide autorización al coach por email (no borra nada).
 // Nunca se envía el texto del mensaje: solo que hay uno nuevo (los avisos pasan por servidores de Apple y Google).
 //
@@ -147,6 +148,35 @@ async function avisoBorrados() {
   return enviados;
 }
 
+/** Avisos de los hábitos de «Mi día» que el paciente ha pedido. Solo push: si no tiene avisos en el móvil, no se envía nada. */
+async function recordatoriosHabitos(hoy: string, minAhora: number) {
+  const [y, mo, d] = hoy.split('-').map(Number);
+  const diaSemana = (new Date(Date.UTC(y, mo - 1, d)).getUTCDay() + 6) % 7 + 1; // 1 = lunes
+  const { data: filas } = await admin.from('patient_habits')
+    .select('id, patient_id, remind_at, days_of_week, start_date, end_date, habit_definitions(name, short_instruction)')
+    .eq('remind', true).eq('is_active', true).not('remind_at', 'is', null);
+  let enviados = 0;
+  for (const f of filas ?? []) {
+    const [h, m] = String(f.remind_at).split(':').map(Number);
+    const dif = minAhora - (h * 60 + m);
+    if (dif < 0 || dif >= 15) continue;
+    if (!(f.days_of_week as number[]).includes(diaSemana) || f.start_date > hoy || (f.end_date && f.end_date < hoy)) continue;
+    // Paciente activo, con consentimiento en vigor y con el módulo de hábitos
+    const [{ data: p }, { data: c }, { data: mod }] = await Promise.all([
+      admin.from('profiles').select('status').eq('id', f.patient_id).maybeSingle(),
+      admin.from('consents').select('id').eq('patient_id', f.patient_id).is('withdrawn_at', null).is('replaced_at', null).limit(1),
+      admin.from('patient_modules').select('module_slug').eq('patient_id', f.patient_id).eq('module_slug', 'habits').limit(1),
+    ]);
+    if (p?.status !== 'active' || !c?.length || !mod?.length) continue;
+    const { data: hecho } = await admin.from('habit_logs').select('id').eq('patient_habit_id', f.id).eq('log_date', hoy).limit(1);
+    if (hecho?.length) continue;
+    if (!(await anotar('recordatorio_habito', f.patient_id, `${hoy}:${f.id}`, 'push'))) continue;
+    const def = f.habit_definitions as unknown as { name: string; short_instruction: string | null } | null;
+    enviados += await push(f.patient_id, { title: def?.name ?? 'Mi día', body: def?.short_instruction ?? 'Es el momento de tu hábito.', url: '/', tag: `habito-${f.id}` });
+  }
+  return enviados;
+}
+
 async function recordatorios() {
   const ahora = new Date();
   const partes = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(ahora).map((p) => [p.type, p.value]));
@@ -166,8 +196,9 @@ async function recordatorios() {
     if (!(await anotar('recordatorio_entreno', a.patient_id, hoy, 'push'))) continue;
     enviados += await push(a.patient_id, { title: 'Hoy toca entrenar', body: ses[0].name, url: '/', tag: 'recordatorio' });
   }
+  const habitos = await recordatoriosHabitos(hoy, minAhora);
   const borrados = await avisoBorrados();
-  return { status: 200, cuerpo: { enviados, borrados } };
+  return { status: 200, cuerpo: { enviados, habitos, borrados } };
 }
 
 Deno.serve(async (req) => {

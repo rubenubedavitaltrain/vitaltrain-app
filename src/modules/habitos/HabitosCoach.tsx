@@ -34,7 +34,7 @@ export default function HabitosCoach({ supabase, pacienteId, nombre }: { supabas
                     <div className="text-[11px] font-bold uppercase tracking-wide text-petroleo">{d.pillars?.name ?? 'Sin pilar'}</div>
                     <div className="font-semibold">{d.name}</div>
                     <div className="text-xs text-texto-suave">
-                      {[a.days_of_week.length === 7 ? 'Todos los días' : a.days_of_week.map((x) => DIAS[x - 1]).join(' '), obj != null && d.kind !== 'scale' ? `objetivo ${num(obj)} ${d.unit ?? ''}`.trim() : null, textoAncla(d.anchor, d.anchor_offset_minutes)].filter(Boolean).join(' · ')}
+                      {[a.days_of_week.length === 7 ? 'Todos los días' : a.days_of_week.map((x) => DIAS[x - 1]).join(' '), obj != null && d.kind !== 'scale' ? `objetivo ${num(obj)} ${d.unit ?? ''}`.trim() : null, textoAncla(d.anchor, d.anchor_offset_minutes), a.remind && a.remind_at ? `aviso a las ${a.remind_at.slice(0, 5)}` : null].filter(Boolean).join(' · ')}
                     </div>
                     {a.coach_note && <div className="text-xs mt-0.5">Tu indicación: {a.coach_note}</div>}
                   </div>

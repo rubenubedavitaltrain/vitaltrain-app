@@ -65,7 +65,7 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Seguimiento | Mi progreso (gráficas), medidas opcionales, resumen mensual para la revisión | 1 |
 | Documentos | PDFs que el coach comparte con el paciente, por pilar | 1 |
 | Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
-| Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0); «Mi día» con anclas y hábitos en su hora (0.15.0). Falta: recordatorios | 2 |
+| Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0); «Mi día» con anclas y hábitos en su hora (0.15.0); recordatorios en los hábitos de Mi día (0.22.0) | 2 |
 | Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
 | Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta. Hecho (0.17.0): rMEQ y check-in semanal. Falta: editor de cuestionarios de consulta | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
@@ -206,6 +206,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - Código: `src/core/historia/CopiaPaciente.tsx`: copia legible de la historia clínica para el paciente (PDF por impresión).
 - `supabase/migrations/0025_modulo_sol.sql`: módulo `sun` («Sol y vitamina D»). Código en `src/modules/sol/Sol.tsx` (TarjetaSol, MiSol, SolCoach). Lo común pasa al núcleo: `src/core/sol/` (`sol.ts`, `ciudades.ts`, `PanelSolar.tsx`, `Ciudad.tsx` con el selector, `cargarCiudad`, `guardarCiudad` y la ubicación actual solo en el móvil) y `src/core/ui/Hoja.tsx`.
 - `supabase/migrations/0026_ajustes_seguridad.sql`: el paciente registra entrenamiento (series, notas por ejercicio, terminar sesión) solo con el módulo `training`; fechas de inicio y fin de sesión no futuras (margen 1 h); límites NOT VALID de longitud: `workouts.feeling` 500, `patient_notes` 2000, `coach_notes.body` 1-4000. No toca datos existentes.
+- `supabase/migrations/0027_recordatorios_habitos.sql`: `patient_habits.remind_at` y `poner_recordatorio_habito(id, activar, hora)` (solo el paciente, en hábitos suyos, activos y con ancla, con el módulo `habits`). La hora la calcula el móvil (`MiDia.tsx`); la función `avisos` envía push a esa hora si hoy toca y no está marcado (kind `recordatorio_habito`).
 - `supabase/migrations/0024_suscripciones.sql`: `plan_products` (producto WooCommerce → módulos; Comunidad 13847 de partida), `memberships` gana variación y fecha de aviso, `registrar_suscripcion(jsonb)` (solo service_role; enlaza por email, no toca módulos), disparador que enlaza al dar de alta, `cambios_suscripcion()` (propuestas para el coach) y `aplicar_cambio_suscripcion(paciente)` (el coach aplica; solo abre o cierra módulos). Función `supabase/functions/woocommerce` (firma HMAC con `WOO_WEBHOOK_SECRET`, Verify JWT desactivado). Pantallas en `src/core/suscripciones/Suscripciones.tsx`. Guía: `docs/WOOCOMMERCE.md`.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
@@ -289,6 +290,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Tarea 31 (0.20.0): suscripciones de WooCommerce con aprobación del coach (9 nov 2026). 0024 en dev y en prod (ejecutada por Rubén), secreto `WOO_WEBHOOK_SECRET` y función `woocommerce` en prod (Verify JWT desactivado), webhooks en WooCommerce: «suscripción creada» (ID 2) y «suscripción actualizada» (ID 3), API v3. Productos: Comunidad 13847; Entrenamiento online 5726 (lo añade Rubén en Ajustes: entrenamiento, ritmos circadianos, mensajes). Las suscripciones ya existentes llegan a la app en su próxima renovación o cambio
 - [ ] Tarea 32 (0.21.0): módulo «Sol y vitamina D» y ubicación actual solo en el móvil. 0025 aplicada en dev. Falta: revisión de Rubén, 0025 en prod, confirmar con la asesora el texto sobre ubicación
 - [ ] Tarea 33 (0.21.1): ajustes de seguridad pendientes de la revisión del 8 nov (migración 0026). Aplicada en dev. Falta: revisión de Rubén y 0026 en prod
+- [ ] Tarea 34 (0.22.0): recordatorios de «Mi día» (migración 0027). Aplicada en dev. Falta: desplegar `avisos` en dev y prod, revisión de Rubén, 0027 en prod
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

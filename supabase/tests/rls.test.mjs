@@ -288,7 +288,7 @@ check('Sin consentimiento no se puede escribir', !!(await as(p3, `insert into me
 // 0014: ritmos circadianos
 check('Sin el módulo activo no se puede registrar sueño', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date - 1, 4)`)).error);
 await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p1}', 'circadian')`);
-check('Con el módulo activo, el paciente registra su noche', !(await as(p1, `insert into sleep_logs (patient_id, night_of, bedtime, wake_time, quality, rested) values ('${p1}', current_date - 1, (current_date - 1) + time '23:30', current_date + time '07:15', 4, 3)`)).error);
+check('Con el módulo activo, el paciente registra su noche', !(await as(p1, `insert into sleep_logs (patient_id, night_of, bedtime, wake_time, quality, rested) values ('${p1}', (now() - interval '8 hours')::date, now() - interval '8 hours', now() - interval '30 minutes', 4, 3)`)).error);
 check('No se puede registrar una noche futura', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, quality) values ('${p1}', current_date + 2, 4)`)).error);
 check('No se acepta despertar antes de acostarse', !!(await as(p1, `insert into sleep_logs (patient_id, night_of, bedtime, wake_time) values ('${p1}', current_date - 3, (current_date - 3) + time '23:00', (current_date - 3) + time '22:00')`)).error);
 check('El paciente anota una comida', !(await as(p1, `insert into meal_events (patient_id, eaten_at, kind) values ('${p1}', now() - interval '2 hours', 'lunch')`)).error);
@@ -565,6 +565,29 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('No puede poner fecha de fin en el futuro', (await as(p2, `update workouts set completed_at = now() + interval '3 days' where id = '${w2}' returning id`)).rows?.length !== 1);
   check('Sensaciones demasiado largas: se rechaza', !!(await as(p2, `update workouts set feeling = repeat('a', 600) where id = '${w2}'`)).error);
   check('Notas de sesión normales: se aceptan', !(await as(p2, `update workouts set patient_notes = 'Bien, algo cansado' where id = '${w2}'`)).error);
+}
+
+// 0027: recordatorios de «Mi día»
+{
+  const luz = (await db.query(`select id, anchor from habit_definitions where name = 'Luz natural al despertar'`)).rows[0];
+  check('El hábito de luz está anclado a un momento', !!luz.anchor);
+  await as(coach, `insert into patient_habits (patient_id, habit_id) values ('${p2}', '${luz.id}')`);
+  const phLuz = (await db.query(`select id from patient_habits where patient_id = '${p2}' and habit_id = '${luz.id}'`)).rows[0].id;
+  const phPasos = (await db.query(`select ph.id from patient_habits ph join habit_definitions d on d.id = ph.habit_id where ph.patient_id = '${p2}' and d.anchor is null limit 1`)).rows[0]?.id;
+  check('El paciente activa el aviso de su hábito', !(await as(p2, `select poner_recordatorio_habito('${phLuz}', true, '07:42:31')`)).error);
+  const fila = (await db.query(`select remind, remind_at::text from patient_habits where id = '${phLuz}'`)).rows[0];
+  check('Se guarda la hora sin segundos', fila.remind === true && fila.remind_at === '07:42:00');
+  check('Otro paciente no puede ponerle avisos', !!(await as(p1, `select poner_recordatorio_habito('${phLuz}', true, '08:00')`)).error);
+  if (phPasos) check('Un hábito sin momento del día no admite aviso', !!(await as(p2, `select poner_recordatorio_habito('${phPasos}', true, '08:00')`)).error);
+  check('Activar sin hora: se rechaza', !!(await as(p2, `select poner_recordatorio_habito('${phLuz}', true, null)`)).error);
+  check('No puede cambiar el aviso por otra vía', (await as(p2, `update patient_habits set remind = false where id = '${phLuz}' returning id`)).rows?.length !== 1);
+  check('Lo quita y se borra la hora', !(await as(p2, `select poner_recordatorio_habito('${phLuz}', false)`)).error
+    && (await db.query(`select remind_at from patient_habits where id = '${phLuz}'`)).rows[0].remind_at === null);
+  await db.exec(`reset role; set request.jwt.sub = ''; delete from patient_modules where patient_id = '${p2}' and module_slug = 'habits'`);
+  check('Sin el módulo de hábitos no puede activar avisos', !!(await as(p2, `select poner_recordatorio_habito('${phLuz}', true, '07:40')`)).error);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into patient_modules (patient_id, module_slug) values ('${p2}', 'habits')`);
+  check('Se puede anotar un aviso de hábito enviado', !(await db.query(`select 1`)).error
+    && !!(await db.query(`insert into notification_log (kind, user_id, ref, channel) values ('recordatorio_habito', '${p2}', 'x', 'push') returning id`)).rows.length);
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones

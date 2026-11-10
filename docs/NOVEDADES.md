@@ -2,6 +2,18 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Recordatorios de «Mi día» (versión 0.22.0)
+- **Paciente, Mi ritmo → Mi día**: cada hábito pautado con un momento del día (al despertar, al amanecer, antes de la última comida...) tiene un botón **«Avisarme»**.
+  - El aviso llega al móvil a esa hora, solo los días que toca el hábito y solo si aún no lo ha marcado.
+  - La hora sale de sus datos: su media de sueño y comidas, o el sol de su ciudad. Si su media cambia, la hora del aviso se ajusta sola al abrir Mi día.
+  - Para el amanecer y el atardecer se usa la ciudad guardada, nunca la ubicación del móvil.
+  - Lo decide el paciente. Tú no lo activas por él, pero en su ficha (Hábitos) ves «aviso a las 07:40».
+  - Solo aviso en el móvil, sin email, para no saturar.
+- Arreglo: una prueba de seguridad del sueño fallaba si se ejecutaba de madrugada. Ya no depende de la hora.
+- Por dentro: migración 0027, aplicada en `vitaltrain-dev`. La función `avisos` hay que volver a desplegarla (también lleva el email mensual de borrados).
+- Cómo probarlo: con un paciente de prueba que tenga hábitos y ritmos circadianos, asígnale «Luz natural al despertar». En el móvil (app instalada): Mi ritmo → Mi día → «Avisarme» en ese hábito.
+- Qué podría fallar: si el paciente no tiene datos de sueño, el hábito no tiene hora y no aparece el botón hasta que anote unas noches.
+
 ## 2026-11-09 · Ajustes de seguridad pendientes (versión 0.21.1)
 - Tres arreglos de prioridad baja que quedaron anotados en la revisión de seguridad del 8 de noviembre. **No borra ni cambia ningún dato existente.**
   - Para registrar entrenamiento (series, notas por ejercicio, terminar una sesión) el paciente necesita tener activo el módulo de entrenamiento. Su historial lo sigue viendo igual.
