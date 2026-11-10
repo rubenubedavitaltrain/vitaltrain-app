@@ -72,6 +72,7 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Respiración y regulación | Ejercicios guiados con temporizador. Hecho (0.18.0): respiración lenta, suspiro fisiológico y 4-7-8, con calma antes y después. Falta: audios guiados | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach. Adelantado (0.25.0, 10 nov 2026): Claude conectado a la app (conector MCP), propone y Rubén aprueba. Solo en dev hasta el visto bueno de la asesora. Ver `docs/ASISTENTE.md` | 5 |
 | Wearables | Datos de sueño y actividad (Apple Health requiere app nativa vía Capacitor) | 5 |
+| Agenda de consultas (en la recámara, 10 nov 2026) | Conectar el Google Calendar de Rubén: ver huecos libres, reservar la siguiente consulta al cerrar una sesión y, más adelante, que el paciente elija hora entre las disponibles. Pendiente de estudiar viabilidad (API de Google Calendar, privacidad de datos de salud en el calendario, quién crea las citas) | — |
 
 ### Planes de acceso (decidido el 9 nov 2026)
 
@@ -298,6 +299,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Tarea 36 (0.23.0): editor de cuestionarios de seguimiento (migración 0028). Fusionada (PR #19) y 0028 en dev y prod (10 nov 2026)
 - [x] Tarea 37 (0.24.0): versión vigente de las condiciones y altas completas (migración 0029, función `alta-paciente`). En dev y prod (10 nov 2026; antes se comprobó que nadie tenía otra versión aceptada). Al desplegar `alta-paciente` en prod se activó solo «Verify JWT»: Rubén lo desactivó. Revisarlo siempre tras cada despliegue
 - [ ] Tarea 39 (0.25.0): asistente del coach conectado a Claude. 0030 y función `asistente` en dev, OAuth activado en dev (cliente manual, sin registro dinámico), Site URL de dev en la vista previa de la rama (10 nov 2026). Falta: prueba de Rubén, comprobar que la conexión lleva doble factor, y para prod los requisitos legales de `docs/ASISTENTE.md`
+- [ ] En la recámara: agenda de consultas con Google Calendar (ver sección 3). Estudiar viabilidad antes de construir
 - [ ] FluentCRM: etiquetas por plan con automatizaciones de WooCommerce en la web. Lo configura Rubén
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz

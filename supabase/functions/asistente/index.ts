@@ -19,7 +19,7 @@ const VERSIONES = ['2025-11-25', '2025-06-18', '2025-03-26'];
 
 const INSTRUCCIONES = `Eres el asistente de Rubén Úbeda Rubio (T.S.D. Sanitario, Clínica Vitaltrain) en su app de pacientes.
 Rubén prescribe y decide; tú preparas. Reglas:
-1. Antes de proponer, lee la ficha del paciente (ficha_paciente) y, si hace falta y Rubén lo pide, la historia clínica. Ten en cuenta dolor, «no puedo hacerlo», esfuerzo, sueño, check-ins, objetivos y lo que diga Rubén.
+1. Antes de proponer, lee la ficha del paciente (ficha_paciente) y, si hace falta y Rubén lo pide, la historia clínica (pide antes a Rubén el código de su app de autenticación). Ten en cuenta dolor, «no puedo hacerlo», esfuerzo, sueño, check-ins, objetivos y lo que diga Rubén.
 2. Usa solo ejercicios de la biblioteca (buscar_ejercicios) con su id. No inventes ejercicios.
 3. Todo cambio va como propuesta (proponer_*). Enséñale a Rubén la propuesta completa en la conversación y explica el porqué de las decisiones.
 4. Solo llama a aplicar_propuesta cuando Rubén la haya aprobado de forma expresa en esta conversación. Si duda o corrige, haz una propuesta nueva y descarta la anterior.
@@ -45,7 +45,7 @@ async function q<T = any>(p: PromiseLike<{ data: T | null; error: { message: str
 }
 
 // ---------- herramientas ----------
-type Herramienta = { name: string; description: string; inputSchema: Record<string, unknown>; annotations?: Record<string, unknown>; run: (db: SupabaseClient, a: any, yo: string) => Promise<unknown> };
+type Herramienta = { name: string; description: string; inputSchema: Record<string, unknown>; annotations?: Record<string, unknown>; run: (db: SupabaseClient, a: any, yo: string, token: string) => Promise<unknown> };
 const pacienteId = { type: 'string', description: 'id del paciente (de listar_pacientes)' };
 const lectura = { readOnlyHint: true, openWorldHint: false };
 const propuesta = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false };
@@ -53,6 +53,25 @@ const propuesta = { readOnlyHint: false, destructiveHint: false, idempotentHint:
 async function consentimientoVigente(db: SupabaseClient, p: string) {
   const c = await q(db.from('consents').select('version, accepted_at').eq('patient_id', p).is('withdrawn_at', null).is('replaced_at', null).maybeSingle());
   return c as { version: string; accepted_at: string } | null;
+}
+
+// Doble factor para la historia clínica: la conexión con Claude no conserva el segundo factor,
+// así que cada consulta de la historia pide el código de la app de autenticación de Rubén.
+// El código sube la sesión a aal2 y ese token se usa solo para esta consulta.
+async function sesionDobleFactor(token: string, codigo: string) {
+  const h = { apikey: ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const u = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers: h }).then((r) => r.json()).catch(() => null);
+  const factor = (u?.factors ?? []).find((f: any) => f.factor_type === 'totp' && f.status === 'verified');
+  exigir(factor, 'La cuenta del coach no tiene configurada la app de autenticación.');
+  const reto = await fetch(`${SUPABASE_URL}/auth/v1/factors/${factor.id}/challenge`, { method: 'POST', headers: h, body: '{}' }).then((r) => r.json()).catch(() => null);
+  exigir(reto?.id, 'No se ha podido pedir el doble factor. Inténtalo de nuevo.');
+  const v = await fetch(`${SUPABASE_URL}/auth/v1/factors/${factor.id}/verify`, { method: 'POST', headers: h, body: JSON.stringify({ challenge_id: reto.id, code: codigo }) });
+  const ses = await v.json().catch(() => null);
+  exigir(v.ok && ses?.access_token, 'El código no es correcto o ha caducado. Pide a Rubén el que muestra ahora su app de autenticación.');
+  const db = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: `Bearer ${ses.access_token}` } }, auth: { persistSession: false, autoRefreshToken: false } });
+  // No se cierra la sesión: es la misma conexión de Claude, ahora con el segundo factor. El token caduca solo.
+  const cerrar = async () => {};
+  return { db, cerrar };
 }
 
 async function comprobarPaciente(db: SupabaseClient, p: string) {
@@ -203,26 +222,33 @@ const HERRAMIENTAS: Herramienta[] = [
   },
   {
     name: 'historia_clinica',
-    description: 'Historia clínica del paciente: ficha clínica (motivo, antecedentes, medicación, suplementos, alergias, estilo de vida, observaciones), consultas con sus adendas y la lista de documentos clínicos. Solo con doble factor. Cada lectura queda en el registro de accesos. Úsala solo cuando haga falta para la tarea que pide Rubén.',
-    inputSchema: { type: 'object', properties: { paciente_id: pacienteId, consultas: { type: 'integer', minimum: 1, maximum: 50, description: 'Cuántas consultas recientes (por defecto 10)' } }, required: ['paciente_id'] },
+    description: 'Historia clínica del paciente: ficha clínica (motivo, antecedentes, medicación, suplementos, alergias, estilo de vida, observaciones), consultas con sus adendas y la lista de documentos clínicos. Exige el doble factor en cada consulta: pide a Rubén el código de 6 dígitos que muestra AHORA su app de autenticación (caduca en unos 30 segundos) y pásalo en codigo_doble_factor. Cada lectura queda en el registro de accesos. Úsala solo cuando haga falta para la tarea que pide Rubén.',
+    inputSchema: { type: 'object', properties: { paciente_id: pacienteId, codigo_doble_factor: { type: 'string', description: 'Código de 6 dígitos de la app de autenticación de Rubén, recién dado por él' }, consultas: { type: 'integer', minimum: 1, maximum: 50, description: 'Cuántas consultas recientes (por defecto 10)' } }, required: ['paciente_id', 'codigo_doble_factor'] },
     annotations: lectura,
-    run: async (db, a) => {
+    run: async (db, a, _yo, token) => {
       const p = id(a.paciente_id, 'el paciente');
       await comprobarPaciente(db, p);
-      const { error } = await db.rpc('registrar_acceso', { p_patient: p, p_action: 'ver_historia', p_entity: 'asistente_ia', p_id: null });
-      if (error) throw new Fallo('La historia clínica necesita el doble factor. Rubén tiene que volver a conectar el asistente entrando con el código de su app de autenticación.');
-      const n = Math.min(Math.max(Number(a.consultas) || 10, 1), 50);
-      const [ficha, consultas, docs] = await Promise.all([
-        q<any>(db.from('clinical_records').select('main_reason, personal_history, family_history, medication, supplements, allergies, lifestyle, observations, updated_at').eq('patient_id', p).maybeSingle()),
-        q<any[]>(db.from('consultations').select('happened_at, modality, duration_minutes, reason, subjective, findings, plan, goals, next_review, status, consultation_addenda(text, created_at)').eq('patient_id', p).order('happened_at', { ascending: false }).limit(n)),
-        q<any[]>(db.from('clinical_documents').select('title, category, document_date, note, created_at').eq('patient_id', p).order('created_at', { ascending: false }).limit(50))
-      ]);
-      return {
-        ficha_clinica: ficha ?? 'Sin ficha clínica',
-        consultas: consultas.map((c) => ({ fecha: fechaHora(c.happened_at), modalidad: c.modality, estado: c.status === 'closed' ? 'cerrada' : 'borrador', motivo: c.reason, subjetivo: c.subjective, hallazgos: c.findings, plan: c.plan, objetivos: c.goals, proxima_revision: c.next_review, adendas: (c.consultation_addenda ?? []).map((x: any) => `${x.created_at.slice(0, 10)}: ${x.text}`) })),
-        documentos: docs.map((d) => ({ titulo: d.title, tipo: d.category, fecha: d.document_date ?? d.created_at.slice(0, 10), nota: d.note ?? undefined })),
-        aviso: 'Datos clínicos: úsalos solo para lo que ha pedido Rubén y no los copies en mensajes al paciente.'
-      };
+      const codigo = String(a.codigo_doble_factor ?? '').replace(/\D/g, '');
+      exigir(codigo.length === 6, 'Para abrir la historia clínica, pide a Rubén el código de 6 dígitos que muestra ahora su app de autenticación.');
+      const mfa = await sesionDobleFactor(token, codigo);
+      try {
+        const { error } = await mfa.db.rpc('registrar_acceso', { p_patient: p, p_action: 'ver_historia', p_entity: 'asistente_ia', p_id: null });
+        if (error) throw new Fallo('No se ha podido abrir la historia clínica con el doble factor.');
+        const n = Math.min(Math.max(Number(a.consultas) || 10, 1), 50);
+        const [ficha, consultas, docs] = await Promise.all([
+          q<any>(mfa.db.from('clinical_records').select('main_reason, personal_history, family_history, medication, supplements, allergies, lifestyle, observations, updated_at').eq('patient_id', p).maybeSingle()),
+          q<any[]>(mfa.db.from('consultations').select('happened_at, modality, duration_minutes, reason, subjective, findings, plan, goals, next_review, status, consultation_addenda(text, created_at)').eq('patient_id', p).order('happened_at', { ascending: false }).limit(n)),
+          q<any[]>(mfa.db.from('clinical_documents').select('title, category, document_date, note, created_at').eq('patient_id', p).order('created_at', { ascending: false }).limit(50))
+        ]);
+        return {
+          ficha_clinica: ficha ?? 'Sin ficha clínica',
+          consultas: consultas.map((c) => ({ fecha: fechaHora(c.happened_at), modalidad: c.modality, estado: c.status === 'closed' ? 'cerrada' : 'borrador', motivo: c.reason, subjetivo: c.subjective, hallazgos: c.findings, plan: c.plan, objetivos: c.goals, proxima_revision: c.next_review, adendas: (c.consultation_addenda ?? []).map((x: any) => `${x.created_at.slice(0, 10)}: ${x.text}`) })),
+          documentos: docs.map((d) => ({ titulo: d.title, tipo: d.category, fecha: d.document_date ?? d.created_at.slice(0, 10), nota: d.note ?? undefined })),
+          aviso: 'Datos clínicos: úsalos solo para lo que ha pedido Rubén y no los copies en mensajes al paciente.'
+        };
+      } finally {
+        await mfa.cerrar();
+      }
     }
   },
   {
@@ -437,10 +463,10 @@ async function sesionCoach(req: Request) {
   if (!data?.user) return null;
   const { data: perfil } = await db.from('profiles').select('role, status').eq('id', data.user.id).maybeSingle();
   if (perfil?.role !== 'coach' || perfil?.status !== 'active') return 'no-coach' as const;
-  return { db, yo: data.user.id };
+  return { db, yo: data.user.id, token };
 }
 
-async function atender(m: any, db: SupabaseClient, yo: string) {
+async function atender(m: any, db: SupabaseClient, yo: string, token: string) {
   const res = (result: unknown) => ({ jsonrpc: '2.0', id: m.id, result });
   const err = (code: number, message: string) => ({ jsonrpc: '2.0', id: m.id ?? null, error: { code, message } });
   switch (m.method) {
@@ -454,7 +480,7 @@ async function atender(m: any, db: SupabaseClient, yo: string) {
       const h = HERRAMIENTAS.find((x) => x.name === m.params?.name);
       if (!h) return err(-32602, 'Herramienta desconocida');
       try {
-        const out = await h.run(db, m.params?.arguments ?? {}, yo);
+        const out = await h.run(db, m.params?.arguments ?? {}, yo, token);
         return res({ content: [{ type: 'text', text: JSON.stringify(out) }] });
       } catch (e) {
         const texto = e instanceof Fallo ? e.message : 'Error inesperado. Inténtalo de nuevo.';
@@ -489,7 +515,7 @@ Deno.serve(async (req) => {
   let cuerpo: any;
   try { cuerpo = await req.json(); } catch { return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'JSON no válido' } }), { status: 400, headers: JSON_H }); }
   const lote = Array.isArray(cuerpo) ? cuerpo : [cuerpo];
-  const respuestas = (await Promise.all(lote.map((m) => atender(m, s.db, s.yo)))).filter(Boolean);
+  const respuestas = (await Promise.all(lote.map((m) => atender(m, s.db, s.yo, s.token)))).filter(Boolean);
   if (!respuestas.length) return new Response(null, { status: 202 });
   return new Response(JSON.stringify(Array.isArray(cuerpo) ? respuestas : respuestas[0]), { headers: JSON_H });
 });

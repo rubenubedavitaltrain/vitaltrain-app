@@ -16,7 +16,7 @@ Claude se conecta a la app con la cuenta del coach (conector personalizado en Cl
 
 ## Reglas
 - La IA propone; Rubén decide (Reglamento UE 2017/745). Nunca recomendaciones directas al paciente.
-- La historia clínica solo con doble factor. Cada lectura queda en `access_log` con la entidad `asistente_ia`.
+- La historia clínica solo con doble factor. La conexión de Claude llega sin segundo factor, así que `historia_clinica` pide cada vez el código de la app de autenticación de Rubén (caduca en ~30 s); la función sube esa sesión a aal2 solo para esa consulta. Cada lectura queda en `access_log` con la entidad `asistente_ia`.
 - Los datos de la app de pacientes sin consentimiento en vigor no se muestran al asistente.
 - No hay registro dinámico de clientes: la app OAuth de Claude se da de alta a mano en Supabase (cliente público con PKCE y vuelta a `https://claude.ai/api/mcp/auth_callback`).
 
