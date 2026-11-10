@@ -228,7 +228,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 
 ## 9. Reglas de trabajo para Claude Code
 
-- **Nada sin autorización de Rubén (9 nov 2026):** ni la app ni Claude borran o cambian datos por su cuenta. Nada automático que borre. Todo cambio en producción lo valida y lo ejecuta Rubén antes.
+- **Datos: nada sin autorización de Rubén (9 nov 2026):** ni la app ni Claude borran o cambian datos de pacientes por su cuenta. Nada automático que borre. Cualquier borrado o cambio de datos en producción lo valida Rubén antes.
+- **Construir: autonomía (10 nov 2026):** para construir la app, mejorarla y hacerla crecer, Claude avanza solo (código, pruebas, entorno de pruebas, PR) sin pedir permiso en cada paso. Las acciones que la herramienta bloquea en producción (pulsar Run o Deploy en `vitaltrain-prod`, fusionar en main) las deja preparadas y Rubén solo pulsa.
 
 - Comandos: comprobar tipos con `npx tsc --noEmit` (nunca `tsc -b`: escribe .js junto a los .tsx y Vite los cogería antes). `npm ci` para instalar, `npm run dev` para probar en local, `npm run build` para compilar (sale a `dist/`), `npm run test:rls` para las pruebas de seguridad, `npm run test:cola` para la cola sin conexión.
 - Versiones de dependencias fijadas, con al menos dos semanas desde su publicación.
@@ -288,9 +289,9 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 29 (0.19.0): copia de la historia clínica para el paciente, borrado a los 5 años solo con autorización de Rubén (migraciones 0022 y 0023), protocolo de privacidad en Claude Docs. 0022 y 0023 aplicadas en dev y en prod (prod ejecutado por Rubén el 9 nov 2026; comprobado sin borrado automático ni reloj)
 - [x] Doble factor del coach en prod y prueba completa con un paciente de prueba en prod: todo bien (9 nov 2026)
 - [x] Tarea 31 (0.20.0): suscripciones de WooCommerce con aprobación del coach (9 nov 2026). 0024 en dev y en prod (ejecutada por Rubén), secreto `WOO_WEBHOOK_SECRET` y función `woocommerce` en prod (Verify JWT desactivado), webhooks en WooCommerce: «suscripción creada» (ID 2) y «suscripción actualizada» (ID 3), API v3. Productos: Comunidad 13847; Entrenamiento online 5726 (lo añade Rubén en Ajustes: entrenamiento, ritmos circadianos, mensajes). Las suscripciones ya existentes llegan a la app en su próxima renovación o cambio
-- [ ] Tarea 32 (0.21.0): módulo «Sol y vitamina D» y ubicación actual solo en el móvil. 0025 aplicada en dev. Falta: revisión de Rubén, 0025 en prod, confirmar con la asesora el texto sobre ubicación
-- [ ] Tarea 33 (0.21.1): ajustes de seguridad pendientes de la revisión del 8 nov (migración 0026). Aplicada en dev. Falta: revisión de Rubén y 0026 en prod
-- [ ] Tarea 34 (0.22.0): recordatorios de «Mi día» (migración 0027). Aplicada en dev. Falta: desplegar `avisos` en dev y prod, revisión de Rubén, 0027 en prod
+- [x] Tarea 32 (0.21.0): módulo «Sol y vitamina D» y ubicación actual solo en el móvil. Fusionada (PR #15) y 0025 en dev y prod (10 nov 2026). Falta: confirmar con la asesora el texto sobre ubicación
+- [x] Tarea 33 (0.21.1): ajustes de seguridad pendientes de la revisión del 8 nov (migración 0026). Fusionada (PR #16); 0026 en dev y prod tras comprobar que ningún paciente tenía sesiones sin el módulo de entrenamiento (10 nov 2026)
+- [x] Tarea 34 (0.22.0): recordatorios de «Mi día» (migración 0027). Fusionada (PR #17); 0027 en dev y prod; función `avisos` desplegada en dev y prod con Verify JWT desactivado (10 nov 2026). Incluye el email mensual de borrados pendientes. Falta: probar el aviso en un iPhone instalado
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos
