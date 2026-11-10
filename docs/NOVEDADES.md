@@ -2,6 +2,16 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Versión vigente de las condiciones y altas sin fallos a medias (versión 0.24.0)
+- **Condiciones:** la base de datos solo da acceso a quien haya aceptado una versión vigente. Hoy solo es vigente la 1.4.
+  - Cuando cambies las condiciones, se añade la versión nueva sin bloquear a nadie. La app pide aceptarla.
+  - La antigua deja de valer solo cuando tú lo decidas.
+- **Alta de pacientes:** el perfil y el módulo de entrenamiento se crean de una vez. Si un alta anterior falló a medias y quedó una cuenta suelta con ese email, ahora se completa en lugar de dar error.
+- Cierra los dos últimos pendientes de la revisión de seguridad del 8 de noviembre. Queda fuera, a propósito, borrar en el móvil los envíos pendientes de otra cuenta, porque borraría datos.
+- Por dentro: migración 0029 y función `alta-paciente`, aplicadas en `vitaltrain-dev`.
+- Cómo probarlo: en el enlace de prueba, da de alta un paciente de prueba. Debe entrar y aceptar las condiciones como siempre.
+- Qué podría fallar: un paciente que tuviera aceptada una versión distinta de la 1.4 tendrá que aceptar de nuevo. La app ya se lo pide.
+
 ## 2026-11-10 · Editor de cuestionarios de seguimiento (versión 0.23.0)
 - **Coach, pestaña «Cuestionarios»**: crea cuestionarios cortos de seguimiento sin programar.
   - Tipos de pregunta: elegir una opción, escala (por ejemplo de 0 a 10) y texto libre.

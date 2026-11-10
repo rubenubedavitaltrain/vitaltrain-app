@@ -48,25 +48,28 @@ Deno.serve(async (req) => {
   const { data: yaPerfil } = await admin.from('profiles').select('id').eq('email', email).maybeSingle();
   if (yaPerfil) return responder(409, { error: 'Ya hay alguien dado de alta con ese email' });
 
-  // 3. Cuenta de acceso (confirmada: entrará con código de 6 dígitos)
+  // 3. Cuenta de acceso (confirmada: entrará con código de 6 dígitos).
+  //    Si quedó una cuenta suelta de un intento anterior que falló a medias, se recupera (0029).
+  let id: string;
+  let nueva = false;
   const { data: creado, error: errCrear } = await admin.auth.admin.createUser({ email, email_confirm: true, user_metadata: { full_name: nombre } });
-  if (errCrear || !creado.user) {
-    const existe = /already|registered|exists/i.test(errCrear?.message ?? '');
-    return responder(existe ? 409 : 500, { error: existe ? 'Ese email ya tiene cuenta. Revisa la lista de pacientes.' : 'No se ha podido crear la cuenta' });
+  if (creado?.user) {
+    id = creado.user.id;
+    nueva = true;
+  } else if (/already|registered|exists/i.test(errCrear?.message ?? '')) {
+    const { data: suelta } = await admin.rpc('_usuario_por_email', { p_email: email });
+    if (!suelta) return responder(409, { error: 'Ese email ya tiene cuenta. Revisa la lista de pacientes.' });
+    id = suelta as string;
+  } else {
+    return responder(500, { error: 'No se ha podido crear la cuenta' });
   }
 
-  // 4. Perfil y módulo de entrenamiento
-  const id = creado.user.id;
-  const { error: errPerfil } = await admin.from('profiles').insert({ id, role: 'patient', full_name: nombre, email, phone: telefono });
-  if (errPerfil) {
-    await admin.auth.admin.deleteUser(id);
-    return responder(500, { error: 'No se ha podido crear el perfil' });
-  }
-  const { error: errModulo } = await admin.from('patient_modules').insert({ patient_id: id, module_slug: 'training' });
-  if (errModulo) {
-    await admin.from('profiles').delete().eq('id', id);
-    await admin.auth.admin.deleteUser(id);
-    return responder(500, { error: 'No se ha podido activar el entrenamiento' });
+  // 4. Perfil y módulo de entrenamiento, en un solo paso: o se crea todo o nada
+  const { error: errAlta } = await admin.rpc('_completar_alta', { p_id: id, p_nombre: nombre, p_email: email, p_telefono: telefono });
+  if (errAlta) {
+    if (nueva) await admin.auth.admin.deleteUser(id);
+    const repetido = /dado de alta/i.test(errAlta.message);
+    return responder(repetido ? 409 : 500, { error: repetido ? 'Ya hay alguien dado de alta con ese email' : 'No se ha podido completar el alta' });
   }
 
   return responder(200, { id, email, full_name: nombre });
