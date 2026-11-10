@@ -2,6 +2,9 @@ import { useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { desdeIso, diaMes, hoyIso, iso, sumarDias } from '../../lib/fechas';
 import { TIPOS_COMIDA, type Comida, type Noche, type TipoComida } from './datos';
+import { Hoja } from '../../core/ui/Hoja';
+
+export { Hoja };
 
 // Registro de sueño (menos de 20 segundos) y de comidas (solo hora y tipo).
 // Los usan el paciente y el coach (que puede anotar en consulta).
@@ -166,20 +169,6 @@ export function ComidasDelDia({ supabase, comidas, onCambio }: { supabase: Supab
 }
 
 // ---------- Piezas ----------
-
-export function Hoja({ titulo, onCerrar, children }: { titulo: string; onCerrar: () => void; children: React.ReactNode }) {
-  return (
-    <div role="dialog" aria-modal="true" aria-label={titulo} className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center sm:p-6" onClick={onCerrar}>
-      <div className="bg-fondo w-full sm:max-w-md max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-xl font-bold">{titulo}</h3>
-          <button onClick={onCerrar} className="text-petroleo font-bold px-2">Cerrar</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function Chips({ titulo, opciones, valor, onCambio, sufijo }: { titulo: string; opciones: { t: string; v: number }[]; valor: number | null; onCambio: (v: number | null) => void; sufijo?: string }) {
   return (

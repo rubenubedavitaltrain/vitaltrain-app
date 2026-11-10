@@ -86,7 +86,7 @@ El cobro lo hace WooCommerce Subscriptions con Stripe en vitaltrain.com (ya inst
 
 Pacientes de consulta: al aceptar las condiciones del cuestionario de admisión ya están en el CRM interno (historia clínica). En la app tienen el plan gratuito más una comunicación básica con Rubén (mensajes). Nada más por ser paciente: comunidad y entrenamiento se pagan aparte.
 
-Pendiente de construir: módulo «sol» separado del circadiano completo, alta libre del plan gratuito (con consentimiento y EIPD antes) y producto Completo de 79 €. Webhook de WooCommerce hecho en 0.20.0 (propone, el coach aplica).
+Pendiente de construir: alta libre del plan gratuito (con consentimiento y EIPD antes) y producto Completo de 79 €. Webhook de WooCommerce hecho en 0.20.0 (propone, el coach aplica).
 
 Nutrición queda fuera por ahora. Los planes de alimentación se comparten como PDF en Documentos.
 
@@ -118,7 +118,7 @@ Coach (ordenador):
 ## 4. Módulo de ritmos circadianos (detalle)
 
 ### Paciente
-- **Perfil circadiano**: cronotipo (cuestionario rMEQ, 5 preguntas, Adan y Almirall 1991), días laborables y ciudad. Con la ciudad se calculan amanecer y atardecer reales de cada día (librería tipo `suncalc`, en el cliente; no se usa GPS).
+- **Perfil circadiano**: cronotipo (cuestionario rMEQ, 5 preguntas, Adan y Almirall 1991), días laborables y ciudad. Con la ciudad se calculan amanecer y atardecer reales de cada día (cálculo propio en el cliente). Opción «Usar mi ubicación actual» (0.21.0): la posición del móvil se usa solo en el propio móvil, redondeada a ~1 km, y nunca se envía al servidor.
 - **Mi día**: una línea temporal con las anclas que el coach ha configurado para ese paciente. Ejemplo: luz natural en los 30 min tras despertar, primera comida, última comida 3 h antes de dormir, luz tenue desde 1 h antes del atardecer, hora de acostarse.
 - **Registro de sueño** en menos de 20 segundos: hora de acostarse y levantarse, latencia, despertares, calidad, cómo se levanta.
 - **Registro de comidas**: solo la hora y el tipo, para ver la ventana de alimentación. Sin calorías.
@@ -204,6 +204,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0022_borrado_bloqueados.sql`: `profiles.archived_at` (lo fija un disparador al archivar), `purge_log` (registro de borrados, solo lectura del coach) y `purgar_datos_bloqueados()`, que borra los datos de la app de pacientes dados de baja o con el consentimiento retirado hace más de 5 años. No toca la historia clínica ni `patient_documents`; sin historia ni documentos borra la cuenta.
 - `supabase/migrations/0023_borrado_autorizado.sql`: quita el reloj y el borrado en bloque de 0022. `pendientes_de_borrar()` (lista, solo coach con doble factor) y `borrar_datos_bloqueados(paciente)` (uno a uno, autorizado por el coach con doble factor; queda en `purge_log.autorizado_por`). Doble factor configurable también desde Ajustes del coach (0.19.1). Pantalla: `src/core/legal/BorradosPendientes.tsx` en el Inicio del coach (norma, qué comprobar, casilla de validación). La función `avisos` envía al coach un email al mes pidiendo autorización si hay pendientes (`_pendientes_de_borrar()`, solo service_role); nunca borra.
 - Código: `src/core/historia/CopiaPaciente.tsx`: copia legible de la historia clínica para el paciente (PDF por impresión).
+- `supabase/migrations/0025_modulo_sol.sql`: módulo `sun` («Sol y vitamina D»). Código en `src/modules/sol/Sol.tsx` (TarjetaSol, MiSol, SolCoach). Lo común pasa al núcleo: `src/core/sol/` (`sol.ts`, `ciudades.ts`, `PanelSolar.tsx`, `Ciudad.tsx` con el selector, `cargarCiudad`, `guardarCiudad` y la ubicación actual solo en el móvil) y `src/core/ui/Hoja.tsx`.
 - `supabase/migrations/0024_suscripciones.sql`: `plan_products` (producto WooCommerce → módulos; Comunidad 13847 de partida), `memberships` gana variación y fecha de aviso, `registrar_suscripcion(jsonb)` (solo service_role; enlaza por email, no toca módulos), disparador que enlaza al dar de alta, `cambios_suscripcion()` (propuestas para el coach) y `aplicar_cambio_suscripcion(paciente)` (el coach aplica; solo abre o cierra módulos). Función `supabase/functions/woocommerce` (firma HMAC con `WOO_WEBHOOK_SECRET`, Verify JWT desactivado). Pantallas en `src/core/suscripciones/Suscripciones.tsx`. Guía: `docs/WOOCOMMERCE.md`.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
@@ -285,6 +286,7 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [ ] Tarea 29 (0.19.0): copia de la historia clínica para el paciente, borrado a los 5 años solo con autorización de Rubén (migraciones 0022 y 0023), protocolo de privacidad en Claude Docs. 0022 y 0023 aplicadas en dev y en prod (prod ejecutado por Rubén el 9 nov 2026; comprobado sin borrado automático ni reloj)
 - [x] Doble factor del coach en prod y prueba completa con un paciente de prueba en prod: todo bien (9 nov 2026)
 - [x] Tarea 31 (0.20.0): suscripciones de WooCommerce con aprobación del coach (9 nov 2026). 0024 en dev y en prod (ejecutada por Rubén), secreto `WOO_WEBHOOK_SECRET` y función `woocommerce` en prod (Verify JWT desactivado), webhooks en WooCommerce: «suscripción creada» (ID 2) y «suscripción actualizada» (ID 3), API v3. Productos: Comunidad 13847; Entrenamiento online 5726 (lo añade Rubén en Ajustes: entrenamiento, ritmos circadianos, mensajes). Las suscripciones ya existentes llegan a la app en su próxima renovación o cambio
+- [ ] Tarea 32 (0.21.0): módulo «Sol y vitamina D» y ubicación actual solo en el móvil. 0025 aplicada en dev. Falta: revisión de Rubén, 0025 en prod, confirmar con la asesora el texto sobre ubicación
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos

@@ -13,6 +13,7 @@ import { MiRitmo, TarjetaRitmo } from '../../modules/circadiano/Ritmo';
 import { Constancia, TarjetaHabitos } from '../../modules/habitos/Habitos';
 import { TarjetaCuestionarios } from '../../modules/cuestionarios/Cuestionarios';
 import { TarjetaRespiracion } from '../../modules/respiracion/Respiracion';
+import { MiSol, TarjetaSol } from '../../modules/sol/Sol';
 import { buscarAhora, pausarActualizacion } from '../actualizar';
 import { PantallaConsentimiento, Privacidad, useConsentimiento, type Consentimiento } from '../legal/Consentimiento';
 import { descartarFallidos, fallidos, pendientes, usarCuenta, vaciarCola } from '../../modules/entrenamiento/paciente/datos';
@@ -23,7 +24,7 @@ type Pilar = { slug: string; name: string; description: string | null };
 type Pestaña = 'hoy' | 'semana' | 'progreso' | 'mensajes' | 'perfil';
 
 // Qué pilar ilumina cada módulo
-const PILAR_DE_MODULO: Record<string, string> = { training: 'movimiento-inteligente', circadian: 'ritmos-circadianos', breathing: 'regulacion-emocional' };
+const PILAR_DE_MODULO: Record<string, string> = { training: 'movimiento-inteligente', circadian: 'ritmos-circadianos', breathing: 'regulacion-emocional', sun: 'contacto-naturaleza' };
 
 function leer<T>(k: string): T | null { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } }
 function escribir(k: string, v: unknown) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* nada */ } }
@@ -35,6 +36,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
   // Con un entrenamiento abierto no se recarga la app para actualizarla
   useEffect(() => { pausarActualizacion(!!abierta); }, [abierta]);
   const [ritmo, setRitmo] = useState(false);
+  const [sol, setSol] = useState(false);
   const [pilaresHabitos, setPilaresHabitos] = useState<string[]>([]);
   const [pilares, setPilares] = useState<Pilar[]>(() => leer('vt.pilares') ?? []);
   const [modulos, setModulos] = useState<string[]>(() => leer('vt.modulos') ?? ['training']);
@@ -74,6 +76,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
     return <Entrenamiento supabase={supabase} sesionId={abierta} pacienteId={userId} onSalir={() => { setAbierta(null); setRecarga((r) => r + 1); }} />;
   }
 
+  if (sol) return <MiSol supabase={supabase} pacienteId={userId} onSalir={() => setSol(false)} />;
   if (ritmo) return <MiRitmo supabase={supabase} pacienteId={userId} onSalir={() => { setRitmo(false); setRecarga((r) => r + 1); }} />;
 
   const activos = new Set([...modulos.map((m) => PILAR_DE_MODULO[m]).filter(Boolean), ...(modulos.includes('habits') ? pilaresHabitos : [])]);
@@ -101,6 +104,7 @@ export default function AppPaciente({ supabase, userId, nombre, email }: { supab
               {modulos.includes('habits') && <TarjetaHabitos supabase={supabase} pacienteId={userId} onPilares={setPilaresHabitos} />}
               {modulos.includes('breathing') && <TarjetaRespiracion supabase={supabase} pacienteId={userId} />}
               {modulos.includes('circadian') && <TarjetaRitmo supabase={supabase} pacienteId={userId} onAbrir={() => setRitmo(true)} />}
+              {modulos.includes('sun') && !modulos.includes('circadian') && <TarjetaSol supabase={supabase} pacienteId={userId} onAbrir={() => setSol(true)} />}
               {pilares.length > 0 && (
                 <section className="bg-white rounded-2xl p-5 flex flex-col gap-3" aria-labelledby="pilares">
                   <h2 id="pilares" className="text-xs font-bold tracking-wide text-texto-suave">TUS PILARES</h2>

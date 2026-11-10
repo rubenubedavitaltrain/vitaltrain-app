@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { diaSolar, horaMin } from './sol';
+import { diaSolar, horaMin } from '../../core/sol/sol';
 import { resumenComidas, resumenSueno, type Ajustes, type Comida, type Noche } from './datos';
 import { cargarAsignados, tocaHoy, type Asignado } from '../habitos/datos';
 

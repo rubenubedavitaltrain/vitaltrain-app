@@ -25,9 +25,7 @@ export async function cargarAjustes(supabase: SupabaseClient, paciente: string):
   return { city: d?.city ?? null, latitude: d?.latitude == null ? null : Number(d.latitude), longitude: d?.longitude == null ? null : Number(d.longitude), workdays: d?.workdays ?? [1, 2, 3, 4, 5], chronotype: d?.chronotype ?? null, chronotype_score: d?.chronotype_score ?? null };
 }
 
-export async function guardarCiudad(supabase: SupabaseClient, paciente: string, c: { nombre: string; lat: number; lon: number }) {
-  return supabase.from('patient_settings').upsert({ patient_id: paciente, city: c.nombre, latitude: c.lat, longitude: c.lon }, { onConflict: 'patient_id' });
-}
+export { guardarCiudad } from '../../core/sol/Ciudad';
 
 export async function cargarNoches(supabase: SupabaseClient, paciente: string, dias = 30): Promise<Noche[]> {
   const desde = new Date(); desde.setDate(desde.getDate() - dias);

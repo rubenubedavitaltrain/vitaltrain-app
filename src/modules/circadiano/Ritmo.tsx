@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import PanelSolar from './PanelSolar';
-import { CIUDADES } from './ciudades';
-import { aHoras, cargarAjustes, cargarComidas, cargarNoches, guardarCiudad, NOMBRE_CRONOTIPO, resumenComidas, resumenSueno, type Ajustes, type Comida, type Noche } from './datos';
-import { ComidasDelDia, Hoja, RegistroComida, RegistroSueno, nochePorDefecto } from './Registros';
+import PanelSolar from '../../core/sol/PanelSolar';
+import { aHoras, cargarAjustes, cargarComidas, cargarNoches, NOMBRE_CRONOTIPO, resumenComidas, resumenSueno, type Ajustes, type Comida, type Noche } from './datos';
+import { ComidasDelDia, RegistroComida, RegistroSueno, nochePorDefecto } from './Registros';
 import { GraficaComidas, GraficaNoches } from './Graficas';
-import { diaSolar, horaMin } from './sol';
+import { diaSolar, horaMin } from '../../core/sol/sol';
 import MiDia from './MiDia';
+import { conUbicacionLocal, ElegirCiudad } from '../../core/sol/Ciudad';
 
 // Módulo de ritmos circadianos.
 // - TarjetaRitmo: lo que aporta a "Hoy" (luz del día y registro rápido de sueño y comidas).
@@ -19,7 +19,8 @@ function useDatos(supabase: SupabaseClient, pacienteId: string) {
   const [comidas, setComidas] = useState<Comida[]>([]);
   const [version, setVersion] = useState(0);
   useEffect(() => {
-    cargarAjustes(supabase, pacienteId).then(setAjustes);
+    // En el móvil del paciente, si activó su ubicación actual, manda sobre la ciudad (no se guarda en el servidor)
+    cargarAjustes(supabase, pacienteId).then((a) => setAjustes(conUbicacionLocal(a, pacienteId)));
     cargarNoches(supabase, pacienteId, 30).then(setNoches);
     cargarComidas(supabase, pacienteId, 14).then(setComidas);
   }, [supabase, pacienteId, version]);
@@ -79,7 +80,7 @@ export function MiRitmo({ supabase, pacienteId, onSalir }: { supabase: SupabaseC
           <section className="bg-white rounded-2xl p-5 flex flex-col gap-3">
             <h2 className="font-bold">¿Dónde vives?</h2>
             <p className="text-sm text-texto-suave">Con tu ciudad calculamos el amanecer, el atardecer y las horas de luz útil de cada día. No usamos tu ubicación.</p>
-            <button onClick={() => setHoja('ciudad')} className="bg-mostaza text-[#1F2424] font-bold py-3 rounded-xl">Elegir ciudad</button>
+            <button onClick={() => setHoja('ciudad')} className="bg-mostaza text-[#1F2424] font-bold py-3 rounded-xl">Elegir dónde estoy</button>
           </section>
         )}
         {ajustes && tieneCiudad && (
@@ -131,33 +132,6 @@ export function MiRitmo({ supabase, pacienteId, onSalir }: { supabase: SupabaseC
       {hoja === 'comida' && <RegistroComida supabase={supabase} pacienteId={pacienteId} onCerrar={() => setHoja(null)} onHecho={() => { setHoja(null); recargar(); }} />}
       {hoja === 'ciudad' && <ElegirCiudad supabase={supabase} pacienteId={pacienteId} actual={ajustes?.city ?? null} onCerrar={() => setHoja(null)} onHecho={() => { setHoja(null); recargar(); }} />}
     </div>
-  );
-}
-
-export function ElegirCiudad({ supabase, pacienteId, actual, onCerrar, onHecho }: { supabase: SupabaseClient; pacienteId: string; actual: string | null; onCerrar: () => void; onHecho: () => void }) {
-  const [buscar, setBuscar] = useState('');
-  const [error, setError] = useState('');
-  const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const lista = CIUDADES.filter((c) => norm(c.nombre).includes(norm(buscar)));
-  return (
-    <Hoja titulo="Tu ciudad" onCerrar={onCerrar}>
-      <p className="text-sm text-texto-suave -mt-2">Elige la más cercana. Unos kilómetros apenas cambian el resultado.</p>
-      <input value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Buscar" className="text-base px-3 py-2.5 border border-borde rounded-xl bg-white" />
-      {error && <p role="alert" className="font-semibold text-[#8A2C1D]">{error}</p>}
-      <ul className="flex flex-col max-h-[45dvh] overflow-y-auto bg-white rounded-xl">
-        {lista.map((c) => (
-          <li key={c.nombre}>
-            <button
-              onClick={async () => { const { error } = await guardarCiudad(supabase, pacienteId, c); if (error) setError('No se ha podido guardar.'); else onHecho(); }}
-              className={`w-full text-left px-4 py-3 border-b border-fondo ${c.nombre === actual ? 'font-bold text-petroleo' : ''}`}
-            >
-              {c.nombre}{c.nombre === actual ? ' ✓' : ''}
-            </button>
-          </li>
-        ))}
-        {lista.length === 0 && <li className="px-4 py-3 text-sm text-texto-suave">No está en la lista. Elige la ciudad más cercana o pide a Rubén que la añada.</li>}
-      </ul>
-    </Hoja>
   );
 }
 
