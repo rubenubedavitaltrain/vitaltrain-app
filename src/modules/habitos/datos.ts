@@ -12,6 +12,7 @@ export type Definicion = {
 export type Asignado = {
   id: string; habit_id: string; target: number | null; days_of_week: number[]; coach_note: string | null;
   start_date: string; end_date: string | null; is_active: boolean; position: number; habit_definitions: Definicion;
+  remind: boolean; remind_at: string | null;
 };
 export type Registro = { id: string; patient_habit_id: string; log_date: string; done: boolean | null; value_numeric: number | null; value_time: string | null };
 
@@ -23,7 +24,7 @@ export async function cargarCatalogo(supabase: SupabaseClient): Promise<Definici
 }
 
 export async function cargarAsignados(supabase: SupabaseClient, paciente: string, soloActivos = true): Promise<Asignado[]> {
-  let q = supabase.from('patient_habits').select(`id, habit_id, target, days_of_week, coach_note, start_date, end_date, is_active, position, habit_definitions(${CAMPOS_DEF})`).eq('patient_id', paciente);
+  let q = supabase.from('patient_habits').select(`id, habit_id, target, days_of_week, coach_note, start_date, end_date, is_active, position, remind, remind_at, habit_definitions(${CAMPOS_DEF})`).eq('patient_id', paciente);
   if (soloActivos) q = q.eq('is_active', true);
   const { data } = await q.order('position').order('created_at');
   return ((data as unknown as Asignado[]) ?? []).map((a) => ({ ...a, target: a.target == null ? null : Number(a.target), habit_definitions: numeros(a.habit_definitions) }))
@@ -71,3 +72,8 @@ export function textoAncla(anchor: string | null, off: number | null): string | 
 export const DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 export const TIPOS: Record<Tipo, string> = { check: 'Sí / no', number: 'Número', duration: 'Minutos', scale: 'Escala 1 a 5', time: 'Hora' };
 export const num = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 1 });
+
+/** El paciente activa o quita el aviso de un hábito con momento del día. hora = "HH:MM". */
+export async function ponerRecordatorio(supabase: SupabaseClient, id: string, activar: boolean, hora?: string) {
+  return supabase.rpc('poner_recordatorio_habito', { p_id: id, p_activar: activar, p_hora: activar ? hora : null });
+}
