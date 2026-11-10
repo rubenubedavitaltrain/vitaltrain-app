@@ -2,6 +2,11 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-10 · Todo en producción (0.21.0 a 0.22.0)
+- Publicadas en vitaltrain-app.pages.dev las versiones 0.21.0 (Sol y vitamina D, ubicación actual), 0.21.1 (ajustes de seguridad) y 0.22.0 (recordatorios de «Mi día»).
+- Migraciones 0025, 0026 y 0027 ejecutadas por Rubén en producción. Antes de la 0026 se comprobó que ningún paciente tenía sesiones sin el módulo de entrenamiento.
+- Función `avisos` desplegada en pruebas y en producción.
+
 ## 2026-11-10 · Recordatorios de «Mi día» (versión 0.22.0)
 - **Paciente, Mi ritmo → Mi día**: cada hábito pautado con un momento del día (al despertar, al amanecer, antes de la última comida...) tiene un botón **«Avisarme»**.
   - El aviso llega al móvil a esa hora, solo los días que toca el hábito y solo si aún no lo ha marcado.
