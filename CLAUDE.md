@@ -67,7 +67,7 @@ Un módulo nuevo no modifica los existentes. Si necesita algo del núcleo, se a�
 | Perfil y avisos | Recordatorio de entrenamiento, avisos, consentimiento, descarga de datos | 1 |
 | Ritmos circadianos | Panel solar de la ciudad (amanecer, atardecer, UVA, UVB), registro de sueño y de comidas, indicadores para el coach. Hecho (0.13.0); «Mi día» con anclas y hábitos en su hora (0.15.0); recordatorios en los hábitos de Mi día (0.22.0) | 2 |
 | Hábitos | Protocolos diarios por pilar asignados por el coach. Hecho (0.13.0): catálogo de 23 hábitos de los 5 pilares, asignar, marcar en Hoy, constancia | 2 |
-| Cuestionarios | Cronotipo, check-in semanal PNI, cuestionarios de consulta. Hecho (0.17.0): rMEQ y check-in semanal. Falta: editor de cuestionarios de consulta | 3 |
+| Cuestionarios | Cronotipo, check-in semanal PNI y cuestionarios cortos de seguimiento. Hecho (0.17.0): rMEQ y check-in semanal; editor del coach (0.23.0). Los cuestionarios de inicio de paciente siguen en Fluent Forms / FluentCRM (10 nov 2026) | 3 |
 | Aprendizaje | Contenidos por pilar (vídeo, texto), enlazables con la Escuela | 4 |
 | Respiración y regulación | Ejercicios guiados con temporizador. Hecho (0.18.0): respiración lenta, suspiro fisiológico y 4-7-8, con calma antes y después. Falta: audios guiados | 4 |
 | Asistente IA | Borradores de rutinas y protocolos para revisión del coach | 5 |
@@ -207,6 +207,7 @@ Diseño primero para móvil: botones grandes, poco texto, registro rápido.
 - `supabase/migrations/0025_modulo_sol.sql`: módulo `sun` («Sol y vitamina D»). Código en `src/modules/sol/Sol.tsx` (TarjetaSol, MiSol, SolCoach). Lo común pasa al núcleo: `src/core/sol/` (`sol.ts`, `ciudades.ts`, `PanelSolar.tsx`, `Ciudad.tsx` con el selector, `cargarCiudad`, `guardarCiudad` y la ubicación actual solo en el móvil) y `src/core/ui/Hoja.tsx`.
 - `supabase/migrations/0026_ajustes_seguridad.sql`: el paciente registra entrenamiento (series, notas por ejercicio, terminar sesión) solo con el módulo `training`; fechas de inicio y fin de sesión no futuras (margen 1 h); límites NOT VALID de longitud: `workouts.feeling` 500, `patient_notes` 2000, `coach_notes.body` 1-4000. No toca datos existentes.
 - `supabase/migrations/0027_recordatorios_habitos.sql`: `patient_habits.remind_at` y `poner_recordatorio_habito(id, activar, hora)` (solo el paciente, en hábitos suyos, activos y con ancla, con el módulo `habits`). La hora la calcula el móvil (`MiDia.tsx`); la función `avisos` envía push a esa hora si hoy toca y no está marcado (kind `recordatorio_habito`).
+- `supabase/migrations/0028_editor_cuestionarios.sql`: `questionnaires` gana `is_system` (rmeq y checkin-semanal, no editables) y `default_recurrence`. Disparador que valida el esquema (1-40 preguntas, ids únicos, opciones 2-12 con valores distintos, escala entera de 1 a 10 pasos, texto sin puntos), sube `version` al cambiar preguntas y lo impide si ya hay respuestas; no se borra un cuestionario en uso. Pantalla: `src/modules/cuestionarios/EditorCuestionarios.tsx` (pestaña «Cuestionarios» del coach).
 - `supabase/migrations/0024_suscripciones.sql`: `plan_products` (producto WooCommerce → módulos; Comunidad 13847 de partida), `memberships` gana variación y fecha de aviso, `registrar_suscripcion(jsonb)` (solo service_role; enlaza por email, no toca módulos), disparador que enlaza al dar de alta, `cambios_suscripcion()` (propuestas para el coach) y `aplicar_cambio_suscripcion(paciente)` (el coach aplica; solo abre o cierra módulos). Función `supabase/functions/woocommerce` (firma HMAC con `WOO_WEBHOOK_SECRET`, Verify JWT desactivado). Pantallas en `src/core/suscripciones/Suscripciones.tsx`. Guía: `docs/WOOCOMMERCE.md`.
 
 Seguridad: Row Level Security en todas las tablas. El paciente solo ve lo suyo y solo escribe en módulos que tiene activos. El coach lo ve todo.
@@ -292,6 +293,8 @@ Pruebas de seguridad: `supabase/tests/rls.test.mjs` aplica todas las migraciones
 - [x] Tarea 32 (0.21.0): módulo «Sol y vitamina D» y ubicación actual solo en el móvil. Fusionada (PR #15) y 0025 en dev y prod (10 nov 2026). Falta: confirmar con la asesora el texto sobre ubicación
 - [x] Tarea 33 (0.21.1): ajustes de seguridad pendientes de la revisión del 8 nov (migración 0026). Fusionada (PR #16); 0026 en dev y prod tras comprobar que ningún paciente tenía sesiones sin el módulo de entrenamiento (10 nov 2026)
 - [x] Tarea 34 (0.22.0): recordatorios de «Mi día» (migración 0027). Fusionada (PR #17); 0027 en dev y prod; función `avisos` desplegada en dev y prod con Verify JWT desactivado (10 nov 2026). Incluye el email mensual de borrados pendientes. Falta: probar el aviso en un iPhone instalado
+- [ ] Tarea 36 (0.23.0): editor de cuestionarios de seguimiento (migración 0028). Aplicada en dev. Falta: fusionar y 0028 en prod
+- [ ] FluentCRM: etiquetas por plan con automatizaciones de WooCommerce en la web. Lo configura Rubén
 - [ ] Piloto de entrenamiento con 2-3 pacientes
 - [ ] Migración de los 7 pacientes y baja de Harbiz
 - [ ] Fase 2: circadiano y hábitos
