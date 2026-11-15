@@ -633,14 +633,14 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${pv}','pv@x'); insert into profiles (id, role, full_name, email) values ('${pv}','patient','PV','pv@x'); insert into patient_modules (patient_id, module_slug) values ('${pv}','training');`);
   check('No se acepta una versión que no existe', !!(await as(pv, `select accept_consent('9.9')`)).error);
   check('Acepta la versión vigente (1.4)', !(await as(pv, `select accept_consent('1.4')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
-  await db.exec(`reset role; set request.jwt.sub = ''; insert into consent_versions (version) values ('1.5')`);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into consent_versions (version) values ('9.1-prueba')`);
   check('Al publicar una versión nueva, la anterior sigue valiendo', (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
   await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = now() where version = '1.4'`);
   check('Al retirar la anterior, tiene que aceptar de nuevo', (await as(pv, 'select is_active_patient() a')).rows[0].a === false);
   check('Ya no puede aceptar la retirada', !!(await as(pv, `select accept_consent('1.4')`)).error);
-  check('Acepta la nueva y vuelve a entrar', !(await as(pv, `select accept_consent('1.5')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
+  check('Acepta la nueva y vuelve a entrar', !(await as(pv, `select accept_consent('9.1-prueba')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
   check('Un paciente no cambia las versiones', !!(await as(pv, `insert into consent_versions (version) values ('9.9')`)).error);
-  await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = null where version = '1.4'; delete from consent_versions where version = '1.5'`);
+  await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = null where version = '1.4'; delete from consent_versions where version = '9.1-prueba'`);
 
   const huerfano = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
   await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${huerfano}','suelto@x');`);
@@ -696,6 +696,13 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('Con doble factor se guarda un enlace https', !(await mfa(coach, `update clinical_records set archive_url = 'https://onedrive.live.com/carpeta' where patient_id = '${pa}'`)).error);
   check('Un enlace que no es https se rechaza', !!(await mfa(coach, `update clinical_records set archive_url = 'javascript:alert(1)' where patient_id = '${pa}'`)).error);
   check('El paciente no ve el enlace de su carpeta', ((await as(pa, `select archive_url from clinical_records`)).rows ?? []).length === 0);
+}
+
+// 0032: condiciones 1.5 (asistente de IA y ubicación)
+{
+  const v = (await db.query(`select version, retired_at from consent_versions order by version`)).rows;
+  check('La 1.5 está vigente', v.some((r) => r.version === '1.5' && r.retired_at === null));
+  check('La 1.4 sigue vigente: nadie se queda sin acceso', v.some((r) => r.version === '1.4' && r.retired_at === null));
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones

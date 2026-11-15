@@ -1,6 +1,6 @@
 # Consentimiento para el uso de la app Vitaltrain
 
-Versión 1.4 · 9 de noviembre de 2026
+Versión 1.5 · 15 de noviembre de 2026
 
 Rubén Úbeda Rubio, T.S.D. Sanitario Colegiado 2209 · Clínica Vitaltrain, Centro Sanitario Nº Registro 22433
 
@@ -29,13 +29,13 @@ Datos de identificación y contacto: nombre, email y, si lo das, teléfono.
 
 Datos de actividad física y salud que registras tú o pauta tu profesional: plan de entrenamiento, series, repeticiones, cargas, esfuerzo percibido, sensaciones, notas por ejercicio, avisos de «No puedo hacerlo» con su motivo (por ejemplo, dolor o molestia) y, solo si decides anotarlas, medidas corporales (peso, cintura, cadera).
 
-Si tu profesional te activa esas secciones: horas de sueño y cómo has descansado, horas de las comidas (sin lo que comes), los hábitos que marcas cada día, tus respuestas a los cuestionarios (por ejemplo, cómo ha ido tu semana o tu cronotipo) y tus sesiones de respiración (duración y cómo te sentías antes y después). La ciudad que elijas sirve para calcular la luz del día; no usamos tu ubicación.
+Si tu profesional te activa esas secciones: horas de sueño y cómo has descansado, horas de las comidas (sin lo que comes), los hábitos que marcas cada día, tus respuestas a los cuestionarios (por ejemplo, cómo ha ido tu semana o tu cronotipo) y tus sesiones de respiración (duración y cómo te sentías antes y después). La ciudad que elijas sirve para calcular la luz del día. Si prefieres usar tu ubicación actual, se usa solo en tu móvil, redondeada, y nunca se envía a la clínica.
 
 Mensajes que intercambies con tu profesional y documentos que te comparta.
 
 Datos técnicos de uso: fecha y hora de acceso y de cada registro, y el tipo de dispositivo con el que aceptas este texto.
 
-No recogemos tu ubicación, fotos, contactos ni datos de otras apps.
+No guardamos tu ubicación, fotos, contactos ni datos de otras apps.
 
 Historia clínica: la clínica registra en esta plataforma tu ficha clínica, las consultas de seguimiento y los documentos clínicos (por ejemplo, analíticas o informes). Solo la ve tu profesional, con una protección reforzada (doble código de acceso) y un registro de cada acceso. No aparece en tu app.
 
@@ -46,6 +46,8 @@ Para prestarte el servicio de acompañamiento: mostrarte tu plan, registrar lo q
 Para comunicaciones del servicio: el código de acceso por email, avisos de mensajes y los recordatorios que actives.
 
 Para mantener la seguridad y el buen funcionamiento de la app.
+
+Tu profesional puede ayudarse de un asistente de inteligencia artificial para revisar tus datos y tu historia clínica y preparar borradores de tu plan, de mensajes o de hábitos. El asistente no decide nada ni te escribe por su cuenta: tu profesional revisa cada propuesta y solo se aplica si él la aprueba.
 
 No hacemos perfiles comerciales, no enviamos publicidad con estos datos y no tomamos decisiones automatizadas que te afecten.
 
@@ -68,6 +70,7 @@ Para que la app funcione usamos estos proveedores, que tratan los datos solo por
 - Supabase: base de datos y acceso. Servidores en Frankfurt (Alemania, UE).
 - Cloudflare: alojamiento de la app. Sirve la aplicación, no guarda tus datos de salud.
 - Mailgun (Sinch): envío de emails (código de acceso y avisos). Región UE.
+- Anthropic: asistente de inteligencia artificial (Claude) que usa tu profesional para preparar borradores. Solo recibe lo que tu profesional consulta en cada momento y no usa tus datos para entrenar sus modelos. Puede tratarlos fuera de la UE.
 
 Algunas de estas empresas tienen sede en Estados Unidos. Cuando pueda haber acceso desde fuera de la UE, se aplican las garantías del Reglamento: Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo.
 
@@ -101,7 +104,7 @@ Las comunicaciones van cifradas. Entras con un código de un solo uso que llega 
 
 Cada paciente solo puede ver lo suyo; está controlado en la propia base de datos, no solo en la app.
 
-La historia clínica solo se abre con un segundo código de una app de autenticación, y cada acceso queda registrado.
+La historia clínica solo se abre con un segundo código de una app de autenticación, y cada acceso queda registrado, también cuando la consulta el asistente de tu profesional.
 
 Se hacen copias de seguridad periódicas.
 

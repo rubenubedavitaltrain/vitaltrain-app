@@ -104,3 +104,5 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-10 | Idea guardada: agenda de consultas conectada a Google Calendar (huecos, reservar la siguiente al cerrar consulta, reserva por el paciente). No se construye hasta ver su viabilidad | Petición de Rubén para organizar su agenda de consultas |
 | 2026-11-10 | La conexión de Claude no conserva el doble factor: la historia clínica pide el código de la app de autenticación en cada consulta | Comprobado en dev: el token OAuth llega como aal1 |
 | 2026-11-15 | Histórico de OneDrive: paso A, enlace a la carpeta de cada paciente en la ficha clínica, sin copiar archivos. La importación de documentos queda para más adelante, paciente a paciente | Rápido y sin riesgo: no se mueven datos clínicos |
+| 2026-11-15 | Asistente IA a producción con el visto bueno de la asesora. Condiciones 1.5 sin retirar la 1.4 | Nadie pierde el acceso mientras acepta la nueva versión |
+| 2026-11-15 | El conector de Claude con pacientes reales, desde un plan con DPA (Team), no desde Max | El DPA de Anthropic solo cubre sus productos comerciales |

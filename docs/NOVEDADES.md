@@ -2,6 +2,14 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-15 · Asistente listo para producción y condiciones 1.5 (versión 0.26.0)
+- **Condiciones 1.5:** añaden que puedes ayudarte de un asistente de IA (Anthropic) para preparar borradores, que nunca decide ni escribe al paciente por su cuenta, y que la ubicación actual se usa solo en el móvil. Visto bueno de la asesora (15 nov 2026).
+- Al entrar, cada paciente verá la pantalla de siempre para aceptar la versión nueva: una frase y «Acepto». La 1.4 sigue valiendo hasta que tú decidas retirarla, así que nadie se queda bloqueado.
+- **Por dentro:** migración 0032 (solo añade la versión 1.5). Aplicada en `vitaltrain-dev`.
+- **Producción del asistente:** pasos en `docs/ASISTENTE.md`. Antes, el plan de Claude tiene que tener contrato de encargado (Team), no Max.
+- **Cómo probarlo:** entra como paciente de prueba en el enlace de prueba de la rama. Te pedirá aceptar la 1.5.
+- **Qué podría fallar:** si la app se publica antes de ejecutar 0032 en la base de datos, el «Acepto» da error. Por eso primero el SQL y después fusionar.
+
 ## 2026-11-10 · Corrección: la ficha del coach se rompía al abrir los cuestionarios
 - Al abrir la ficha, a veces llegaban las respuestas antes que las asignaciones y la pantalla daba «Algo ha fallado». Ahora espera a tener los dos datos y no se rompe.
 - Cómo probarlo: abre la ficha de un paciente con cuestionarios respondidos y recarga varias veces.

@@ -35,8 +35,21 @@ Claude se conecta a la app con la cuenta del coach (conector personalizado en Cl
 Dev: client ID `bd2d6876-b2d0-47b0-b5f9-38fe2f306a8f`.
 
 ## Antes de usarlo con pacientes reales (producción)
-- [ ] Contrato de encargado del tratamiento con Anthropic y revisión, con la asesora, de dónde se procesan los datos (transferencias internacionales).
-- [ ] Ampliar la EIPD: tratamiento de datos de salud e historia clínica con IA como herramienta del profesional.
-- [ ] Condiciones para el paciente: versión nueva que mencione el uso de un asistente de IA por el profesional (0029: añadir la versión y publicar el texto).
-- [ ] Revisar el plan de Claude de Rubén: uso de datos de las conversaciones y conservación.
-- [ ] Probarlo antes en dev con datos inventados: lectura, propuestas, aplicar y descartar, historia con doble factor.
+Visto bueno de la asesora a todo el 15 nov 2026.
+- [x] EIPD ampliada y condiciones 1.5 (asistente de IA, Anthropic como encargado). Migración 0032.
+- [x] Probado en dev con datos inventados: lectura, propuestas, aplicar y descartar, historia con doble factor (10 nov 2026).
+- [ ] **Plan de Claude con contrato de encargado.** El DPA de Anthropic forma parte de sus Condiciones Comerciales: cubre Claude Team, Enterprise y la API. Los planes personales (Free, Pro, Max) no lo incluyen. Con pacientes reales, el conector se usa desde una cuenta Team (desde 2 puestos). Confirmarlo con la asesora si ella lo vio con el plan Max.
+
+## Pasos en producción (los pulsa Rubén)
+1. SQL Editor de `vitaltrain-prod`: ejecutar `0030_asistente.sql` y después `0032_condiciones_1_5.sql`.
+2. Fusionar el PR del asistente. Cloudflare publica la app con la pantalla de autorización y las condiciones 1.5.
+3. Edge Functions → crear `asistente` con el código de `supabase/functions/asistente/index.ts` → Deploy. Después, en Details, «Verify JWT» desactivado.
+4. Authentication → OAuth Server: activar, ruta de autorización `/oauth/consent`, «Dynamic OAuth Apps» desactivado.
+5. Authentication → OAuth Apps: crear «Claude · asistente Vitaltrain», tipo público, redirección `https://claude.ai/api/mcp/auth_callback`. Copiar el Client ID.
+6. Authentication → URL Configuration: Site URL `https://vitaltrain-app.pages.dev`.
+7. En Claude (cuenta Team): Ajustes → Conectores → Añadir conector personalizado.
+   - Nombre: `Vitaltrain`.
+   - URL: `https://idzbwtlnhlkxcnhfvxcp.supabase.co/functions/v1/asistente`.
+   - Client ID: el del paso 5.
+   - Al conectar, entra con la cuenta de coach y el doble factor.
+8. Prueba corta: «lista mis pacientes». Después, una propuesta para el paciente de prueba, que apruebas y compruebas en su móvil.
