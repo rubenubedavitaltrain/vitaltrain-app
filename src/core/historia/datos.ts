@@ -11,7 +11,7 @@ export type Consulta = {
 export type Adenda = { id: string; consultation_id: string; text: string; created_at: string };
 export type Ficha = {
   patient_id: string; main_reason: string | null; personal_history: string | null; family_history: string | null; medication: string | null;
-  supplements: string | null; allergies: string | null; lifestyle: string | null; observations: string | null; updated_at: string;
+  supplements: string | null; allergies: string | null; lifestyle: string | null; observations: string | null; archive_url?: string | null; updated_at: string;
 };
 export type Categoria = 'analitica' | 'cuestionario' | 'estudio_metabolico' | 'plan_alimentacion' | 'tratamiento' | 'test' | 'informe' | 'otro';
 export type DocClinico = { id: string; category: Categoria; title: string; document_date: string | null; note: string | null; storage_path: string; size_bytes: number | null; mime: string; created_at: string };
@@ -23,7 +23,7 @@ export const CATEGORIAS: Record<Categoria, string> = {
   analitica: 'Análisis', cuestionario: 'Cuestionarios', estudio_metabolico: 'Estudio metabólico', plan_alimentacion: 'Plan de alimentación',
   tratamiento: 'Tratamientos', test: 'Test', informe: 'Informes', otro: 'Otros',
 };
-export const CAMPOS_FICHA: { clave: keyof Omit<Ficha, 'patient_id' | 'updated_at'>; titulo: string; ayuda: string; filas: number }[] = [
+export const CAMPOS_FICHA: { clave: keyof Omit<Ficha, 'patient_id' | 'updated_at' | 'archive_url'>; titulo: string; ayuda: string; filas: number }[] = [
   { clave: 'main_reason', titulo: 'Motivo de consulta', ayuda: 'Por qué viene y desde cuándo', filas: 3 },
   { clave: 'personal_history', titulo: 'Antecedentes personales', ayuda: 'Enfermedades, cirugías, embarazos, diagnósticos previos', filas: 5 },
   { clave: 'family_history', titulo: 'Antecedentes familiares', ayuda: '', filas: 3 },

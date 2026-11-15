@@ -16,6 +16,12 @@ Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito pa
 - **Cómo probarlo:** conecta «Vitaltrain pruebas» en Claude (Ajustes → Conectores) siguiendo `docs/ASISTENTE.md`. Después pídele «lista mis pacientes» y «prepara 2 semanas para…».
 - **Qué podría fallar:** si la conexión no lleva el doble factor, la historia clínica no se abre. El resto funciona igual.
 - **Producción:** no se activa hasta tener el visto bueno de la asesora (contrato con Anthropic, EIPD y condiciones nuevas).
+## 2026-11-15 · Carpeta del histórico en la ficha clínica (versión 0.24.2, migración 0031)
+- En la historia clínica de cada paciente, pestaña «Ficha clínica», hay un recuadro nuevo: «Carpeta del histórico».
+- Pegas el enlace de su carpeta de OneDrive (en OneDrive: «Copiar vínculo») y desde entonces la abres con un botón. No se mueve ni se copia ningún archivo.
+- Solo lo ves tú, con doble factor. Si cambias el enlace, el anterior queda en las versiones de la ficha.
+- Cómo probarlo: abre la historia de un paciente → Ficha clínica → pega un enlace → «Abrir su carpeta en OneDrive».
+- Qué podría fallar: si el enlace de OneDrive es solo para ti, al abrirlo te pedirá entrar en tu cuenta de Microsoft. Es lo normal.
 
 ## 2026-11-10 · Mensajes sin el aviso del 112 (versión 0.24.1)
 - En la pestaña Mensajes del paciente, la cabecera dice solo «Con Rubén.». Se quita «Para urgencias, llama al 112.»: generaba miedo y desconfianza.

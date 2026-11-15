@@ -103,3 +103,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-10 | Sin registro dinámico de clientes OAuth: la app de Claude se da de alta a mano | Nadie más puede registrar una aplicación contra la cuenta del coach |
 | 2026-11-10 | Idea guardada: agenda de consultas conectada a Google Calendar (huecos, reservar la siguiente al cerrar consulta, reserva por el paciente). No se construye hasta ver su viabilidad | Petición de Rubén para organizar su agenda de consultas |
 | 2026-11-10 | La conexión de Claude no conserva el doble factor: la historia clínica pide el código de la app de autenticación en cada consulta | Comprobado en dev: el token OAuth llega como aal1 |
+| 2026-11-15 | Histórico de OneDrive: paso A, enlace a la carpeta de cada paciente en la ficha clínica, sin copiar archivos. La importación de documentos queda para más adelante, paciente a paciente | Rápido y sin riesgo: no se mueven datos clínicos |
