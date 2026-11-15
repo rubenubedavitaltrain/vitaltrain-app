@@ -107,3 +107,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-15 | Asistente IA a producción con el visto bueno de la asesora. Condiciones 1.5 sin retirar la 1.4 | Nadie pierde el acceso mientras acepta la nueva versión |
 | 2026-11-15 | El conector de Claude con pacientes reales, desde un plan con DPA (Team), no desde Max | El DPA de Anthropic solo cubre sus productos comerciales |
 | 2026-11-15 | Agenda: Google Calendar personal de Rubén, sin Google Workspace. Citas con nombre y «Consulta», sin motivo ni datos de salud | Lo más sencillo; la agenda es privada. Se confirma con la asesora |
+| 2026-11-15 | Agenda fase 1: FluentBooking Pro (licencia anual) con una cita gratuita de valoración de 30 min por teléfono. Sin pregunta de motivo en la reserva | Encaja con WordPress y FluentCRM; sin datos de salud en Google ni en la reserva |
