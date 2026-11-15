@@ -106,3 +106,4 @@ Cada decisión con fecha, qué se decidió y por qué. Se añade al final; no se
 | 2026-11-15 | Histórico de OneDrive: paso A, enlace a la carpeta de cada paciente en la ficha clínica, sin copiar archivos. La importación de documentos queda para más adelante, paciente a paciente | Rápido y sin riesgo: no se mueven datos clínicos |
 | 2026-11-15 | Asistente IA a producción con el visto bueno de la asesora. Condiciones 1.5 sin retirar la 1.4 | Nadie pierde el acceso mientras acepta la nueva versión |
 | 2026-11-15 | El conector de Claude con pacientes reales, desde un plan con DPA (Team), no desde Max | El DPA de Anthropic solo cubre sus productos comerciales |
+| 2026-11-15 | Agenda: Google Calendar personal de Rubén, sin Google Workspace. Citas con nombre y «Consulta», sin motivo ni datos de salud | Lo más sencillo; la agenda es privada. Se confirma con la asesora |
