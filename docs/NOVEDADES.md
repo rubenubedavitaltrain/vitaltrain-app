@@ -2,6 +2,13 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-15 · Carpeta del histórico en la ficha clínica (versión 0.24.2, migración 0031)
+- En la historia clínica de cada paciente, pestaña «Ficha clínica», hay un recuadro nuevo: «Carpeta del histórico».
+- Pegas el enlace de su carpeta de OneDrive (en OneDrive: «Copiar vínculo») y desde entonces la abres con un botón. No se mueve ni se copia ningún archivo.
+- Solo lo ves tú, con doble factor. Si cambias el enlace, el anterior queda en las versiones de la ficha.
+- Cómo probarlo: abre la historia de un paciente → Ficha clínica → pega un enlace → «Abrir su carpeta en OneDrive».
+- Qué podría fallar: si el enlace de OneDrive es solo para ti, al abrirlo te pedirá entrar en tu cuenta de Microsoft. Es lo normal.
+
 ## 2026-11-10 · Mensajes sin el aviso del 112 (versión 0.24.1)
 - En la pestaña Mensajes del paciente, la cabecera dice solo «Con Rubén.». Se quita «Para urgencias, llama al 112.»: generaba miedo y desconfianza.
 - Las condiciones (versión 1.4, aprobada por la asesora) siguen igual. Cambiarlas exige una versión nueva.

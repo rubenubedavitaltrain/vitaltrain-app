@@ -50,7 +50,7 @@ function Historia({ supabase, paciente, onCerrar }: { supabase: SupabaseClient; 
         <main className="max-w-6xl mx-auto p-4">
           {pestaña === 'linea' && <LineaTiempo supabase={supabase} pacienteId={paciente.id} onIr={setPestaña} />}
           {pestaña === 'consultas' && <Consultas supabase={supabase} pacienteId={paciente.id} />}
-          {pestaña === 'ficha' && <FichaClinica supabase={supabase} pacienteId={paciente.id} />}
+          {pestaña === 'ficha' && <div className="flex flex-col gap-4"><CarpetaHistorico supabase={supabase} pacienteId={paciente.id} /><FichaClinica supabase={supabase} pacienteId={paciente.id} /></div>}
           {pestaña === 'documentos' && <DocsClinicos supabase={supabase} pacienteId={paciente.id} />}
           {pestaña === 'accesos' && <Accesos supabase={supabase} pacienteId={paciente.id} />}
         </main>
@@ -287,6 +287,56 @@ function NuevaAdenda({ supabase, consulta, onHecho }: { supabase: SupabaseClient
   );
 }
 
+// ---------------- Carpeta del histórico (OneDrive) ----------------
+
+// Enlace a la carpeta del paciente en OneDrive. No copia archivos: abre su carpeta de un clic.
+function CarpetaHistorico({ supabase, pacienteId }: { supabase: SupabaseClient; pacienteId: string }) {
+  const [guardado, setGuardado] = useState<string | null | undefined>(undefined);
+  const [valor, setValor] = useState('');
+  const [editando, setEditando] = useState(false);
+  const [estado, setEstado] = useState('');
+  useEffect(() => {
+    supabase.from('clinical_records').select('archive_url').eq('patient_id', pacienteId).maybeSingle().then(({ data }) => {
+      setGuardado((data?.archive_url as string | null) ?? null); setValor((data?.archive_url as string | null) ?? '');
+    });
+  }, [supabase, pacienteId]);
+
+  async function guardar() {
+    setEstado('');
+    const url = valor.trim() || null;
+    if (url && !/^https:\/\/\S+$/.test(url)) return setEstado('Pega el enlace completo de la carpeta (empieza por https://).');
+    const existe = !!(await supabase.from('clinical_records').select('patient_id').eq('patient_id', pacienteId).maybeSingle()).data;
+    const { error } = existe
+      ? await supabase.from('clinical_records').update({ archive_url: url }).eq('patient_id', pacienteId)
+      : await supabase.from('clinical_records').insert({ patient_id: pacienteId, archive_url: url });
+    if (error) return setEstado('No se ha podido guardar.');
+    setGuardado(url); setEditando(false); setEstado(url ? 'Enlace guardado.' : 'Enlace quitado.');
+  }
+
+  if (guardado === undefined) return null;
+  return (
+    <div className="bg-white rounded-2xl p-5 flex flex-col gap-3 max-w-3xl">
+      <h2 className="text-lg font-bold">Carpeta del histórico</h2>
+      {guardado && !editando ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <a href={guardado} target="_blank" rel="noopener noreferrer" className="bg-petroleo text-white font-bold px-4 py-2.5 rounded-xl">Abrir su carpeta en OneDrive</a>
+          <button onClick={() => setEditando(true)} className="text-sm font-semibold text-petroleo underline">Cambiar enlace</button>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-texto-suave">En OneDrive, abre la carpeta del paciente, pulsa «Copiar vínculo» y pégalo aquí. Solo lo ves tú.</p>
+          <input type="url" inputMode="url" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="https://…" className="text-base px-3 py-2 border border-borde rounded-xl" />
+          <div className="flex gap-2">
+            <button onClick={guardar} className="bg-mostaza text-[#1F2424] font-bold px-5 py-2.5 rounded-xl">Guardar enlace</button>
+            {guardado && <button onClick={() => { setValor(guardado); setEditando(false); }} className="text-sm font-semibold px-2">Cancelar</button>}
+          </div>
+        </>
+      )}
+      {estado && <p role="status" className="text-sm font-semibold text-petroleo">{estado}</p>}
+    </div>
+  );
+}
+
 // ---------------- Ficha clínica ----------------
 
 function FichaClinica({ supabase, pacienteId }: { supabase: SupabaseClient; pacienteId: string }) {
@@ -309,7 +359,9 @@ function FichaClinica({ supabase, pacienteId }: { supabase: SupabaseClient; paci
   async function guardar() {
     setEstado('');
     const fila = { patient_id: pacienteId, ...Object.fromEntries(CAMPOS_FICHA.map((c) => [c.clave, valores[c.clave]?.trim() || null])) };
-    const { error } = ficha ? await supabase.from('clinical_records').update(fila).eq('patient_id', pacienteId) : await supabase.from('clinical_records').insert(fila);
+    // Se comprueba al guardar si ya existe (puede haberse creado al guardar el enlace de la carpeta). Sin upsert: así el registro de accesos no apunta «crear» en cada cambio.
+    const existe = !!(await supabase.from('clinical_records').select('patient_id').eq('patient_id', pacienteId).maybeSingle()).data;
+    const { error } = existe ? await supabase.from('clinical_records').update(fila).eq('patient_id', pacienteId) : await supabase.from('clinical_records').insert(fila);
     if (error) return setEstado('No se ha podido guardar.');
     setEstado('Guardado. La versión anterior queda en el historial.');
     cargar();
