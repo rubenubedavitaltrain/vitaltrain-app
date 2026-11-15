@@ -2,6 +2,35 @@
 
 Qué ha cambiado en la app y cómo probarlo. Lo más reciente arriba. Escrito para Rubén, sin tecnicismos.
 
+## 2026-11-15 · Asistente listo para producción y condiciones 1.5 (versión 0.26.0)
+- **Condiciones 1.5:** añaden que puedes ayudarte de un asistente de IA (Anthropic) para preparar borradores, que nunca decide ni escribe al paciente por su cuenta, y que la ubicación actual se usa solo en el móvil. Visto bueno de la asesora (15 nov 2026).
+- Al entrar, cada paciente verá la pantalla de siempre para aceptar la versión nueva: una frase y «Acepto». La 1.4 sigue valiendo hasta que tú decidas retirarla, así que nadie se queda bloqueado.
+- **Por dentro:** migración 0032 (solo añade la versión 1.5). Aplicada en `vitaltrain-dev`.
+- **Producción del asistente:** pasos en `docs/ASISTENTE.md`. Antes, el plan de Claude tiene que tener contrato de encargado (Team), no Max.
+- **Cómo probarlo:** entra como paciente de prueba en el enlace de prueba de la rama. Te pedirá aceptar la 1.5.
+- **Qué podría fallar:** si la app se publica antes de ejecutar 0032 en la base de datos, el «Acepto» da error. Por eso primero el SQL y después fusionar.
+
+## 2026-11-10 · Corrección: la ficha del coach se rompía al abrir los cuestionarios
+- Al abrir la ficha, a veces llegaban las respuestas antes que las asignaciones y la pantalla daba «Algo ha fallado». Ahora espera a tener los dos datos y no se rompe.
+- Cómo probarlo: abre la ficha de un paciente con cuestionarios respondidos y recarga varias veces.
+
+## 2026-11-10 · Asistente del coach conectado a Claude (versión 0.25.0, solo en pruebas)
+- **Qué hace:** Claude se conecta a la app con tu cuenta de coach.
+  - Lee lo de cada paciente: entrenos, notas, «no puedo», check-ins, sueño, medidas, hábitos, mensajes y, con doble factor, la historia clínica.
+  - Te prepara propuestas: sesiones y planificaciones de varias semanas, cambios de ejercicio, mensajes y hábitos.
+- **Nada llega al paciente sin tu aprobación.** Apruebas en la conversación con Claude o en el Inicio del panel («Propuestas del asistente»). Queda registrado quién lo aprobó y cuándo.
+- **Registro:** cada lectura de la historia clínica queda en el registro de accesos.
+- **Por dentro:** migración 0030, función `asistente` y pantalla de autorización. Hecho en `vitaltrain-dev`.
+- **Cómo probarlo:** conecta «Vitaltrain pruebas» en Claude (Ajustes → Conectores) siguiendo `docs/ASISTENTE.md`. Después pídele «lista mis pacientes» y «prepara 2 semanas para…».
+- **Qué podría fallar:** si la conexión no lleva el doble factor, la historia clínica no se abre. El resto funciona igual.
+- **Producción:** no se activa hasta tener el visto bueno de la asesora (contrato con Anthropic, EIPD y condiciones nuevas).
+## 2026-11-15 · Carpeta del histórico en la ficha clínica (versión 0.24.2, migración 0031)
+- En la historia clínica de cada paciente, pestaña «Ficha clínica», hay un recuadro nuevo: «Carpeta del histórico».
+- Pegas el enlace de su carpeta de OneDrive (en OneDrive: «Copiar vínculo») y desde entonces la abres con un botón. No se mueve ni se copia ningún archivo.
+- Solo lo ves tú, con doble factor. Si cambias el enlace, el anterior queda en las versiones de la ficha.
+- Cómo probarlo: abre la historia de un paciente → Ficha clínica → pega un enlace → «Abrir su carpeta en OneDrive».
+- Qué podría fallar: si el enlace de OneDrive es solo para ti, al abrirlo te pedirá entrar en tu cuenta de Microsoft. Es lo normal.
+
 ## 2026-11-10 · Mensajes sin el aviso del 112 (versión 0.24.1)
 - En la pestaña Mensajes del paciente, la cabecera dice solo «Con Rubén.». Se quita «Para urgencias, llama al 112.»: generaba miedo y desconfianza.
 - Las condiciones (versión 1.4, aprobada por la asesora) siguen igual. Cambiarlas exige una versión nueva.

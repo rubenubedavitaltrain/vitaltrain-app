@@ -633,14 +633,14 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${pv}','pv@x'); insert into profiles (id, role, full_name, email) values ('${pv}','patient','PV','pv@x'); insert into patient_modules (patient_id, module_slug) values ('${pv}','training');`);
   check('No se acepta una versión que no existe', !!(await as(pv, `select accept_consent('9.9')`)).error);
   check('Acepta la versión vigente (1.4)', !(await as(pv, `select accept_consent('1.4')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
-  await db.exec(`reset role; set request.jwt.sub = ''; insert into consent_versions (version) values ('1.5')`);
+  await db.exec(`reset role; set request.jwt.sub = ''; insert into consent_versions (version) values ('9.1-prueba')`);
   check('Al publicar una versión nueva, la anterior sigue valiendo', (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
   await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = now() where version = '1.4'`);
   check('Al retirar la anterior, tiene que aceptar de nuevo', (await as(pv, 'select is_active_patient() a')).rows[0].a === false);
   check('Ya no puede aceptar la retirada', !!(await as(pv, `select accept_consent('1.4')`)).error);
-  check('Acepta la nueva y vuelve a entrar', !(await as(pv, `select accept_consent('1.5')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
+  check('Acepta la nueva y vuelve a entrar', !(await as(pv, `select accept_consent('9.1-prueba')`)).error && (await as(pv, 'select is_active_patient() a')).rows[0].a === true);
   check('Un paciente no cambia las versiones', !!(await as(pv, `insert into consent_versions (version) values ('9.9')`)).error);
-  await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = null where version = '1.4'; delete from consent_versions where version = '1.5'`);
+  await db.exec(`reset role; set request.jwt.sub = ''; update consent_versions set retired_at = null where version = '1.4'; delete from consent_versions where version = '9.1-prueba'`);
 
   const huerfano = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
   await db.exec(`reset role; set request.jwt.sub = ''; insert into auth.users values ('${huerfano}','suelto@x');`);
@@ -651,6 +651,58 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   let repetido = false; try { await db.exec(`select _completar_alta('${huerfano}', 'Suelto', 'suelto@x', null)`); } catch { repetido = true; }
   check('No da de alta dos veces', repetido);
   check('Un paciente no puede usar esas funciones', !!(await as(p1, `select _usuario_por_email('c@x')`)).error && !!(await as(coach, `select _completar_alta('${huerfano}', 'X', 'x@x')`)).error);
+}
+
+// 0030: propuestas del asistente
+{
+  const ex = (await db.query("select id from exercises where name = 'Sentadilla'")).rows[0].id;
+  const bl = JSON.stringify([{ name: 'A', items: [{ exercise_id: ex, sets: 3, target: '8', rest_seconds: 60 }] }]);
+  const pay = (dates) => JSON.stringify({ sesiones: [{ name: 'Asistente S1', dates, blocks: JSON.parse(bl) }] });
+  const crear = (uid, paciente, kind, payload) => as(uid, `insert into assistant_drafts (patient_id, kind, title, payload) values ('${paciente}','${kind}','Prueba','${payload}'::jsonb) returning id`);
+  check('Un paciente no puede crear propuestas', !!(await crear(p1, p1, 'sesiones', pay(['2099-01-05']))).error);
+  check('Un paciente no ve propuestas', ((await as(p1, `select * from assistant_drafts`)).rows ?? []).length === 0);
+  check('No se crea una propuesta para el coach', !!(await crear(coach, coach, 'sesiones', pay(['2099-01-05']))).error);
+  check('No se crea una propuesta ya aplicada', !!(await as(coach, `insert into assistant_drafts (patient_id, kind, title, payload, status) values ('${p1}','sesiones','x','{}','aplicada')`)).error);
+  const d1 = (await crear(coach, p1, 'sesiones', pay(['2099-01-05', '2099-01-07']))).rows?.[0]?.id;
+  check('El coach crea una propuesta', !!d1);
+  const antes = (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n;
+  check('Crear la propuesta no toca el calendario', (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n === antes);
+  check('El coach no puede cambiar una propuesta a mano', !!(await as(coach, `update assistant_drafts set status = 'aplicada' where id = '${d1}'`)).error || (await db.query(`select status from assistant_drafts where id = '${d1}'`)).rows[0].status === 'pendiente');
+  check('Un paciente no puede aplicar una propuesta', !!(await as(p1, `select aplicar_propuesta('${d1}')`)).error);
+  const ap = await as(coach, `select aplicar_propuesta('${d1}') as r`);
+  check('El coach aplica la propuesta y se crean las sesiones', ap.rows?.[0]?.r?.sesiones_creadas === 2 && (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n === antes + 2);
+  check('La propuesta queda aplicada y firmada', (await db.query(`select status, decided_by from assistant_drafts where id = '${d1}'`)).rows[0].decided_by === coach);
+  check('Una propuesta no se aplica dos veces', !!(await as(coach, `select aplicar_propuesta('${d1}')`)).error);
+  const mal = (await crear(coach, p1, 'sesiones', JSON.stringify({ sesiones: [{ name: 'Mala', dates: ['2099-01-05'], blocks: [] }] }))).rows?.[0]?.id;
+  const n2 = (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n;
+  check('Una propuesta inválida no se aplica y no deja nada a medias', !!(await as(coach, `select aplicar_propuesta('${mal}')`)).error && (await db.query(`select count(*)::int n from workouts where patient_id = '${p1}'`)).rows[0].n === n2 && (await db.query(`select status from assistant_drafts where id = '${mal}'`)).rows[0].status === 'pendiente');
+  await as(coach, `select descartar_propuesta('${mal}')`);
+  check('El coach descarta una propuesta', (await db.query(`select status from assistant_drafts where id = '${mal}'`)).rows[0].status === 'descartada');
+  check('Una propuesta descartada no se aplica', !!(await as(coach, `select aplicar_propuesta('${mal}')`)).error);
+  const dm = (await crear(coach, p1, 'mensaje', JSON.stringify({ body: 'Hola desde el asistente' }))).rows?.[0]?.id;
+  await as(coach, `select aplicar_propuesta('${dm}')`);
+  check('Un mensaje aprobado sale firmado por el coach', (await db.query(`select sender_id from messages where body = 'Hola desde el asistente'`)).rows[0]?.sender_id === coach);
+  const hab = (await db.query(`select id from habit_definitions limit 1`)).rows[0].id;
+  const dh = (await crear(coach, p1, 'habito', JSON.stringify({ habit_id: hab, days_of_week: [1, 3, 5], coach_note: 'Por la mañana' }))).rows?.[0]?.id;
+  await as(coach, `select aplicar_propuesta('${dh}')`);
+  check('Un hábito aprobado queda asignado', (await db.query(`select days_of_week from patient_habits where patient_id = '${p1}' and coach_note = 'Por la mañana'`)).rows[0]?.days_of_week?.join(',') === '1,3,5');
+  check('Nadie borra propuestas', !!(await as(coach, `delete from assistant_drafts where id = '${d1}'`)).error || (await db.query(`select count(*)::int n from assistant_drafts where id = '${d1}'`)).rows[0].n === 1);
+}
+
+// 0031: enlace a la carpeta del histórico
+{
+  const pa = (await db.query(`select id from profiles where role = 'patient' order by created_at limit 1`)).rows[0].id;
+  check('Sin doble factor no se guarda el enlace de la carpeta', !!(await as(coach, `update clinical_records set archive_url = 'https://onedrive.live.com/x' where patient_id = '${pa}'`)).error || (await db.query(`select archive_url from clinical_records where patient_id = '${pa}'`)).rows[0]?.archive_url == null);
+  check('Con doble factor se guarda un enlace https', !(await mfa(coach, `update clinical_records set archive_url = 'https://onedrive.live.com/carpeta' where patient_id = '${pa}'`)).error);
+  check('Un enlace que no es https se rechaza', !!(await mfa(coach, `update clinical_records set archive_url = 'javascript:alert(1)' where patient_id = '${pa}'`)).error);
+  check('El paciente no ve el enlace de su carpeta', ((await as(pa, `select archive_url from clinical_records`)).rows ?? []).length === 0);
+}
+
+// 0032: condiciones 1.5 (asistente de IA y ubicación)
+{
+  const v = (await db.query(`select version, retired_at from consent_versions order by version`)).rows;
+  check('La 1.5 está vigente', v.some((r) => r.version === '1.5' && r.retired_at === null));
+  check('La 1.4 sigue vigente: nadie se queda sin acceso', v.some((r) => r.version === '1.4' && r.retired_at === null));
 }
 
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones

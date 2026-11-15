@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import Acceso from './core/acceso/Acceso';
 import PanelCoach from './core/coach/PanelCoach';
 import AppPaciente from './core/paciente/AppPaciente';
+import Autorizar from './core/asistente/Autorizar';
 import { limpiarCuenta } from './modules/entrenamiento/paciente/datos';
 
 type Perfil = { full_name: string; role: 'coach' | 'patient'; status: 'active' | 'paused' | 'archived' };
@@ -97,5 +98,7 @@ export default function App() {
     return <Mensaje titulo="Tu app está en camino" texto="Estamos terminando de conectar la app. Vuelve a abrirla en unos días." />;
   if (session === undefined) return <Mensaje titulo="Cargando…" texto="Un momento." />;
   if (!session) return <Acceso supabase={supabase} />;
+  // Claude abre esta página para conectar el asistente del coach (OAuth)
+  if (window.location.pathname === '/oauth/consent') return <Autorizar supabase={supabase} userId={session.user.id} />;
   return <Inicio supabase={supabase} session={session} />;
 }
