@@ -30,9 +30,11 @@ export default function CuestionariosCoach({ supabase, pacienteId }: { supabase:
     setVersion((v) => v + 1);
   }
 
-  const checkins = resp.filter((r) => asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug === 'checkin-semanal').slice().reverse();
+  // El cuestionario de cada respuesta. Asignaciones y respuestas llegan por separado: si aún no está, se espera (no rompe la pantalla).
+  const cuestionarioDe = (r: Respuesta) => asig.find((a) => a.id === r.assignment_id)?.questionnaires ?? catalogo.find((c) => c.id === r.questionnaire_id);
+  const checkins = resp.filter((r) => cuestionarioDe(r)?.slug === 'checkin-semanal').slice().reverse();
   const ultimos = checkins.slice(-12);
-  const otros = resp.filter((r) => !['checkin-semanal'].includes(asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug ?? ''));
+  const otros = resp.filter((r) => { const q = cuestionarioDe(r); return !!q && q.slug !== 'checkin-semanal' && q.slug !== 'rmeq'; });
   const t = crono?.chronotype ? CRONOTIPOS[crono.chronotype] : null;
 
   return (
@@ -86,11 +88,11 @@ export default function CuestionariosCoach({ supabase, pacienteId }: { supabase:
           )}
         </div>
       </div>
-      {otros.filter((r) => asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug !== 'rmeq').length > 0 && (
+      {otros.length > 0 && (
         <div className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
           <h4 className="font-bold">Otras respuestas</h4>
-          {otros.filter((r) => asig.find((a) => a.id === r.assignment_id)?.questionnaires.slug !== 'rmeq').slice(0, 20).map((r) => {
-            const q = asig.find((a) => a.id === r.assignment_id)!.questionnaires;
+          {otros.slice(0, 20).map((r) => {
+            const q = cuestionarioDe(r)!;
             return (
               <details key={r.id} className="border-t border-gris-claro pt-2">
                 <summary className="cursor-pointer font-semibold">{q.title} <span className="font-normal text-texto-suave">· {new Date(r.submitted_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}{r.score != null ? ` · ${r.score} puntos` : ''}</span></summary>
