@@ -653,6 +653,15 @@ check('El coach las ve', (await as(coach, `select count(*)::int n from breathing
   check('Un paciente no puede usar esas funciones', !!(await as(p1, `select _usuario_por_email('c@x')`)).error && !!(await as(coach, `select _completar_alta('${huerfano}', 'X', 'x@x')`)).error);
 }
 
+// 0031: enlace a la carpeta del histórico
+{
+  const pa = (await db.query(`select id from profiles where role = 'patient' order by created_at limit 1`)).rows[0].id;
+  check('Sin doble factor no se guarda el enlace de la carpeta', !!(await as(coach, `update clinical_records set archive_url = 'https://onedrive.live.com/x' where patient_id = '${pa}'`)).error || (await db.query(`select archive_url from clinical_records where patient_id = '${pa}'`)).rows[0]?.archive_url == null);
+  check('Con doble factor se guarda un enlace https', !(await mfa(coach, `update clinical_records set archive_url = 'https://onedrive.live.com/carpeta' where patient_id = '${pa}'`)).error);
+  check('Un enlace que no es https se rechaza', !!(await mfa(coach, `update clinical_records set archive_url = 'javascript:alert(1)' where patient_id = '${pa}'`)).error);
+  check('El paciente no ve el enlace de su carpeta', ((await as(pa, `select archive_url from clinical_records`)).rows ?? []).length === 0);
+}
+
 // El diseño de fase 2 (no aplicado en Supabase) debe seguir siendo válido sobre las migraciones
 await db.exec(fs.readFileSync(new URL('../diseno/fase2_habitos_circadiano_cuestionarios.sql', import.meta.url), 'utf8'));
 await db.exec('grant select, insert, update, delete on all tables in schema public to authenticated');
